@@ -1,0 +1,50 @@
+## FINAL SOURCE CODE SETUP
+
+- Kindly follow the following instruction to setup the final source code, down below, there is Setup video you must watch till the end to understand what you have got and how to run the project
+
+# Setup Vudeo Link
+
+- URL: https://youtu.be/-T_qIfAt5c8?si=SAkBhgW5uorOo7pP
+
+📌 Timestamps
+00:00:00 ➤ Introduction
+00:00:23 ➤ Starter File
+00:01:44 ➤ Final Source Code
+00:02:18 ➤ Project Structure
+00:07:35 ➤ Context
+00:10:09 ➤ Pages
+00:11:08 ➤ Provider
+00:12:02 ➤ Public Assets
+00:13:22 ➤ Required Environmental Variables
+00:20:15 ➤ TokenICO Contract
+00:24:39 ➤ Scripts
+00:30:53 ➤ Etherscan API Key
+00:32:07 ➤ Localhost Setup & Deployment
+00:39:07 ➤ Get Environmental Variables
+00:48:13 ➤ Frontend Testing & Contract
+00:50:19 ➤ MetaMask Localhost Setup
+00:54:24 ➤ Starting TokenICO Contract
+00:56:02 ➤ Functions Testing & Transactions
+01:15:51 ➤ Holesky Test Network
+01:23:55 ➤ Sepolia Test Network
+01:30:45 ➤ Hostinger Deployment
+
+
+####  Hostinger Deployment Online
+
+```
+  WATCH: Hostinger
+  Get : Discount 50%
+  URL: https://www.hostg.xyz/aff_c?offer_id=6&aff_id=139422
+```
+
+
+## Support EmailID
+
+- EmailID: theblockchaincoders@gmail.com
+
+- If you have any question related to the project, kindly connect to this emailID: (theblockchaincoders@gmail.com) for any help, In the email kindly provide the follow details about the project and your purchased emailID Likes
+
+1. EmailID: Which you have used when you bought the code
+2. Share Project URL: 
+3. Screenshot / Screen recording of error : Error which you are facing
