@@ -16,7 +16,7 @@ import { injected, metaMask, safe, walletConnect } from "wagmi/connectors";
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
 
 export const config = getDefaultConfig({
-  appName: "CryptoKing",
+  appName: "Savitri Network",
   projectId: projectId,
   chains: [localhost],
   ssr: true,

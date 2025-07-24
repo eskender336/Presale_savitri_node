@@ -322,7 +322,7 @@ const Staking = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaChartBar className="mr-2 text-[#34CCC3]" />
+                  <FaChartBar className="mr-2 text-[#9761F4]" />
                   Staking Stats
                 </h2>
               </div>
@@ -330,7 +330,7 @@ const Staking = ({ isDarkMode }) => {
               <div className="p-6 space-y-4">
                 {/* Staking Info */}
                 <div>
-                  <h3 className="text-lg font-medium text-[#34CCC3] mb-3">
+                  <h3 className="text-lg font-medium text-[#9761F4] mb-3">
                     Staking Information
                   </h3>
                   <div className="space-y-2">
@@ -364,7 +364,7 @@ const Staking = ({ isDarkMode }) => {
 
                 {/* Your Staking Info */}
                 <div>
-                  <h3 className="text-lg font-medium text-[#34CCC3] mb-3">
+                  <h3 className="text-lg font-medium text-[#9761F4] mb-3">
                     Your Staking Overview
                   </h3>
                   <div className="space-y-2">
@@ -404,7 +404,7 @@ const Staking = ({ isDarkMode }) => {
 
                 {/* APY Boosters */}
                 <div>
-                  <h3 className="text-lg font-medium text-[#34CCC3] mb-3">
+                  <h3 className="text-lg font-medium text-[#9761F4] mb-3">
                     APY Boosters
                   </h3>
                   <div className={`${theme.cardBg} rounded-lg p-4 space-y-3`}>
@@ -415,7 +415,7 @@ const Staking = ({ isDarkMode }) => {
                         </span>
                         <p className={`text-sm ${theme.textMuted}`}>Base APY</p>
                       </div>
-                      <span className="text-[#34CCC3] font-bold">
+                      <span className="text-[#9761F4] font-bold">
                         {stakingInfo?.baseAPY}%
                       </span>
                     </div>
@@ -428,7 +428,7 @@ const Staking = ({ isDarkMode }) => {
                           1.5x Bonus
                         </p>
                       </div>
-                      <span className="text-[#34CCC3] font-bold">
+                      <span className="text-[#9761F4] font-bold">
                         {parseFloat(stakingInfo?.baseAPY) * 1.5}%
                       </span>
                     </div>
@@ -439,7 +439,7 @@ const Staking = ({ isDarkMode }) => {
                         </span>
                         <p className={`text-sm ${theme.textMuted}`}>2x Bonus</p>
                       </div>
-                      <span className="text-[#34CCC3] font-bold">
+                      <span className="text-[#9761F4] font-bold">
                         {parseFloat(stakingInfo?.baseAPY) * 2}%
                       </span>
                     </div>
@@ -450,7 +450,7 @@ const Staking = ({ isDarkMode }) => {
                         </span>
                         <p className={`text-sm ${theme.textMuted}`}>3x Bonus</p>
                       </div>
-                      <span className="text-[#34CCC3] font-bold">
+                      <span className="text-[#9761F4] font-bold">
                         {parseFloat(stakingInfo?.baseAPY) * 3}%
                       </span>
                     </div>
@@ -467,7 +467,7 @@ const Staking = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaLock className="mr-2 text-[#34CCC3]" />
+                  <FaLock className="mr-2 text-[#9761F4]" />
                   Stake Your Tokens
                 </h2>
               </div>
@@ -792,7 +792,7 @@ const Staking = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaChartLine className="mr-2 text-[#34CCC3]" />
+                  <FaChartLine className="mr-2 text-[#9761F4]" />
                   Global Staking Analytics
                 </h2>
               </div>
@@ -805,7 +805,7 @@ const Staking = ({ isDarkMode }) => {
                       {formatLargeNumber(stakingInfo?.totalStaked || 0)}{" "}
                       {TOKEN_SYMBOL}
                     </h3>
-                    <p className="text-sm text-[#34CCC3]">
+                    <p className="text-sm text-[#9761F4]">
                       $
                       {formatLargeNumber(
                         (stakingInfo?.totalStaked || 0) *
@@ -818,7 +818,7 @@ const Staking = ({ isDarkMode }) => {
                     <h3 className={`text-2xl font-bold ${theme.text}`}>
                       {formatLargeNumber(stakingInfo?.totalStakers || 0)}
                     </h3>
-                    <p className="text-sm text-[#34CCC3]">
+                    <p className="text-sm text-[#9761F4]">
                       Active Participants
                     </p>
                   </div>
@@ -830,7 +830,7 @@ const Staking = ({ isDarkMode }) => {
                       )}{" "}
                       {TOKEN_SYMBOL}
                     </h3>
-                    <p className="text-sm text-[#34CCC3]">Since Launch</p>
+                    <p className="text-sm text-[#9761F4]">Since Launch</p>
                   </div>
                 </div>
               </div>

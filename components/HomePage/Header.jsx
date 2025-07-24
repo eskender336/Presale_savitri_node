@@ -283,7 +283,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 <div className="absolute inset-0 "></div>
                 <div className="absolute inset-1 flex items-center justify-center">
                   <img
-                    src="/CryptoKing.png"
+                    src="/SavitriNetwork.png"
                     alt="Logo"
                     className="w-6 h-6 object-contain"
                   />
@@ -552,7 +552,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   <div className="absolute inset-0 "></div>
                   <div className="absolute inset-1 flex items-center justify-center ">
                     <img
-                      src="/CryptoKing.png"
+                      src="/SavitriNetwork.png"
                       alt="Logo"
                       className="w-6 h-6 object-contain"
                     />

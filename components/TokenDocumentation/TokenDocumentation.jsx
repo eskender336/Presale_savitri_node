@@ -26,8 +26,8 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
     text: isDarkMode ? "text-white" : "text-gray-900",
     textSecondary: isDarkMode ? "text-gray-400" : "text-gray-600",
     border: isDarkMode ? "border-gray-800" : "border-gray-200",
-    activeTab: isDarkMode ? "text-[#34CCC3]" : "text-[#34CCC3]",
-    activeTabBorder: isDarkMode ? "bg-[#34CCC3]" : "bg-[#34CCC3]",
+    activeTab: isDarkMode ? "text-[#9761F4]" : "text-[#9761F4]",
+    activeTabBorder: isDarkMode ? "bg-[#9761F4]" : "bg-[#9761F4]",
     hoverText: isDarkMode ? "hover:text-gray-300" : "hover:text-gray-700",
   };
 
@@ -97,7 +97,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
               </div>
               <div className="flex items-center justify-between">
                 <span className={theme.textSecondary}>Team & Development</span>
-                <span className="text-[#34CCC3]">15%</span>
+                <span className="text-[#9761F4]">15%</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className={theme.textSecondary}>Marketing</span>
@@ -140,7 +140,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
     roadmap: (
       <div className="space-y-12">
         <div>
-          <h3 className="text-xl text-[#34CCC3] mb-4">Phase 1 - Q1 2024</h3>
+          <h3 className="text-xl text-[#9761F4] mb-4">Phase 1 - Q1 2024</h3>
           <ul className={`space-y-2 ${theme.textSecondary}`}>
             <li>• Token development and smart contract audit</li>
             <li>• Website and whitepaper launch</li>
@@ -149,7 +149,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
         </div>
 
         <div>
-          <h3 className="text-xl text-[#34CCC3] mb-4">Phase 2 - Q2 2024</h3>
+          <h3 className="text-xl text-[#9761F4] mb-4">Phase 2 - Q2 2024</h3>
           <ul className={`space-y-2 ${theme.textSecondary}`}>
             <li>• Token presale launch</li>
             <li>• DEX listing and liquidity pool creation</li>
@@ -158,7 +158,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
         </div>
 
         <div>
-          <h3 className="text-xl text-[#34CCC3] mb-4">Phase 3 - Q3 2024</h3>
+          <h3 className="text-xl text-[#9761F4] mb-4">Phase 3 - Q3 2024</h3>
           <ul className={`space-y-2 ${theme.textSecondary}`}>
             <li>• Platform development</li>
             <li>• Partnership announcements</li>
@@ -275,7 +275,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
           </h2>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <FaShieldAlt className="text-[#34CCC3] w-6 h-6" />
+              <FaShieldAlt className="text-[#9761F4] w-6 h-6" />
               <div>
                 <h3 className={`${theme.text} text-lg`}>
                   Multi-Signature Wallet
@@ -288,7 +288,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
             </div>
 
             <div className="flex items-center gap-4">
-              <FaLock className="text-[#34CCC3] w-6 h-6" />
+              <FaLock className="text-[#9761F4] w-6 h-6" />
               <div>
                 <h3 className={`${theme.text} text-lg`}>Vesting Schedule</h3>
                 <p className={theme.textSecondary}>
@@ -298,7 +298,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
             </div>
 
             <div className="flex items-center gap-4">
-              <FaShieldAlt className="text-[#34CCC3] w-6 h-6" />
+              <FaShieldAlt className="text-[#9761F4] w-6 h-6" />
               <div>
                 <h3 className={`${theme.text} text-lg`}>Emergency Pause</h3>
                 <p className={theme.textSecondary}>
