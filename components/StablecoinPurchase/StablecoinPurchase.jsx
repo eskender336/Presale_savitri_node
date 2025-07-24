@@ -239,7 +239,7 @@ const StablecoinPurchase = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaExchangeAlt className="mr-2 text-[#34CCC3]" />
+                  <FaExchangeAlt className="mr-2 text-[#DE3657]" />
                   Exchange ETH for Stablecoins
                 </h2>
               </div>
@@ -329,7 +329,7 @@ const StablecoinPurchase = ({ isDarkMode }) => {
                     {/* Arrow */}
                     <div className="flex justify-center my-4">
                       <div className={`${theme.inputBg} p-2 rounded-full`}>
-                        <FaArrowRight className="text-[#34CCC3]" />
+                        <FaArrowRight className="text-[#DE3657]" />
                       </div>
                     </div>
 

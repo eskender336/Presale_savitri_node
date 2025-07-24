@@ -12,7 +12,7 @@ const PulseIcon = () => (
   >
     <path
       d="M4 18H10L12 10L18 26L22 14L24 18H32"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -31,7 +31,7 @@ const AIVMIcon = () => (
   >
     <path
       d="M16 6H26C28.2091 6 30 7.79086 30 10V20"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -41,23 +41,23 @@ const AIVMIcon = () => (
       width="20"
       height="18"
       rx="2"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
     />
     <path
       d="M13 22C14.6569 22 16 20.6569 16 19C16 17.3431 14.6569 16 13 16C11.3431 16 10 17.3431 10 19C10 20.6569 11.3431 22 13 22Z"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
     />
     <path
       d="M16 16L22 22"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M16 22L22 16"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -75,27 +75,27 @@ const FrameworkIcon = () => (
   >
     <path
       d="M8 6L18 10L28 6"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M18 10V30"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M8 6V22L18 30"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M28 6V22L18 30"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -112,41 +112,41 @@ const GovernanceIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
     className="group-hover:animate-pulse"
   >
-    <path d="M18 4V8" stroke="#34CCC3" strokeWidth="2" strokeLinecap="round" />
+    <path d="M18 4V8" stroke="#DE3657" strokeWidth="2" strokeLinecap="round" />
     <path
       d="M18 28V32"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M8.34 8.34L11.17 11.17"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M24.83 24.83L27.66 27.66"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
-    <path d="M4 18H8" stroke="#34CCC3" strokeWidth="2" strokeLinecap="round" />
+    <path d="M4 18H8" stroke="#DE3657" strokeWidth="2" strokeLinecap="round" />
     <path
       d="M28 18H32"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M8.34 27.66L11.17 24.83"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M24.83 11.17L27.66 8.34"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -168,19 +168,19 @@ const MemecoinIcon = () => (
       width="20"
       height="28"
       rx="2"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
     />
-    <circle cx="18" cy="24" r="4" stroke="#34CCC3" strokeWidth="2" />
+    <circle cx="18" cy="24" r="4" stroke="#DE3657" strokeWidth="2" />
     <path
       d="M14 10H22"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
     <path
       d="M14 14H22"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -198,21 +198,21 @@ const DecentralizedIcon = () => (
   >
     <path
       d="M4 18L10 12L16 18L10 24L4 18Z"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M16 18L22 12L28 18L22 24L16 18Z"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M28 18L32 14"
-      stroke="#34CCC3"
+      stroke="#DE3657"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

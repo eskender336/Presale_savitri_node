@@ -244,7 +244,7 @@ const AdminOverview = ({ isDarkMode }) => {
                       <div
                         className={`flex items-center gap-2 ${theme.textSecondary} mb-2`}
                       >
-                        <FaCoins className="text-[#34CCC3]" />
+                        <FaCoins className="text-[#DE3657]" />
                         <span>Sale Token</span>
                       </div>
                       <div
@@ -259,7 +259,7 @@ const AdminOverview = ({ isDarkMode }) => {
                       <div
                         className={`flex items-center gap-2 ${theme.textSecondary} mb-2`}
                       >
-                        <FaExchangeAlt className="text-[#34CCC3]" />
+                        <FaExchangeAlt className="text-[#DE3657]" />
                         <span>Total Tokens Sold</span>
                       </div>
                       <div
@@ -472,7 +472,7 @@ const AdminOverview = ({ isDarkMode }) => {
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.text} text-sm`}
                             >
                               <div className="flex items-center gap-2">
-                                <FaCoins className="text-[#34CCC3]" />
+                                <FaCoins className="text-[#DE3657]" />
                                 <span>
                                   {TOKEN_NAME} ({TOKEN_SYMBOL})
                                 </span>

@@ -265,7 +265,7 @@ const UserDashboard = ({ isDarkMode }) => {
                 isDarkMode ? "bg-[#1A1825]" : "bg-gray-100"
               } rounded-lg px-3 py-2 gap-3`}
             >
-              <FaWallet className="text-[#34CCC3]" />
+              <FaWallet className="text-[#DE3657]" />
               <span className={theme.text}>{formatAddress(account)}</span>
               <button
                 onClick={copyAddressToClipboard}
@@ -312,7 +312,7 @@ const UserDashboard = ({ isDarkMode }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaCoins className="text-[#34CCC3] text-xl" />
+                      <FaCoins className="text-[#DE3657] text-xl" />
                       <span className={theme.textSecondary}>Total Balance</span>
                     </div>
                     <h3 className={`text-2xl font-bold ${theme.text} mb-1`}>
@@ -326,7 +326,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaEthereum className="text-[#34CCC3] text-xl" />
+                      <FaEthereum className="text-[#DE3657] text-xl" />
                       <span className={theme.textSecondary}>
                         {CURRENCY} Balance
                       </span>
@@ -342,7 +342,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaGift className="text-[#34CCC3] text-xl" />
+                      <FaGift className="text-[#DE3657] text-xl" />
 
                       <span className={theme.textSecondary}>
                         {TOKEN_SYMBOL} Purchased
@@ -358,7 +358,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaExchangeAlt className="text-[#34CCC3] text-xl" />
+                      <FaExchangeAlt className="text-[#DE3657] text-xl" />
                       <span className={theme.textSecondary}>Transactions</span>
                     </div>
                     <h3 className={`text-2xl font-bold ${theme.text} mb-1`}>
@@ -382,7 +382,7 @@ const UserDashboard = ({ isDarkMode }) => {
                     </h3>
                     <button
                       onClick={() => setActiveTab("transactions")}
-                      className="text-[#34CCC3] text-sm hover:text-purple-300"
+                      className="text-[#DE3657] text-sm hover:text-purple-300"
                     >
                       View All
                     </button>
@@ -405,7 +405,7 @@ const UserDashboard = ({ isDarkMode }) => {
                             {tx.transactionType === "BUY" ? (
                               <FaExchangeAlt className="text-blue-400" />
                             ) : (
-                              <FaGift className="text-[#34CCC3]" />
+                              <FaGift className="text-[#DE3657]" />
                             )}
                           </div>
                           <div>
@@ -450,7 +450,7 @@ const UserDashboard = ({ isDarkMode }) => {
                 {/* Referral Link */}
                 <div className={`${theme.card} rounded-xl p-6`}>
                   <div className="flex items-center gap-3 mb-4">
-                    <FaGift className="text-[#34CCC3]" />
+                    <FaGift className="text-[#DE3657]" />
                     <h3 className={`text-lg font-semibold ${theme.text}`}>
                       Your Referral Link
                     </h3>
@@ -468,7 +468,7 @@ const UserDashboard = ({ isDarkMode }) => {
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="text-[#34CCC3] hover:text-purple-300 p-2"
+                      className="text-[#DE3657] hover:text-purple-300 p-2"
                     >
                       {copied ? <FaCheck /> : <FaCopy />}
                     </button>
@@ -503,7 +503,7 @@ const UserDashboard = ({ isDarkMode }) => {
                     <div className="px-6 py-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center">
-                          {/* <FaCoins className="text-[#34CCC3]" /> */}
+                          {/* <FaCoins className="text-[#DE3657]" /> */}
                           <img
                             style={{
                               width: "3rem",
@@ -653,7 +653,7 @@ const UserDashboard = ({ isDarkMode }) => {
                                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                   tx.transactionType === "BUY"
                                     ? "bg-blue-900/30 text-blue-400"
-                                    : "bg-purple-900/30 text-[#34CCC3]"
+                                    : "bg-purple-900/30 text-[#DE3657]"
                                 }`}
                               >
                                 {tx.transactionType}
@@ -686,7 +686,7 @@ const UserDashboard = ({ isDarkMode }) => {
                                 href={`${EXPLORER_ADDRESS_URL}${tx.user}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[#34CCC3] hover:text-purple-300"
+                                className="text-[#DE3657] hover:text-purple-300"
                               >
                                 {formatHash(tx.user)}
                               </a>
@@ -729,7 +729,7 @@ const UserDashboard = ({ isDarkMode }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaGift className="text-[#34CCC3] text-xl" />
+                      <FaGift className="text-[#DE3657] text-xl" />
                       <span className={`text-xs ${theme.textSecondary}`}>
                         Total Referrals
                       </span>
@@ -741,7 +741,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaCoins className="text-[#34CCC3] text-xl" />
+                      <FaCoins className="text-[#DE3657] text-xl" />
                       <span className={`text-xs ${theme.textSecondary}`}>
                         Total Rewards
                       </span>
@@ -756,7 +756,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaExchangeAlt className="text-[#34CCC3] text-xl" />
+                      <FaExchangeAlt className="text-[#DE3657] text-xl" />
                       <span className={`text-xs ${theme.textSecondary}`}>
                         Reward Rate
                       </span>
@@ -771,7 +771,7 @@ const UserDashboard = ({ isDarkMode }) => {
 
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex justify-between items-start mb-4">
-                      <FaGift className="text-[#34CCC3]" />
+                      <FaGift className="text-[#DE3657]" />
                       <span className={`text-xs ${theme.textSecondary}`}>
                         {" "}
                         Your Referrer
@@ -788,7 +788,7 @@ const UserDashboard = ({ isDarkMode }) => {
                           setCopiedRef(true);
                           setTimeout(() => setCopied(false), 2000);
                         }}
-                        className="text-[#34CCC3] hover:text-purple-300 p-2"
+                        className="text-[#DE3657] hover:text-purple-300 p-2"
                       >
                         {copiedRef ? <FaCheck /> : <FaCopy />}
                       </button>
@@ -803,7 +803,7 @@ const UserDashboard = ({ isDarkMode }) => {
                     "0x0000000000000000000000000000000000000000") && (
                   <div className={`${theme.card} rounded-xl p-6`}>
                     <div className="flex items-center gap-3 mb-4">
-                      <FaGift className="text-[#34CCC3]" />
+                      <FaGift className="text-[#DE3657]" />
                       <h3 className={`text-lg font-semibold ${theme.text}`}>
                         Register a Referrer
                       </h3>
@@ -847,7 +847,7 @@ const UserDashboard = ({ isDarkMode }) => {
                 {/* Referral Link */}
                 <div className={`${theme.card} rounded-xl p-6`}>
                   <div className="flex items-center gap-3 mb-4">
-                    <FaGift className="text-[#34CCC3]" />
+                    <FaGift className="text-[#DE3657]" />
                     <h3 className={`text-lg font-semibold ${theme.text}`}>
                       Your Referral Link
                     </h3>
@@ -865,7 +865,7 @@ const UserDashboard = ({ isDarkMode }) => {
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="text-[#34CCC3] hover:text-purple-300 p-2"
+                      className="text-[#DE3657] hover:text-purple-300 p-2"
                     >
                       {copied ? <FaCheck /> : <FaCopy />}
                     </button>
@@ -914,7 +914,7 @@ const UserDashboard = ({ isDarkMode }) => {
                             <td className={`px-6 py-4 ${theme.text}`}>
                               {tx.purchaseAmount} {TOKEN_SYMBOL}
                             </td>
-                            <td className={`px-6 py-4 text-[#34CCC3]`}>
+                            <td className={`px-6 py-4 text-[#DE3657]`}>
                               {tx.rewardAmount} {TOKEN_SYMBOL}
                             </td>
                             <td

@@ -516,7 +516,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                       className={`${theme.innerBg} rounded-xl p-4 mb-6 flex items-center justify-between`}
                     >
                       <div className="flex items-center gap-3">
-                        <FaWallet className="text-[#34CCC3]" />
+                        <FaWallet className="text-[#DE3657]" />
                         <div>
                           <span className={theme.textSecondary + " text-sm"}>
                             Connected as
@@ -611,7 +611,7 @@ const TokenTransfer = ({ isDarkMode }) => {
 
                           {customTokenInfo.isValid && (
                             <div className="mt-2 text-sm">
-                              <span className="text-[#34CCC3]">
+                              <span className="text-[#DE3657]">
                                 {customTokenInfo.name}
                               </span>
                               <span className={`${theme.textSecondary} mx-2`}>
@@ -700,7 +700,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                             <button
                               type="button"
                               onClick={handleMaxAmount}
-                              className="text-[#34CCC3] text-sm hover:text-purple-300 mr-2"
+                              className="text-[#DE3657] text-sm hover:text-purple-300 mr-2"
                             >
                               MAX
                             </button>
@@ -740,7 +740,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                                 href={`${EXPLORER_TX}${transactionHash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[#34CCC3] hover:text-purple-300 mt-2 inline-block"
+                                className="text-[#DE3657] hover:text-purple-300 mt-2 inline-block"
                               >
                                 View on Etherscan
                               </a>
@@ -797,7 +797,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                             href={`${EXPLORER_TX}${tx.hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#34CCC3] hover:text-purple-300 text-xs"
+                            className="text-[#DE3657] hover:text-purple-300 text-xs"
                           >
                             {tx.hash.substring(0, 6)}...
                             {tx.hash.substring(tx.hash.length - 4)}

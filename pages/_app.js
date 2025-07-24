@@ -19,7 +19,7 @@ function MyApp({ Component, pageProps }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor: "#34CCC3",
+            accentColor: "#DE3657",
             accentColorForeground: "white",
             borderRadius: "small",
             fontStack: "system",

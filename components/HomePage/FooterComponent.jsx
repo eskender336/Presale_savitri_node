@@ -38,9 +38,9 @@ const FooterComponent = ({ isDarkMode }) => {
                   offset="0%"
                   stopColor={isDarkMode ? "#0F0F1B" : "#f9fafb"}
                 />
-                <stop offset="25%" stopColor="#34CCC3" /> {/* Teal color */}
+                <stop offset="25%" stopColor="#DE3657" /> {/* Teal color */}
                 <stop offset="50%" stopColor="#4F46E5" /> {/* Indigo color */}
-                <stop offset="75%" stopColor="#34CCC3" /> {/* Teal color */}
+                <stop offset="75%" stopColor="#DE3657" /> {/* Teal color */}
                 <stop
                   offset="100%"
                   stopColor={isDarkMode ? "#0F0F1B" : "#f9fafb"}

@@ -259,7 +259,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaWallet className="mr-2 text-[#34CCC3]" />
+                  <FaWallet className="mr-2 text-[#DE3657]" />
                   Withdraw Tokens
                 </h2>
                 <div
@@ -362,7 +362,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                       <span className={theme.textSecondary}>Owner Wallet</span>
                     </div>
                     <div className="flex items-center">
-                      <FaWallet className="text-[#34CCC3] mr-2" />
+                      <FaWallet className="text-[#DE3657] mr-2" />
                       <span className={theme.text}>Contract Owner</span>
                       <FaArrowRight className={`${theme.arrowColor} mx-4`} />
                       <span
@@ -473,7 +473,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                               href={`${EXPLORER_ADDRESS_URL}${withdrawal.address}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[#34CCC3] "
+                              className="text-[#DE3657] "
                             >
                               {formatAddress(withdrawal.address)}
                             </a>
