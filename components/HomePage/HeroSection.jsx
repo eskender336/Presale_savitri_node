@@ -744,7 +744,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                         </span>
                         <div className="w-6 h-6 flex items-center justify-center">
                           <img
-                            src="/CryptoKing.png"
+                            src="/SavitriNetwork.png"
                             alt={TOKEN_SYMBOL}
                             className="w-5 h-5"
                           />

@@ -72,7 +72,7 @@ const FooterComponent = ({ isDarkMode }) => {
                   isDarkMode ? "bg-[#0E0B12]" : "bg-gray-50"
                 }`}
               >
-                <img src="/CryptoKing.png" alt="" />
+                <img src="/SavitriNetwork.png" alt="" />
               </div>
             </div>
           </div>

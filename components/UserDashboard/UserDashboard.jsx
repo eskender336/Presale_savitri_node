@@ -508,7 +508,7 @@ const UserDashboard = ({ isDarkMode }) => {
                             style={{
                               width: "3rem",
                             }}
-                            src="/CryptoKing.png"
+                            src="/SavitriNetwork.png"
                             alt=""
                             srcset=""
                           />

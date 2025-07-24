@@ -98,7 +98,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
         return (
           <span className="text-blue-500">
             <img
-              src="/CryptoKing.png"
+              src="/SavitriNetwork.png"
               style={{
                 width: "1rem",
               }}
