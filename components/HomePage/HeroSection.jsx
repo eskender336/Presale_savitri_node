@@ -348,7 +348,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const bgColor = isDarkMode ? "bg-[#0E0B12]" : "bg-[#F5F7FA]";
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
   const secondaryTextColor = isDarkMode ? "text-gray-400" : "text-gray-600";
-  const cardBg = isDarkMode ? "bg-[#252525]" : "bg-white/95";
+  const cardBg = isDarkMode ? "bg-[#110022]" : "bg-white/95";
   const cardBorder = isDarkMode ? "border-gray-800/30" : "border-gray-100";
   const inputBg = isDarkMode
     ? "bg-gray-900/60 border-gray-800/50"

@@ -249,7 +249,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           <div className="p-4 sm:p-6 pb-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="flex items-center gap-3">
-                <div className="text-[#DE3657]">
+                <div className="text-[#9761F4]">
                   <FaDollarSign className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
                 <div>
@@ -274,7 +274,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
                 .map((transaction, index) => (
                   <div key={index} className={`p-4 border-b ${theme.border}`}>
                     <div className="flex justify-between items-start mb-2">
-                      <div className="text-[#DE3657] break-all">
+                      <div className="text-[#9761F4] break-all">
                         {formatHash(transaction.user)}
                       </div>
                       <span
@@ -358,7 +358,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
                   allTransaction
                     .map((transaction, index) => (
                       <tr key={index} className={`border-b ${theme.border}`}>
-                        <td className="p-6 pl-6 text-[#DE3657]">
+                        <td className="p-6 pl-6 text-[#9761F4]">
                           {formatHash(transaction.user)}
                         </td>
                         <td className={`p-6 ${theme.text}`}>

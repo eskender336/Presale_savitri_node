@@ -5,14 +5,14 @@ const WalletConnect = ({ isDarkMode }) => {
   // Theme configuration
   const theme = {
     mainBg: isDarkMode
-      ? "bg-gradient-to-b from-[#252525] to-[#252525]"
+      ? "bg-gradient-to-b from-[#110022] to-[#110022]"
       : "bg-gradient-to-b from-gray-100 to-white",
     cardBg: isDarkMode ? "bg-gray-800 bg-opacity-50" : "bg-white",
     cardBorder: isDarkMode
       ? "border-purple-500 border-opacity-30 hover:border-opacity-70"
       : "border-purple-400 border-opacity-30 hover:border-opacity-70",
     outerCircleBg: isDarkMode ? "bg-purple-800 bg-opacity-30" : "bg-purple-100",
-    innerCircleBg: isDarkMode ? "bg-[#DE3657]" : "bg-[#DE3657]",
+    innerCircleBg: isDarkMode ? "bg-[#9761F4]" : "bg-[#9761F4]",
     title: isDarkMode ? "text-white opacity-80" : "text-gray-900",
     cardTitle: isDarkMode ? "text-white" : "text-gray-900",
     cardText: isDarkMode ? "text-gray-400" : "text-gray-600",

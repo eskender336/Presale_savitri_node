@@ -72,7 +72,7 @@ const ReferralPopup = ({ isOpen, onClose, isDarkMode }) => {
         {/* Referral link input */}
         <div className="px-6 pb-8">
           <div
-            className={`relative flex rounded-xl overflow-hidden border-2 border-[#DE3657] p-1`}
+            className={`relative flex rounded-xl overflow-hidden border-2 border-[#9761F4] p-1`}
           >
             <input
               type="text"
@@ -100,7 +100,7 @@ const ReferralPopup = ({ isOpen, onClose, isDarkMode }) => {
 
           {/* Additional info or social share buttons could go here */}
           <div className="mt-6 flex items-center">
-            <FaGift className="text-[#DE3657] mr-2" />
+            <FaGift className="text-[#9761F4] mr-2" />
             <p className={`text-sm ${theme.textSecondary}`}>
               Earn 5% of all purchases made through your referral link!
             </p>
