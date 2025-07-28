@@ -382,7 +382,8 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Privacy-Preserving by Design: Data never leaves the local device; only model updates are shared.
+                    <span className="font-semibold">Privacy-Preserving by Design:</span>{" "}
+                    Data never leaves the local device; only model updates are shared.
                   </span>
                 </div>
                 <div
@@ -409,7 +410,8 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Federated Learning Infrastructure: Train AI models across distributed nodes without centralizing datasets.
+                    <span className="font-semibold">Federated Learning Infrastructure:</span>{" "}
+                    Train AI models across distributed nodes without centralizing datasets.
                   </span>
                 </div>
                 <div
@@ -436,7 +438,9 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Proof of Unity Consensus: Secure, energy-efficient aggregation and verification of model updates.
+
+                    <span className="font-semibold">Proof of Unity Consensus:</span>{" "}
+                    Secure, energy-efficient aggregation and verification of model updates.
                   </span>
                 </div>
                 <div
@@ -463,7 +467,9 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Built-in Monetization Tools: Tokenized marketplace to license and monetize AI models.
+                  <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
+                    Tokenized marketplace to license and monetize AI models.
+
                   </span>
                 </div>
               </div>
