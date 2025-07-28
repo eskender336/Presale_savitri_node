@@ -54,12 +54,11 @@ const BlockchainFeatures = ({ isDarkMode }) => {
           </div>
 
           <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${textGradient}`}>
-            Innovative Blockchain Features
+            Redefining Blockchain for the Intelligent, Connected World
           </h2>
 
           <p className={`max-w-3xl mx-auto ${textSecondary} leading-relaxed`}>
-            Discover the cutting-edge technologies powering the Lightchain
-            ecosystem
+          Explore the foundational innovations powering the Savitri Network—from collaborative consensus to native AI and IoT integration.
           </p>
 
           {/* Decorative elements */}
@@ -98,10 +97,12 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                 <h2
                   className={`text-3xl md:text-4xl font-bold ${textGradient}`}
                 >
-                  Proof of Intelligence (PoI)
+                  Proof of Unity (PoU)
                 </h2>
               </div>
-
+              <h3 className={`text-2xl md:text-3xl font-bold ${textGradient}`}>
+              Decentralization without trade-offs
+              </h3>
               <p className={`leading-relaxed ${textSecondary} mb-6`}>
                 Lightchain AI introduces Proof of Intelligence (PoI), a
                 revolutionary consensus mechanism designed to reward nodes for

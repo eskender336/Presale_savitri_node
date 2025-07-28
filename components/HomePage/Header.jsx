@@ -289,13 +289,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   />
                 </div>
               </div>
-              <span
-                className={`text-xl font-bold transition-colors duration-300 ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                } group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-teal-400 group-hover:to-indigo-500`}
-              >
-                {TOKEN_NAME}
-              </span>
+              
             </Link>
           </div>
 

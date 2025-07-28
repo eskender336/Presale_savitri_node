@@ -429,26 +429,25 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
             >
               {TOKEN_NAME}{" "}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
-                {TOKEN_SYMBOL}
               </span>
             </h1>
 
             <h2 className="text-2xl md:text-3xl font-bold mb-6">
+              <span className={textColor}> Stage 1</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
-                Token
+                Token Sale
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
                 {" "}
                 Sale
               </span>
-              <span className={textColor}> Stage 1</span>
             </h2>
 
             <p
               className={`${secondaryTextColor} text-base md:text-lg max-w-md mb-8 leading-relaxed`}
             >
-              Revolutionizing intelligence through decentralized innovation.
-              Join the future of blockchain technology today.
+              Be part of the next generation of blockchain infrastructure.
+              Savitri is a scalable, energy-efficient Layer 1 designed for real-world systems—IoT, AI, and beyond.
             </p>
 
             {/* Feature highlights */}
@@ -472,7 +471,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                Limited Presale
+                Low fees. High throughput. Built to last.
+
               </div>
               <div
                 className={`px-4 py-2 rounded-full ${
@@ -493,8 +493,9 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                Exclusive Benefits
+                Own $SAVI early and help shape the decentralized future.
               </div>
+              Join the network. Claim your stake. Build what’s next.
             </div>
 
             {/* Referral button - Mobile only */}

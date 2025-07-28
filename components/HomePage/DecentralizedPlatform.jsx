@@ -47,17 +47,14 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
-            {TOKEN_NAME}
+          See What Makes Savitri Different
           </h2>
 
           {/* Description Text */}
           <p
             className={`leading-relaxed ${secondaryTextColor} max-w-3xl mx-auto`}
           >
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna. At vero eos et
-            accusamus et iusto odio dignissimos ducimus qui blanditiis
-            praesentium.
+            Savitri puts utility, integrity, and inclusion first. We are building lasting infrastructure where people own their data, devices become network citizens, and AI serves the public good. Watch the vision come alive.
           </p>
 
           {/* Decorative elements */}
@@ -193,7 +190,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
                 className="absolute top-0 left-0 w-full h-full rounded-xl"
                 src={
                   videoSrc ||
-                  "https://www.youtube.com/embed/6Dyiizlcsd8?autoplay=1"
+                  "https://youtu.be/tVPhUs6oqh0?si=J-O47YrjnWZ6Whdv"
                 }
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
