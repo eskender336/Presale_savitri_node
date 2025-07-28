@@ -139,3 +139,13 @@ body {
     }
   }
 } */
+
+/* Light text gradient class */
+.text-light-gradient {
+  background: linear-gradient(43deg, #CA5ED5 0%, #825ED5 46%, #4158D0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+

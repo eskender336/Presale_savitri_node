@@ -437,7 +437,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
                 Token
               </span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+              <span className="bg-clip-text text-transparent text-light-gradient">
                 {" "}
                 Sale
               </span>
