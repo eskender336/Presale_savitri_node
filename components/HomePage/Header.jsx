@@ -279,13 +279,13 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center group">
-              <div className="relative w-10 h-10 mr-3 overflow-hidden">
+              <div className="relative w-20 h-20 mr-3 overflow-hidden">
                 <div className="absolute inset-0 "></div>
                 <div className="absolute inset-1 flex items-center justify-center">
                   <img
                     src="/SavitriNetwork.png"
                     alt="Logo"
-                    className="w-6 h-6 object-contain"
+                    className="w-12 h-12 object-contain"
                   />
                 </div>
               </div>
@@ -542,13 +542,13 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 className="flex items-center"
                 onClick={() => setIsOpen(false)}
               >
-                <div className="relative w-10 h-10 mr-3 overflow-hidden">
+                <div className="relative w-20 h-20 mr-3 overflow-hidden">
                   <div className="absolute inset-0 "></div>
                   <div className="absolute inset-1 flex items-center justify-center ">
                     <img
                       src="/SavitriNetwork.png"
                       alt="Logo"
-                      className="w-6 h-6 object-contain"
+                      className="w-12 h-12 object-contain"
                     />
                   </div>
                 </div>
