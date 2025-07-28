@@ -139,9 +139,11 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Energy Efficient
+                    Consensus through cooperation: Nodes work in randomly selected groups to validate transactions, not compete.
+
                   </span>
                 </div>
+
                 <div
                   className={`flex items-start space-x-3 p-4 rounded-lg ${
                     isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
@@ -166,7 +168,63 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Higher Throughput
+                    Sub-second confirmations: ZKPs enable trust without re-execution, achieving ultra-fast finality.
+                  </span>
+                </div>
+
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-teal-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    Run anywhere: PoU turns laptops, phones, and even IoT sensors into active nodes—no staking or mining needed.
+                  </span>
+                </div>
+
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-indigo-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    95% lower energy: Validation uses a fraction of the power required by traditional systems.
                   </span>
                 </div>
               </div>
@@ -283,7 +341,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                 <h2
                   className={`text-3xl md:text-4xl font-bold ${textGradient}`}
                 >
-                  Artificial Intelligence Virtual Machine (AIVM)
+                  AITL: Decentralized AI Training, Built for Privacy and Collaboration
                 </h2>
               </div>
 
