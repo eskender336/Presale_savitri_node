@@ -5,7 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 const ToastContext = createContext(undefined);
 
 // Brand color and derived colors
-const BRAND_COLOR = "#13101A";
+const BRAND_COLOR = "#110022";
 const TOAST_STYLES = {
   common: {
     background: BRAND_COLOR,

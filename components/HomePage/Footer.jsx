@@ -70,7 +70,7 @@ const Footer = ({ isDarkMode }) => {
                   </svg>
                 </div>
                 <h3 className={`text-xl font-bold ${headingColor}`}>
-                  Crypto King
+                  Savitri Network
                 </h3>
               </div>
             </div>

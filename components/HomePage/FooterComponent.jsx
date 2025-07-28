@@ -38,9 +38,9 @@ const FooterComponent = ({ isDarkMode }) => {
                   offset="0%"
                   stopColor={isDarkMode ? "#0F0F1B" : "#f9fafb"}
                 />
-                <stop offset="25%" stopColor="#34CCC3" /> {/* Teal color */}
+                <stop offset="25%" stopColor="#9761F4" /> {/* Teal color */}
                 <stop offset="50%" stopColor="#4F46E5" /> {/* Indigo color */}
-                <stop offset="75%" stopColor="#34CCC3" /> {/* Teal color */}
+                <stop offset="75%" stopColor="#9761F4" /> {/* Teal color */}
                 <stop
                   offset="100%"
                   stopColor={isDarkMode ? "#0F0F1B" : "#f9fafb"}
@@ -72,7 +72,7 @@ const FooterComponent = ({ isDarkMode }) => {
                   isDarkMode ? "bg-[#0E0B12]" : "bg-gray-50"
                 }`}
               >
-                <img src="/CryptoKing.png" alt="" />
+                <img src="/SavitriNetwork.png" alt="" />
               </div>
             </div>
           </div>

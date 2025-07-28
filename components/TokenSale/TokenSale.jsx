@@ -211,7 +211,7 @@ const TokenSale = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaChartBar className="mr-2 text-[#34CCC3]" />
+                  <FaChartBar className="mr-2 text-[#9761F4]" />
                   Token Stats
                 </h2>
               </div>
@@ -219,7 +219,7 @@ const TokenSale = ({ isDarkMode }) => {
               <div className="p-6 space-y-4">
                 {/* Token Info */}
                 <div>
-                  <h3 className="text-lg font-medium text-[#34CCC3] mb-3">
+                  <h3 className="text-lg font-medium text-[#9761F4] mb-3">
                     Token Information
                   </h3>
                   <div className="space-y-2">
@@ -254,7 +254,7 @@ const TokenSale = ({ isDarkMode }) => {
 
                 {/* Sale Progress */}
                 <div>
-                  <h3 className="text-lg font-medium text-[#34CCC3] mb-3">
+                  <h3 className="text-lg font-medium text-[#9761F4] mb-3">
                     Sale Progress
                   </h3>
                   <div className="mb-2">
@@ -331,7 +331,7 @@ const TokenSale = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaExchangeAlt className="mr-2 text-[#34CCC3]" />
+                  <FaExchangeAlt className="mr-2 text-[#9761F4]" />
                   Purchase Tokens
                 </h2>
               </div>
@@ -570,10 +570,10 @@ const TokenSale = ({ isDarkMode }) => {
                 <h2
                   className={`text-xl font-bold ${theme.text} flex items-center`}
                 >
-                  <FaHistory className="mr-2 text-[#34CCC3]" />
+                  <FaHistory className="mr-2 text-[#9761F4]" />
                   Recent Transactions
                 </h2>
-                <button className="text-[#34CCC3] text-sm hover:text-purple-300">
+                <button className="text-[#9761F4] text-sm hover:text-purple-300">
                   View All
                 </button>
               </div>
