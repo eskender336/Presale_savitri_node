@@ -121,7 +121,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
             </div>
 
             {/* Text Content */}
-            <div className="w-full md:w-2/3 text-center md:text-left">
+            <div className="w-full md:w-2/3 text-left">
               <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-6">
                 <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
                   Presale Now Live
