@@ -273,12 +273,12 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
   const subtitleColor = isDarkMode ? "text-gray-400" : "text-gray-600";
 
   const headerTextColor = isDarkMode
-    ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-    : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500";
+    ? "bg-clip-text text-transparent text-light-gradient"
+    : "bg-clip-text text-transparent text-light-gradient";
 
   const accentTextColor = isDarkMode
-    ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-    : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500";
+    ? "bg-clip-text text-transparent text-light-gradient"
+    : "bg-clip-text text-transparent text-light-gradient";
 
   return (
     <div className={`w-full py-20 ${bgGradient}`}>
@@ -299,7 +299,7 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
 
           {/* Decorative elements */}
           <div className="flex justify-center mt-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"></div>
+            <div className="w-16 h-1 text-light-gradient rounded-full"></div>
           </div>
         </div>
 
@@ -317,7 +317,7 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
 
               {/* Title with gradient animation on hover */}
               <h3
-                className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 mb-4 group-hover:${headerTextColor} transition-colors duration-300`}
+                className={`text-xl font-bold bg-clip-text text-transparent text-light-gradient mb-4 group-hover:${headerTextColor} transition-colors duration-300`}
               >
                 {feature.title}
               </h3>
@@ -334,7 +334,7 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
         <div className="mt-20 text-center">
           <a
             href="#"
-            className={`inline-block py-3 px-8 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium transition-transform hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20`}
+            className={`inline-block py-3 px-8 rounded-full text-light-gradient text-white font-medium transition-transform hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20`}
           >
             Explore All Features
           </a>

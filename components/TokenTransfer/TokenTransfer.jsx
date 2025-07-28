@@ -477,7 +477,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                     onClick={() => setActiveTab("stablecoin")}
                     className={`flex-1 py-4 px-4 flex justify-center items-center gap-2 ${
                       activeTab === "stablecoin"
-                        ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                        ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                         : `${theme.textSecondary} ${theme.hover}`
                     }`}
                   >
@@ -488,7 +488,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                     onClick={() => setActiveTab("custom")}
                     className={`flex-1 py-4 px-4 flex justify-center items-center gap-2 ${
                       activeTab === "custom"
-                        ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                        ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                         : `${theme.textSecondary} ${theme.hover}`
                     }`}
                   >
@@ -504,7 +504,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                     </p>
                     <button
                       onClick={connectWallet}
-                      className="bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 px-8 rounded-xl transition-colors"
+                      className="text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 px-8 rounded-xl transition-colors"
                     >
                       Connect Wallet
                     </button>
@@ -554,7 +554,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                               onClick={() => setSelectedToken("USDT")}
                               className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 ${
                                 selectedToken === "USDT"
-                                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                                   : `${theme.buttonBg} ${theme.textSecondary} ${theme.buttonHover}`
                               }`}
                             >
@@ -566,7 +566,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                               onClick={() => setSelectedToken("USDC")}
                               className={`flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 ${
                                 selectedToken === "USDC"
-                                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                                   : `${theme.buttonBg} ${theme.textSecondary} ${theme.buttonHover}`
                               }`}
                             >
@@ -603,7 +603,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                             <button
                               type="button"
                               onClick={validateCustomToken}
-                              className="bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white px-4 rounded-r-xl"
+                              className="text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white px-4 rounded-r-xl"
                             >
                               <FaSearch />
                             </button>
@@ -758,7 +758,7 @@ const TokenTransfer = ({ isDarkMode }) => {
                           !amount ||
                           (activeTab === "custom" && !customTokenInfo.isValid)
                         }
-                        className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isProcessing ? "Processing..." : "Transfer Token"}
                       </button>

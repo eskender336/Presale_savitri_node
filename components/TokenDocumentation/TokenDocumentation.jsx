@@ -172,7 +172,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className={`${theme.cardBg} rounded-xl p-6`}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
+            <div className="w-8 h-8 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
               1
             </div>
             <h3 className={`${theme.text} text-lg`}>Create a Wallet</h3>
@@ -185,7 +185,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
 
         <div className={`${theme.cardBg} rounded-xl p-6`}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
+            <div className="w-8 h-8 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
               2
             </div>
             <h3 className={`${theme.text} text-lg`}>Get ETH</h3>
@@ -198,7 +198,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
 
         <div className={`${theme.cardBg} rounded-xl p-6`}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
+            <div className="w-8 h-8 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
               3
             </div>
             <h3 className={`${theme.text} text-lg`}>Connect Wallet</h3>
@@ -211,7 +211,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
 
         <div className={`${theme.cardBg} rounded-xl p-6`}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
+            <div className="w-8 h-8 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center text-white">
               4
             </div>
             <h3 className={`${theme.text} text-lg`}>Purchase Tokens</h3>

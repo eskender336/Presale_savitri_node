@@ -7,7 +7,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
     : "bg-gradient-to-b from-[#f3f3f7] to-[#eaeaf0]";
 
   const textGradient =
-    "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500";
+    "bg-clip-text text-transparent text-light-gradient";
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
   const textSecondary = isDarkMode ? "text-gray-400" : "text-gray-600";
 
@@ -47,8 +47,8 @@ const BlockchainFeatures = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 lg:px-6 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
-            <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+          <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
+            <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
               Core Technology
             </p>
           </div>
@@ -63,7 +63,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
 
           {/* Decorative elements */}
           <div className="flex justify-center mt-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"></div>
+            <div className="w-16 h-1 text-light-gradient rounded-full"></div>
           </div>
         </div>
 
@@ -608,7 +608,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
             </p>
             <a
               href="#"
-              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
+              className="inline-flex items-center px-6 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
             >
               Discover Savitri
               <svg

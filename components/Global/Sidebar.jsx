@@ -240,7 +240,7 @@ const Sidebar = ({
               href="#"
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
                 activeItem === item.name
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                   : `${isDarkMode ? "text-gray-400" : "text-gray-600"} 
                    hover:bg-[#23ADAC] hover:bg-opacity-20 hover:text-[#4D4BE1]`
               }`}
@@ -273,7 +273,7 @@ const Sidebar = ({
                 href="#"
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
                   activeItem === item.name
-                    ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                    ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                     : `${isDarkMode ? "text-gray-400" : "text-gray-600"} 
             hover:bg-[#23ADAC] hover:bg-opacity-20 hover:text-[#4D4BE1]`
                 }`}
@@ -321,7 +321,7 @@ const Sidebar = ({
         </div>
 
         {account && (
-          <button className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white py-3 rounded-lg mb-2 text-sm  uppercase font-medium">
+          <button className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white py-3 rounded-lg mb-2 text-sm  uppercase font-medium">
             {formatAddress(account)}
           </button>
         )}
@@ -346,7 +346,7 @@ const Sidebar = ({
             onClick={() => setIsDarkMode(true)}
             className={`p-3 rounded transition-colors flex-1 ${
               isDarkMode
-                ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                 : "text-gray-400 hover:bg-gray-100"
             }`}
           >
@@ -356,7 +356,7 @@ const Sidebar = ({
             onClick={() => setIsDarkMode(false)}
             className={`p-3 rounded transition-colors flex-1 ${
               !isDarkMode
-                ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                 : "text-gray-400 hover:bg-gray-800"
             }`}
           >

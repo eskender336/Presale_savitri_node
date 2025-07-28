@@ -94,7 +94,7 @@ const TestimonialsSlider = ({ isDarkMode }) => {
         key={index}
         className={`w-3 h-3 rounded-full mx-1 transition-all duration-300 ${
           currentIndex === index
-            ? "bg-gradient-to-r from-teal-400 to-indigo-500 w-6"
+            ? "text-light-gradient w-6"
             : isDarkMode
             ? "bg-gray-700"
             : "bg-gray-300"
@@ -126,7 +126,7 @@ const TestimonialsSlider = ({ isDarkMode }) => {
     <div className="w-full overflow-hidden">
       <div className="flex flex-col md:flex-row shadow-2xl rounded-2xl">
         {/* Left section with gradient background */}
-        <div className="bg-gradient-to-r from-teal-400 to-indigo-500 text-white py-16 px-8 md:px-16 lg:px-24 md:w-1/2 relative overflow-hidden">
+        <div className="text-light-gradient text-white py-16 px-8 md:px-16 lg:px-24 md:w-1/2 relative overflow-hidden">
           {/* Background decorative elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/4"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/4"></div>
@@ -144,7 +144,7 @@ const TestimonialsSlider = ({ isDarkMode }) => {
               Discover how our solutions have transformed businesses and
               empowered users around the world.
             </p>
-            <button className="bg-white text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500 px-8 py-3 rounded-full flex items-center font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group text-white">
+            <button className="bg-white text-transparent bg-clip-text text-light-gradient px-8 py-3 rounded-full flex items-center font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group text-white">
               Get Support
               <span className="ml-2 transform transition-transform duration-300 group-hover:translate-x-1">
                 →
@@ -172,13 +172,13 @@ const TestimonialsSlider = ({ isDarkMode }) => {
               }`}
             >
               <div className="flex items-center mb-1">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-12 h-12 rounded-full text-light-gradient flex items-center justify-center mr-4 shadow-lg">
                   <span className="text-white font-bold text-xl">
                     {currentTestimonial.name.charAt(0)}
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+                  <h3 className="text-2xl font-bold bg-clip-text text-transparent text-light-gradient">
                     {currentTestimonial.name}
                   </h3>
                   <p className={`leading-relaxed ${textSecondary}`}>
@@ -203,7 +203,7 @@ const TestimonialsSlider = ({ isDarkMode }) => {
               <div className="flex space-x-3">
                 <button
                   onClick={goToPrevious}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border border-gray-500/30 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 group"
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border border-gray-500/30 text-light-gradient hover:from-teal-400 hover:to-indigo-500 group"
                 >
                   <FiArrowLeft
                     className={`${
@@ -213,7 +213,7 @@ const TestimonialsSlider = ({ isDarkMode }) => {
                 </button>
                 <button
                   onClick={goToNext}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border border-gray-500/30 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 group"
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border border-gray-500/30 text-light-gradient hover:from-teal-400 hover:to-indigo-500 group"
                 >
                   <FiArrowRight
                     className={`${

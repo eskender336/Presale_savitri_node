@@ -62,8 +62,8 @@ const AdminFunctions = ({ isDarkMode }) => {
       ? "hover:bg-purple-900/10 hover:text-gray-300"
       : "hover:bg-purple-50 hover:text-gray-700",
     fieldTitle: isDarkMode
-      ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-      : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500",
+      ? "bg-clip-text text-transparent text-light-gradient"
+      : "bg-clip-text text-transparent text-light-gradient",
     checkboxBg: isDarkMode ? "bg-[#1A1825]" : "bg-gray-100",
   };
 
@@ -244,7 +244,7 @@ const AdminFunctions = ({ isDarkMode }) => {
               onClick={() => (setActiveTab(tab.id), resetMessage())}
               className={`flex items-center gap-2 px-4 py-3 flex-grow sm:flex-grow-0 transition-colors ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                   : `${theme.textSecondary} ${theme.tabHover}`
               }`}
             >
@@ -300,7 +300,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !stablecoinPrice}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update Stablecoin Price"}
                 </button>
@@ -329,7 +329,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !tokenPrice}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update Token Price"}
                 </button>
@@ -381,7 +381,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !saleTokenAddress}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Set Sale Token"}
                 </button>
@@ -448,7 +448,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !usdtRatio || !usdtAddress}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update USDT"}
                 </button>
@@ -492,7 +492,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !usdcRatio || !usdcAddress}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update USDC"}
                 </button>
@@ -561,7 +561,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !blockAddress}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Set Block Status"}
                 </button>
@@ -626,7 +626,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !updateBaseAPYPercent}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update Base APY"}
                 </button>
@@ -655,7 +655,7 @@ const AdminFunctions = ({ isDarkMode }) => {
                 <button
                   type="submit"
                   disabled={isProcessing || !updateMinStake}
-                  className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Update Min Stake"}
                 </button>

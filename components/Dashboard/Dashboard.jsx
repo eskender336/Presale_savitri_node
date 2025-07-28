@@ -123,7 +123,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
         {/* Total Assets Card */}
         <div className={`rounded-xl p-6 ${theme.card} ${theme.shadow}`}>
           <div className="mb-4">
-            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
+            <div className="w-12 h-12 flex items-center justify-center rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
               <FaMedal className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -144,7 +144,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
         {/* Referral Rewards Card */}
         <div className={`rounded-xl p-6 ${theme.card} ${theme.shadow}`}>
           <div className="mb-4">
-            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
+            <div className="w-12 h-12 flex items-center justify-center rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
               <FaGift className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -203,7 +203,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           className={`rounded-xl p-4 md:p-6 ${theme.card} ${theme.shadow}`}
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
               <FaMedal className="w-8 h-8 md:w-10 md:h-10 text-white" />
             </div>
 
@@ -224,7 +224,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           className={`rounded-xl p-4 md:p-6 ${theme.card} ${theme.shadow}`}
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
               <FaMedal className="w-8 h-8 md:w-10 md:h-10 text-white" />
             </div>
             <div className="text-center sm:text-left">

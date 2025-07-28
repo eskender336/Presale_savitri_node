@@ -284,7 +284,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                           onClick={() => setSelectedToken(token)}
                           className={`py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors ${
                             selectedToken === token
-                              ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                              ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                               : `${theme.buttonBg} ${theme.textSecondary} ${theme.buttonHover}`
                           }`}
                         >
@@ -399,7 +399,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                     disabled={
                       isProcessing || !amount || parseFloat(amount) <= 0
                     }
-                    className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isProcessing
                       ? "Processing..."

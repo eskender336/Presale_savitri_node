@@ -243,8 +243,8 @@ const BrandSlider = ({ isDarkMode }) => {
               <div
                 className={`h-10 flex items-center justify-center font-medium ${
                   isDarkMode
-                    ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-                    : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
+                    ? "bg-clip-text text-transparent text-light-gradient"
+                    : "bg-clip-text text-transparent text-light-gradient"
                 }`}
               >
                 {brand.name}

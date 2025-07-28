@@ -199,7 +199,7 @@ const AdminOverview = ({ isDarkMode }) => {
           </h1>
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center gap-2 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
+            className="flex items-center gap-2 text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
           >
             <FaSyncAlt />
             <span>Refresh Data</span>
@@ -216,7 +216,7 @@ const AdminOverview = ({ isDarkMode }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                   : `${theme.textSecondary} ${theme.hover}`
               }`}
             >

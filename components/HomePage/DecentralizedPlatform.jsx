@@ -40,13 +40,13 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
       <div className="container mx-auto max-w-6xl relative z-10">
         {/* Section header with badge */}
         <div className="text-center mb-12">
-          <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
-            <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+          <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
+            <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
               Watch Our Video
             </p>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent text-light-gradient">
           See What Makes Savitri Different
           </h2>
 
@@ -59,7 +59,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
 
           {/* Decorative elements */}
           <div className="flex justify-center mt-8 mb-10">
-            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"></div>
+            <div className="w-16 h-1 text-light-gradient rounded-full"></div>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
                   ></div>
 
                   {/* Play button */}
-                  <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 group-hover:scale-110">
+                  <div className="w-20 h-20 md:w-24 md:h-24 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 group-hover:scale-110">
                     <FaPlay className="text-white text-2xl md:text-3xl ml-2" />
                   </div>
                 </div>
@@ -162,7 +162,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
           >
             {/* Close button with gradient */}
             <button
-              className="absolute -top-12 right-0 p-2 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white hover:from-teal-500 hover:to-indigo-600 transition-all duration-300 transform hover:scale-110 z-10"
+              className="absolute -top-12 right-0 p-2 rounded-full text-light-gradient text-white hover:from-teal-500 hover:to-indigo-600 transition-all duration-300 transform hover:scale-110 z-10"
               onClick={closeModal}
             >
               <svg

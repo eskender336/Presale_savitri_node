@@ -22,7 +22,7 @@ const Footer = ({ isDarkMode }) => {
     : "bg-gradient-to-b from-[#f3f3f7] to-[#e8e8f0]";
 
   const headingColor =
-    "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500";
+    "bg-clip-text text-transparent text-light-gradient";
   const linkHoverColor =
     "hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-teal-400 hover:to-indigo-500";
   const borderColor = isDarkMode ? "border-gray-800/40" : "border-gray-300/40";
@@ -46,7 +46,7 @@ const Footer = ({ isDarkMode }) => {
           <div className="lg:col-span-2">
             <div className="mb-6">
               <div className="inline-flex items-center space-x-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full text-light-gradient flex items-center justify-center">
                   <svg
                     viewBox="0 0 24 24"
                     className="w-6 h-6 text-white"
@@ -86,7 +86,7 @@ const Footer = ({ isDarkMode }) => {
             <div className="flex flex-wrap space-x-5 mt-6">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-light-gradient hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
                 aria-label="Twitter"
               >
                 <FaTwitter
@@ -96,7 +96,7 @@ const Footer = ({ isDarkMode }) => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-light-gradient hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
                 aria-label="Telegram"
               >
                 <FaTelegram
@@ -106,7 +106,7 @@ const Footer = ({ isDarkMode }) => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-light-gradient hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
                 aria-label="Discord"
               >
                 <FaDiscord
@@ -116,7 +116,7 @@ const Footer = ({ isDarkMode }) => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-light-gradient hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
                 aria-label="Medium"
               >
                 <FaMedium
@@ -126,7 +126,7 @@ const Footer = ({ isDarkMode }) => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-teal-400/10 to-indigo-500/10 hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-light-gradient hover:from-teal-400 hover:to-indigo-500 transition-all duration-300 group"
                 aria-label="Github"
               >
                 <FaGithub
@@ -174,7 +174,7 @@ const Footer = ({ isDarkMode }) => {
 
                   <button
                     disabled={state.submitting}
-                    className="px-4 py-2 bg-gradient-to-r from-teal-400 to-indigo-500 text-white rounded-r-lg text-sm whitespace-nowrap hover:from-teal-500 hover:to-indigo-600 transition-all duration-300"
+                    className="px-4 py-2 text-light-gradient text-white rounded-r-lg text-sm whitespace-nowrap hover:from-teal-500 hover:to-indigo-600 transition-all duration-300"
                   >
                     {state.submitting ? (
                       <>

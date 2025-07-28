@@ -98,7 +98,7 @@ const FAQComponent = ({ isDarkMode }) => {
   const borderColor = isDarkMode ? "border-gray-800/20" : "border-gray-200/50";
 
   const textGradient =
-    "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500";
+    "bg-clip-text text-transparent text-light-gradient";
 
   const textSecondary = isDarkMode ? "text-gray-300" : "text-gray-600";
 
@@ -125,7 +125,7 @@ const FAQComponent = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         {/* Header with animation */}
         <div className="text-center mb-16">
-          <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
+          <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
             <p className={`text-sm font-medium ${textGradient}`}>FAQ</p>
           </div>
           <h2 className={`text-4xl md:text-5xl font-bold ${textGradient} mb-6`}>
@@ -141,7 +141,7 @@ const FAQComponent = ({ isDarkMode }) => {
 
           {/* Decorative elements */}
           <div className="flex justify-center mt-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"></div>
+            <div className="w-16 h-1 text-light-gradient rounded-full"></div>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ const FAQComponent = ({ isDarkMode }) => {
                   <div
                     className={`flex-shrink-0 rounded-full p-2 ${
                       isOpen
-                        ? "bg-gradient-to-r from-teal-400 to-indigo-500 text-white"
+                        ? "text-light-gradient text-white"
                         : isDarkMode
                         ? "bg-gray-800 text-gray-400"
                         : "bg-gray-100 text-gray-500"
@@ -208,7 +208,7 @@ const FAQComponent = ({ isDarkMode }) => {
         </div>
 
         {/* Additional Help Section */}
-        <div className="mt-16 p-8 rounded-xl bg-gradient-to-r from-teal-400/10 to-indigo-500/10 backdrop-blur-sm border border-teal-400/20 text-center">
+        <div className="mt-16 p-8 rounded-xl text-light-gradient backdrop-blur-sm border border-teal-400/20 text-center">
           <h3 className={`text-xl font-bold ${textGradient} mb-4`}>
             Still have questions?
           </h3>
@@ -220,7 +220,7 @@ const FAQComponent = ({ isDarkMode }) => {
           </p>
           <a
             href="#contact"
-            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
+            className="inline-flex items-center px-6 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

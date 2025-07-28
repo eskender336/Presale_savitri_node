@@ -289,7 +289,7 @@ const UserDashboard = ({ isDarkMode }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 sm:px-6 py-3 whitespace-nowrap transition-colors ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                   : isDarkMode
                   ? "text-gray-400 hover:text-gray-300"
                   : "text-gray-600 hover:text-gray-900"
@@ -835,7 +835,7 @@ const UserDashboard = ({ isDarkMode }) => {
                             ? isDarkMode
                               ? "bg-gray-700 cursor-not-allowed"
                               : "bg-gray-300 cursor-not-allowed text-gray-500"
-                            : "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600"
+                            : "text-light-gradient hover:from-teal-500 hover:to-indigo-600"
                         } text-white font-medium py-3 rounded-lg transition-colors`}
                       >
                         {isLoading ? "Processing..." : "Register Referrer"}
