@@ -5,37 +5,80 @@ const FAQComponent = ({ isDarkMode }) => {
 
   const faqItems = [
     {
-      question: "What is Lightchain AI and its core mission?",
+      question: "What is Savitri Network?",
       answer:
-        "Lightchain AI is a cutting-edge blockchain ecosystem powered by artificial intelligence. Our mission is to revolutionize decentralized applications and governance through innovations like PoI Consensus, the Artificial Intelligence Virtual Machine (AIVM), and a Transparent AI Framework. We aim to create a smarter, more secure, and equitable blockchain ecosystem for all.",
+        "Savitri is a next-generation blockchain infrastructure that combines blockchain, IoT, and AI in a unified platform. Our mission is to create decentralized systems that are scalable, inclusive, and human-centered — enabling real-world use cases across finance, governance, supply chains, and more."
     },
     {
-      question: "What makes Lightchain AI's PoI Consensus unique?",
+      question: "What is the SAVI coin used for?",
       answer:
-        "PoI Consensus stands for Proof of Intelligence, which is Lightchain's innovative consensus mechanism. Unlike traditional mechanisms like Proof of Work or Proof of Stake, PoI leverages AI algorithms to validate transactions, significantly reducing energy consumption while increasing throughput. It rewards nodes that contribute computational resources to AI tasks, creating a symbiotic relationship between the blockchain's security and AI advancement.",
+        "The SAVI coin powers the entire Savitri ecosystem. Key utilities include:\n- Paying for transactions (at fixed near-zero fees)\n- Accessing AI models, tools, and decentralized applications\n- Staking to earn rewards and receive VOTE tokens\n- Participating in network governance and proposal voting\n- Unlocking enterprise tools and smart contract automation",
     },
     {
-      question:
-        "How does the Artificial Intelligence Virtual Machine (AIVM) work?",
+      question: "Why is Savi coin made in BEP20?",
       answer:
-        "The AIVM is a specialized computational layer that integrates AI capabilities directly into the blockchain architecture. It provides a runtime environment for executing AI models, facilitating on-chain AI operations without requiring external oracles. Developers can deploy, train, and execute AI models directly on the blockchain, maintaining decentralization while enabling complex AI-driven applications.",
+        "During the pre-sale and ICO phases, Savi Token will be released as a BEP20 token on the BNB Smart Chain. This temporary version is essential to manage the token sale efficiently and ensure broad compatibility with popular wallets and platforms. After the ICO ends, holders of the BEP20 Savi Token will be able to claim the native SAVI COIN on our own Layer 1 blockchain. This two-step approach ensures a smooth launch experience while preparing for full migration to the Savitri mainnet."
     },
     {
-      question: "What are the details of the Lightchain AI presale?",
+      question: "How can I participate in the pre-sale?",
       answer:
-        "The Lightchain AI presale offers early supporters the opportunity to acquire LCAI tokens at a discounted rate before public listing. The presale is structured in multiple stages with increasing prices at each stage. Participants can contribute using ETH, USDT, or USDC. Tokens purchased during presale will be vested according to our tokenomics plan, with initial releases at TGE (Token Generation Event) followed by a gradual unlocking schedule.",
+        "Joining the Savi Coin pre-sale is simple and secure. Just follow these steps:\n1. Connect your wallet (e.g., Trust Wallet, MetaMask, WalletConnect)\n2. Access the Token Sale page\n3. Select the cryptocurrency you want to use (BNB, USDT, etc.)\n4. Enter the amount of Savi Coins you want to buy\n5. Confirm the transaction via your wallet\nYour Savi Token (BEP20) will be sent directly to your wallet. These tokens will later be used to claim the native SAVI COIN after the ICO."
     },
     {
-      question: "How does Lightchain AI ensure transparency in its ecosystem?",
+      question: "What is the token price during pre-sale?",
       answer:
-        "Transparency is core to our philosophy. We implement a Transparent AI Framework where all AI models and decision-making processes are auditable on-chain. Our development is open-source, allowing community verification of our code. We maintain regular communications through detailed technical documentation, progress reports, and community AMAs. Additionally, all protocol changes require community governance approval, ensuring collective decision-making.",
+        "The initial price of Savi Coin during the pre-sale starts at $0.35 per token. With each new round, the price will gradually increase, rewarding early supporters with the best entry point. Secure your Savi Coins early to maximize your value before the price goes up!"
     },
     {
-      question:
-        "What role does decentralized governance play in Lightchain AI?",
+      question: "Is there a vesting or lock-up period?",
       answer:
-        "Decentralized governance is fundamental to Lightchain AI. Token holders can propose and vote on protocol changes, funding allocations, and strategic decisions. Our governance model implements a quadratic voting system that balances influence between large and small token holders. We also utilize prediction markets and AI-powered governance tools to improve decision quality and prevent governance attacks, ensuring the protocol evolves according to community consensus.",
+        "To ensure a fair and sustainable launch, Savi Coin follows a simple and transparent vesting model:\n- 20% of the purchased tokens will be distributed immediately at the end of the pre-sale.\n- The remaining 80% will be released in monthly installments of 20%, completing the full vesting over four months.\n🎁 Loyalty Rewards: Users who hold their tokens throughout the vesting period or actively participate in the project’s governance may become eligible for additional rewards, including early unlocks, bonus tokens, or exclusive NFTs."
     },
+    {
+      question: "When the Pre-sale will start?",
+      answer:
+        "The Pre-Sale begins in the 1st week of August and ends in the 4th week of October. The Public ICO is tentatively planned for November to January — but the exact timeline depends on the outcome of the Pre-Sale. If we successfully reach our fundraising milestones, we will proceed with the public launch and token distribution as scheduled. Otherwise, the roadmap may adjust to reflect resource realities and community feedback. We believe in transparency and responsible growth — and we’ll keep our community fully updated throughout each stage."
+    },
+    {
+      question: "Is KYC required to participate?",
+      answer:
+        "No KYC is required to participate in the pre-sale. You can purchase Savi Tokens freely by connecting your wallet. However, KYC will be mandatory at the time of claiming the native SAVI COIN after the ICO ends. This ensures compliance with regulations and helps protect the long-term integrity of the project."
+    },
+    {
+      question: "Is the smart contract audited?",
+      answer:
+        "The audit will be provided during the pre-sale."
+    },
+    {
+      question: "Which wallets can I use to buy SAVI?",
+      answer:
+        "Every wallet available in the market: MetaMask, Trust Wallet, WalletConnect, etc."
+    },
+    {
+      question: "Where will I receive my tokens?",
+      answer:
+        "Your Savi Tokens (BEP20) will be automatically sent to the same wallet you used to complete the purchase. There’s no need for manual claiming during the pre-sale — tokens are delivered instantly after each transaction."
+    },
+    {
+      question: "What are the main goals of Savitri in 2025–2026?",
+      answer:
+        "Release the main net and reach the first 1,500 nodes active in the network."
+    },
+    {
+      question: "When will SAVI be listed on exchanges?",
+      answer:
+        "The listing is planned for the end of Q2 2026, but initially a SWAP DEX will be provided where every user will be able to swap the SAVI COIN with different pairs."
+    },
+    {
+      question: "How is Savitri different from other Layer 1s or AI blockchains?",
+      answer:
+        "Savitri was built to fix what others haven’t:\n- 230,000 TPS (transactions per second)\n- Up to 95% lower energy consumption\n- Proof of Unity – our novel consensus designed for speed, fairness, and inclusion\n- Easy API & SDK access for developers\n- Real-world interoperability (IoT devices, AI models, enterprise systems)\nMost blockchains are technical, closed-off, or energy-intensive. We’re not just another Layer 1 — we’re the infrastructure for meaningful change."
+    },
+    {
+      question: "Can I run a node or stake my tokens?",
+      answer:
+        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up."
+    }
   ];
 
   const toggleQuestion = (index) => {

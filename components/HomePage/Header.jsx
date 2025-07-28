@@ -279,13 +279,13 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center group">
-              <div className="relative w-20 h-20 mr-3 overflow-hidden">
+              <div className="relative w-32 h-24 mr-3 overflow-hidden">
                 <div className="absolute inset-0 "></div>
                 <div className="absolute inset-1 flex items-center justify-center">
                   <img
                     src="/SavitriNetwork.png"
                     alt="Logo"
-                    className="w-12 h-12 object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               </div>

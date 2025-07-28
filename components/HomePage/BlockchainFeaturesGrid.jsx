@@ -224,40 +224,40 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
   const features = [
     {
       icon: <PulseIcon />,
-      title: "PoI Consensus",
+      title: "Proof of Unity (PoU) Consensus",
       description:
-        "Revolutionizing consensus with Proof-of-Intelligence, a logical leap in secure and efficient decision-making.",
+        "A collaborative validation mechanism that replaces mining and staking with group-based consensus. Achieves 230,000+ TPS, sub-860 ms finality, and cuts energy use by 95%+ compared to traditional protocols.",
     },
     {
       icon: <AIVMIcon />,
-      title: "Artificial Intelligence Virtual Machine",
+      title: "Interoperable by Design",
       description:
-        "Empowering developers with futuristic, AI-driven computation for smarter decentralized applications.",
+        "Seamlessly connects legacy systems, IoT devices, and modern applications through plug-and-play middleware. Supports standard protocols like MQTT, Modbus, and REST APIs out of the box.",
     },
     {
       icon: <FrameworkIcon />,
-      title: "Transparent AI Framework",
+      title: "Privacy-First Data Layer",
       description:
-        "Redefining trust with an open, auditable, and accountable AI system for intelligent operations.",
+        "Zero-Knowledge Proofs and local-first architecture ensure data sovereignty, GDPR compliance, and enterprise-grade security—even at the edge.",
     },
     {
       icon: <GovernanceIcon />,
-      title: "Governance Integration",
+      title: "AITL: Distributed AI Infrastructure",
       description:
-        "Seamless fusion of decentralized governance and AI for smarter, community-driven decision-making.",
+        "Privacy-preserving federated learning built into the protocol—not bolted on. Devices can train models without exposing raw data, with smart contracts handling governance, royalties, and version control.",
     },
     {
       icon: <MemecoinIcon />,
-      title: "Memecoin Launchpad",
+      title: "Monolith & Guardian Architecture",
       description:
-        "Elevating the meme economy with a secure, AI-enhanced platform for creativity and monetization.",
+        "Instant onboarding through lightweight Monolith Blocks (~1MB daily snapshots). Full historical data is permanently preserved by Guardian Nodes for regulatory-grade auditability.",
     },
     {
       icon: <DecentralizedIcon />,
-      title: "Decentralized Governance",
+      title: "Predictable, Ultra-Low Costs",
       description:
-        "Pioneering equitable, transparent decision-making powered by advanced AI and blockchain technologies.",
-    },
+        "Stable transaction fees at $0.0035 make large-scale deployments—like 1M IoT sensors or supply chain events—economically viable.",
+    }
   ];
 
   const bgGradient = isDarkMode
@@ -285,20 +285,16 @@ const BlockchainFeaturesGrid = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 md:px-6">
         {/* Header with animation */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
-            <p className={`text-sm font-medium ${accentTextColor}`}>
-              Lightchain Protocol AI
-            </p>
-          </div>
+          
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold ${headerTextColor} mb-6`}
           >
-            Transforming Blockchain & AIVM
-          </h2>
+              Savitri Network
+        </h2>
           <p
             className={`text-lg ${subtitleColor} max-w-2xl mx-auto leading-relaxed`}
           >
-            Transforming Tomorrow with AI-Driven Blockchain
+           Next-Gen Blockchain for Data, Devices, and Decentralized Intelligence
           </p>
 
           {/* Decorative elements */}

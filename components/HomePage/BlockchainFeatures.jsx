@@ -594,17 +594,17 @@ const BlockchainFeatures = ({ isDarkMode }) => {
             } backdrop-blur-sm`}
           >
             <h3 className={`text-2xl font-bold mb-4 ${textGradient}`}>
-              Ready to Join the Revolution?
+            Ready to Build What Comes Next?
             </h3>
             <p className={`${textSecondary} mb-6`}>
-              Explore the full capabilities of our groundbreaking technology and
-              be part of the future of blockchain.
+            Explore how Savitri’s next-gen blockchain transforms AI, IoT, and data coordination—designed for the real world, built for what’s next.
+
             </p>
             <a
               href="#"
               className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
             >
-              Discover Lightchain
+              Discover Savitri
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 ml-2"
