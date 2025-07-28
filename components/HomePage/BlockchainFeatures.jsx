@@ -283,17 +283,19 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                 <h2
                   className={`text-3xl md:text-4xl font-bold ${textGradient}`}
                 >
-                  Artificial Intelligence Virtual Machine (AIVM)
+                  AITL: Decentralized AI Training, Built for Privacy and Collaboration
                 </h2>
               </div>
 
               <p className={`leading-relaxed ${textSecondary} mb-6`}>
-                The Artificial Intelligence Virtual Machine (AIVM) stands at the
-                heart of Lightchain AI, designed as a groundbreaking
-                computational layer to execute AI-specific tasks seamlessly on
-                the blockchain. Unlike static systems, the AIVM is a living
-                entity, capable of evolving through the collaborative efforts of
-                a global developer community.
+                The Artificial Intelligent Virtual Training (AITL) engine is the
+                foundation of Savitri’s decentralized AI infrastructure. It empowers
+                developers, enterprises, and communities to train, deploy, and
+                monetize AI models securely — without compromising data privacy.
+                Unlike centralized platforms that lock user data and extract
+                value, AITL leverages federated learning and the Proof of Unity
+                consensus to ensure that models evolve collaboratively across the
+                network, while sensitive information stays local and protected.
               </p>
 
               {/* Feature highlights */}
@@ -322,7 +324,8 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Seamless Integration
+                    <span className="font-semibold">Privacy-Preserving by Design:</span>{" "}
+                    Data never leaves the local device; only model updates are shared.
                   </span>
                 </div>
                 <div
@@ -349,7 +352,64 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Adaptive Learning
+                    <span className="font-semibold">Federated Learning Infrastructure:</span>{" "}
+                    Train AI models across distributed nodes without centralizing datasets.
+                  </span>
+                </div>
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-purple-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-purple-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    <span className="font-semibold">Proof of Unity Consensus:</span>{" "}
+                    Secure, energy-efficient aggregation and verification of model updates.
+                  </span>
+                </div>
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-yellow-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-yellow-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
+                    Tokenized marketplace to license and monetize AI models.
                   </span>
                 </div>
               </div>
