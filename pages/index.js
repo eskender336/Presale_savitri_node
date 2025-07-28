@@ -118,15 +118,12 @@ export default function Home() {
         />
         <DecentralizedPlatform isDarkMode={isDarkMode} />
         <BlockchainFeatures isDarkMode={isDarkMode} />
-        <BrandSlider isDarkMode={isDarkMode} />
         <BlockchainFeaturesGrid isDarkMode={isDarkMode} />
         <RoadmapComponent isDarkMode={isDarkMode} />
         <TokenomicsComponent isDarkMode={isDarkMode} />
-        <VideoCardSlider isDarkMode={isDarkMode} />
         <FAQComponent isDarkMode={isDarkMode} />
         <HeroCTAComponent isDarkMode={isDarkMode} />
         <FooterComponent isDarkMode={isDarkMode} />
-        <TestimonialsSlider isDarkMode={isDarkMode} />
       </main>
 
       <Footer isDarkMode={isDarkMode} />

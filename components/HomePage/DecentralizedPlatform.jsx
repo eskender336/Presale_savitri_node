@@ -189,13 +189,15 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
               <iframe
                 className="absolute top-0 left-0 w-full h-full rounded-xl"
                 src={
-                  videoSrc ||
-                  "https://youtu.be/tVPhUs6oqh0?si=J-O47YrjnWZ6Whdv"
+                  videoSrc || "https://www.youtube.com/embed/tVPhUs6oqh0"
                 }
+                title="Savitri Network Video"
+                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
             </div>
+
           </div>
         </div>
       )}

@@ -139,9 +139,11 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Energy Efficient
+                    Consensus through cooperation: Nodes work in randomly selected groups to validate transactions, not compete.
+
                   </span>
                 </div>
+
                 <div
                   className={`flex items-start space-x-3 p-4 rounded-lg ${
                     isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
@@ -166,7 +168,63 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    Higher Throughput
+                    Sub-second confirmations: ZKPs enable trust without re-execution, achieving ultra-fast finality.
+                  </span>
+                </div>
+
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-teal-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    Run anywhere: PoU turns laptops, phones, and even IoT sensors into active nodes—no staking or mining needed.
+                  </span>
+                </div>
+
+                <div
+                  className={`flex items-start space-x-3 p-4 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-indigo-400/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-4 h-4 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    95% lower energy: Validation uses a fraction of the power required by traditional systems.
                   </span>
                 </div>
               </div>
@@ -380,6 +438,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
+
                     <span className="font-semibold">Proof of Unity Consensus:</span>{" "}
                     Secure, energy-efficient aggregation and verification of model updates.
                   </span>
@@ -408,8 +467,9 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                   <span
                     className={isDarkMode ? "text-gray-300" : "text-gray-700"}
                   >
-                    <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
+                  <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
                     Tokenized marketplace to license and monetize AI models.
+
                   </span>
                 </div>
               </div>
@@ -540,17 +600,17 @@ const BlockchainFeatures = ({ isDarkMode }) => {
             } backdrop-blur-sm`}
           >
             <h3 className={`text-2xl font-bold mb-4 ${textGradient}`}>
-              Ready to Join the Revolution?
+            Ready to Build What Comes Next?
             </h3>
             <p className={`${textSecondary} mb-6`}>
-              Explore the full capabilities of our groundbreaking technology and
-              be part of the future of blockchain.
+            Explore how Savitri’s next-gen blockchain transforms AI, IoT, and data coordination—designed for the real world, built for what’s next.
+
             </p>
             <a
               href="#"
               className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
             >
-              Discover Lightchain
+              Discover Savitri
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 ml-2"
