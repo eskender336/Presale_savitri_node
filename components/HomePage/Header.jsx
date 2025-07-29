@@ -345,7 +345,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   href="https://savitrinetwork.com/why-savitri/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
                 >
                   Why Savitri
                 </a>
@@ -353,7 +357,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   href="https://savitrinetwork.com/ai-marketplace/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
                 >
                   AI-Marketplace
                 </a>
@@ -361,7 +369,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   href="https://savitrinetwork.com/pou/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
                 >
                   Proof of Unity
                 </a>
@@ -369,7 +381,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   href="https://savitrinetwork.com/iot-data-integration/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
                 >
                   IoT Data Integration
                 </a>
@@ -444,10 +460,10 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full transition-all duration-300 ${
+              className={`p-2 rounded-full transition-colors duration-300 ${
                 isDarkMode
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-yellow-300 hover:text-yellow-400"
+                  : "text-indigo-600 hover:text-indigo-800"
               }`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
@@ -483,11 +499,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           <div className="flex md:hidden items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${
+              className={`p-2 rounded-full transition-colors duration-300 ${
                 isDarkMode
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-              } transition-all`}
+                  ? "text-yellow-300 hover:text-yellow-400"
+                  : "text-indigo-600 hover:text-indigo-800"
+              }`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
               }
