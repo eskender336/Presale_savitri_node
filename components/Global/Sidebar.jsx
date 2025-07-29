@@ -240,8 +240,10 @@ const Sidebar = ({
               href="#"
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
                 activeItem === item.name
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : `${isDarkMode ? "text-gray-400" : "text-gray-600"} 
+                  ? isDarkMode
+                    ? "text-white"
+                    : "text-gray-900"
+                  : `${isDarkMode ? "text-gray-400" : "text-gray-600"}
                    hover:bg-[#23ADAC] hover:bg-opacity-20 hover:text-[#4D4BE1]`
               }`}
               onClick={(e) => {
@@ -255,8 +257,20 @@ const Sidebar = ({
                 }
               }}
             >
-              <item.icon className="w-5 h-5" />
-              <span>{item.name}</span>
+              <item.icon
+                className={`w-5 h-5 ${
+                  activeItem === item.name ? "text-[#9761F4]" : ""
+                }`}
+              />
+              <span
+                className={`${
+                  activeItem === item.name
+                    ? "bg-clip-text text-transparent text-light-gradient"
+                    : ""
+                }`}
+              >
+                {item.name}
+              </span>
             </Link>
           ))}
         </nav>
@@ -273,8 +287,10 @@ const Sidebar = ({
                 href="#"
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
                   activeItem === item.name
-                    ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                    : `${isDarkMode ? "text-gray-400" : "text-gray-600"} 
+                    ? isDarkMode
+                      ? "text-white"
+                      : "text-gray-900"
+                    : `${isDarkMode ? "text-gray-400" : "text-gray-600"}
             hover:bg-[#23ADAC] hover:bg-opacity-20 hover:text-[#4D4BE1]`
                 }`}
                 onClick={(e) => {
@@ -288,8 +304,20 @@ const Sidebar = ({
                   }
                 }}
               >
-                <item.icon className="w-5 h-5" />
-                <span>{item.name}</span>
+                <item.icon
+                  className={`w-5 h-5 ${
+                    activeItem === item.name ? "text-[#9761F4]" : ""
+                  }`}
+                />
+                <span
+                  className={`${
+                    activeItem === item.name
+                      ? "bg-clip-text text-transparent text-light-gradient"
+                      : ""
+                  }`}
+                >
+                  {item.name}
+                </span>
               </Link>
             ))}
           </nav>
