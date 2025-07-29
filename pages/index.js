@@ -16,7 +16,7 @@ import {
   TestimonialsSlider,
   ReferralPopup,
 } from "../components/HomePage/index";
-import SavitriHeader from "../components/Global/SavitriHeader";
+import { Header } from "../components/HomePage";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
@@ -109,7 +109,7 @@ export default function Home() {
         <link rel="icon" href="/Savitri.png" />
       </Head>
 
-      <SavitriHeader />
+      <Header isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       <main>
         <HeroSection
