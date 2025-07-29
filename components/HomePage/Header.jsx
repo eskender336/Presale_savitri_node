@@ -777,7 +777,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   className="py-4 border-b flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  <span>join our TG group</span>
+                  <span>Join our community</span>
                 </a>
 
                 <div className="mt-6">
