@@ -451,7 +451,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
             </p>
 
             {/* Feature highlights */}
-            <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex flex-wrap gap-4 mb-8 justify-center">
               <div
                 className={`px-4 py-2 rounded-full ${
                   isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
