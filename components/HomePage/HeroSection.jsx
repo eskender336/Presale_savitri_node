@@ -416,7 +416,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       <div className="container mx-auto px-4 py-28 md:py-32 relative z-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16">
           {/* Left side content - Text and graphics */}
-          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left">
+          <div className="w-full md:w-1/2 flex flex-col items-center text-left">
             {/* Header content */}
             <div className="inline-block p-2 px-4 rounded-full text-light-gradient mb-6">
               <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
@@ -451,7 +451,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
             </p>
 
             {/* Feature highlights */}
-            <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex flex-wrap gap-4 mb-8 justify-center">
               <div
                 className={`px-4 py-2 rounded-full ${
                   isDarkMode ? "bg-teal-500/10" : "bg-teal-100"

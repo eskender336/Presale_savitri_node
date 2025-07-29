@@ -121,7 +121,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
             </div>
 
             {/* Text Content */}
-            <div className="w-full md:w-2/3 text-center md:text-left">
+            <div className="w-full md:w-2/3 text-left">
               <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-6">
                 <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
                   Presale Now Live
@@ -147,7 +147,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
               </p>
 
               {/* Feature highlights */}
-              <div className="flex flex-wrap gap-4 mb-8">
+              <div className="flex flex-wrap gap-4 mb-8 justify-center">
                 <div
                   className={`px-4 py-2 rounded-full ${
                     isDarkMode ? "bg-indigo-500/10" : "bg-indigo-100"
