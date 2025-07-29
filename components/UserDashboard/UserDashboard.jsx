@@ -289,14 +289,26 @@ const UserDashboard = ({ isDarkMode }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 sm:px-6 py-3 whitespace-nowrap transition-colors ${
                 activeTab === tab.id
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? isDarkMode
+                    ? "text-white"
+                    : "text-gray-900"
                   : isDarkMode
                   ? "text-gray-400 hover:text-gray-300"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              {tab.icon}
-              <span>{tab.label}</span>
+              <tab.icon
+                className={`w-5 h-5 ${activeTab === tab.id ? "text-[#9761F4]" : ""}`}
+              />
+              <span
+                className={`${
+                  activeTab === tab.id
+                    ? "bg-clip-text text-transparent text-light-gradient"
+                    : ""
+                }`}
+              >
+                {tab.label}
+              </span>
             </button>
           ))}
         </div>
