@@ -11,10 +11,11 @@ import {
   FaCopy,
   FaCheck,
   FaGift,
+  FaIdCard,
 } from "react-icons/fa";
 import { SiTether } from "react-icons/si";
 import { useWeb3 } from "../../context/Web3Provider";
-import { Header } from "../index";
+import { Header, KYCForm } from "../index";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
@@ -143,6 +144,7 @@ const UserDashboard = ({ isDarkMode }) => {
     { id: "assets", label: "Assets", icon: <FaCoins /> },
     { id: "transactions", label: "Transactions", icon: <FaHistory /> },
     { id: "referrals", label: "Referrals", icon: <FaGift /> },
+    { id: "kyc", label: "KYC", icon: <FaIdCard /> },
   ];
 
   // Format large numbers with K, M, B suffixes
@@ -941,6 +943,9 @@ const UserDashboard = ({ isDarkMode }) => {
                 </div>
               </div>
             )}
+
+            {/* KYC Tab */}
+            {activeTab === "kyc" && <KYCForm isDarkMode={isDarkMode} />}
           </>
         )}
       </div>
