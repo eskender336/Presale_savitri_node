@@ -416,7 +416,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       <div className="container mx-auto px-4 py-28 md:py-32 relative z-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16">
           {/* Left side content - Text and graphics */}
-          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-left">
+          <div className="w-full md:w-1/2 flex flex-col items-center text-left">
             {/* Header content */}
             <div className="inline-block p-2 px-4 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-6">
               <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
