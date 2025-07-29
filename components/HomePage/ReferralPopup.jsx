@@ -56,7 +56,7 @@ const ReferralPopup = ({ isOpen, onClose, isDarkMode }) => {
         <div className="relative p-6">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white hover:bg-opacity-90 transition-colors"
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white hover:bg-opacity-90 transition-colors"
           >
             <FaTimes />
           </button>
@@ -82,7 +82,7 @@ const ReferralPopup = ({ isOpen, onClose, isDarkMode }) => {
             />
             <button
               onClick={handleCopy}
-              className="bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white px-6 py-3 rounded-lg ml-2 flex items-center justify-center min-w-20"
+              className="text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white px-6 py-3 rounded-lg ml-2 flex items-center justify-center min-w-20"
             >
               {copied ? (
                 <>

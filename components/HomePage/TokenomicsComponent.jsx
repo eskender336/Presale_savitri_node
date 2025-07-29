@@ -18,10 +18,10 @@
 //       <div className="container mx-auto px-4 max-w-6xl">
 //         {/* Header */}
 //         <div className="text-center mb-10">
-//           <p className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 text-lg mb-2">
+//           <p className="bg-clip-text text-transparent text-light-gradient text-lg mb-2">
 //             Presale Token Allocation
 //           </p>
-//           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 mb-2">
+//           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-2">
 //             Tokenomics
 //           </h2>
 //           <p className="text-gray-400 text-lg">Lightchain AI Tokenomics</p>
@@ -68,7 +68,7 @@
 //           <a
 //             href={`${EXPLORER_TOKEN_URL}${FSX_ADDRESS}`}
 //             target="_blank"
-//             className="bg-gradient-to-r px-8 py-3 rounded-md bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white  transition-all duration-300"
+//             className="bg-gradient-to-r px-8 py-3 rounded-md text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white  transition-all duration-300"
 //           >
 //             View Contract
 //           </a>
@@ -117,12 +117,12 @@ const TokenomicsComponent = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
         {/* Header with animation */}
         <div className="text-center mb-16">
-          <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
-            <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+          <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
+            <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
               Presale Token Allocation
             </p>
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-6">
             Tokenomics
           </h2>
           <p
@@ -136,7 +136,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
 
           {/* Decorative elements */}
           <div className="flex justify-center mt-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"></div>
+            <div className="w-16 h-1 text-light-gradient rounded-full"></div>
           </div>
         </div>
 
@@ -229,7 +229,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
               href={`${EXPLORER_TOKEN_URL}${FSX_ADDRESS}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-8 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
+              className="inline-flex items-center px-8 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

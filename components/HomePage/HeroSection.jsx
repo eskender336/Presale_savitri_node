@@ -418,8 +418,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
           {/* Left side content - Text and graphics */}
           <div className="w-full md:w-1/2 flex flex-col items-center text-left">
             {/* Header content */}
-            <div className="inline-block p-2 px-4 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-6">
-              <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+            <div className="inline-block p-2 px-4 rounded-full text-light-gradient mb-6">
+              <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
                 Presale Now Live
               </p>
             </div>
@@ -428,13 +428,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
               className={`text-4xl md:text-5xl lg:text-6xl font-bold ${textColor} mb-4`}
             >
               {TOKEN_NAME}{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+              <span className="bg-clip-text text-transparent text-light-gradient">
               </span>
             </h1>
 
             <h2 className="text-2xl md:text-3xl font-bold mb-6">
               <span className={textColor}> Stage 1 </span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+              <span className="bg-clip-text text-transparent text-light-gradient">
                 Token
               </span>
               <span className="bg-clip-text text-transparent text-light-gradient">
@@ -511,7 +511,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
             </button>
 
             {/* Background decorative elements */}
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 text-light-gradient rounded-full blur-3xl -z-10"></div>
           </div>
 
           {/* Right side content - Token purchase card */}
@@ -546,12 +546,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
                 {/* Card header */}
                 <div className="text-center">
-                  <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-2">
-                    <p className="text-xs font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+                  <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-2">
+                    <p className="text-xs font-medium bg-clip-text text-transparent text-light-gradient">
                       Limited Time Offer
                     </p>
                   </div>
-                  <h3 className="text-xl text-center font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+                  <h3 className="text-xl text-center font-bold mb-1 bg-clip-text text-transparent text-light-gradient">
                     Stage 1 - Buy {TOKEN_SYMBOL} Now
                   </h3>
 
@@ -631,15 +631,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                 {/* Token price */}
                 <div className="flex items-center justify-center space-x-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-400/20 to-indigo-500/20 flex items-center justify-center">
-                    <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500">
+                    <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
                       1
                     </span>
                   </div>
                   <span className={`${textColor} text-lg font-medium`}>
                     {TOKEN_SYMBOL} ={" "}
                   </span>
-                  <div className="px-3 py-1 rounded-lg bg-gradient-to-r from-teal-400/10 to-indigo-500/10">
-                    <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500">
+                  <div className="px-3 py-1 rounded-lg text-light-gradient">
+                    <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
                       ${PER_TOKEN_USD_PRICE}
                     </span>
                   </div>
@@ -853,7 +853,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className={`w-10 h-10 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white shadow-lg shadow-indigo-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110`}
+          className={`w-10 h-10 rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white shadow-lg shadow-indigo-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110`}
           aria-label="Scroll to top"
         >
           <svg

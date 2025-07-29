@@ -244,12 +244,12 @@ const VideoCardSlider = ({ isDarkMode }) => {
     <div className={`w-full py-16 ${bgGradient} relative overflow-hidden`}>
       {/* Section Header */}
       <div className="container mx-auto px-4 md:px-6 mb-12 text-center">
-        <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-4">
-          <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+        <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
+          <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
             Our Video Gallery
           </p>
         </div>
-        <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent text-light-gradient mb-4">
           Latest Updates & Insights
         </h2>
         <p
@@ -270,7 +270,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 md:px-6 mb-6">
         <div className="flex items-center">
           <div
-            className={`h-1 w-16 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500`}
+            className={`h-1 w-16 rounded-full text-light-gradient`}
           ></div>
           <div className="ml-2 text-sm text-gray-500">Drag to explore</div>
         </div>
@@ -312,7 +312,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
                 }`}
               >
                 {/* Card with gradient border */}
-                <div className="p-1 rounded-xl bg-gradient-to-r from-teal-400 to-indigo-500 shadow-lg hover:shadow-xl hover:shadow-indigo-500/20">
+                <div className="p-1 rounded-xl text-light-gradient shadow-lg hover:shadow-xl hover:shadow-indigo-500/20">
                   <div className="relative rounded-lg overflow-hidden aspect-video h-full bg-black">
                     {/* Video Thumbnail/Content */}
                     <div
@@ -348,7 +348,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
                           <div className="absolute -inset-4 rounded-full bg-white/10 animate-ping opacity-75"></div>
 
                           {/* Play button */}
-                          <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 hover:scale-110">
+                          <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full text-light-gradient shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 hover:scale-110">
                             <FaPlay className="text-white w-5 h-5 md:w-6 md:h-6 ml-1" />
                           </div>
                         </div>
@@ -377,7 +377,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
                 }`}
               >
                 {/* Card with gradient border */}
-                <div className="p-1 rounded-xl bg-gradient-to-r from-teal-400 to-indigo-500 shadow-lg hover:shadow-xl hover:shadow-indigo-500/20">
+                <div className="p-1 rounded-xl text-light-gradient shadow-lg hover:shadow-xl hover:shadow-indigo-500/20">
                   <div className="relative rounded-lg overflow-hidden aspect-video h-full bg-black">
                     {/* Video Thumbnail/Content */}
                     <div
@@ -413,7 +413,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
                           <div className="absolute -inset-4 rounded-full bg-white/10 animate-ping opacity-75"></div>
 
                           {/* Play button */}
-                          <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 hover:scale-110">
+                          <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full text-light-gradient shadow-lg shadow-indigo-500/30 relative z-20 transition-transform duration-300 hover:scale-110">
                             <FaPlay className="text-white w-5 h-5 md:w-6 md:h-6 ml-1" />
                           </div>
                         </div>
@@ -431,7 +431,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
       <div className="container mx-auto px-4 flex justify-center mt-12">
         <a
           href="#"
-          className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
+          className="inline-flex items-center px-6 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -458,7 +458,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
           >
             {/* Close button with gradient background */}
             <button
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 text-white hover:from-teal-500 hover:to-indigo-600 transition-all duration-300 transform hover:scale-110"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full text-light-gradient text-white hover:from-teal-500 hover:to-indigo-600 transition-all duration-300 transform hover:scale-110"
               onClick={closeVideoModal}
               aria-label="Close modal"
             >
@@ -479,7 +479,7 @@ const VideoCardSlider = ({ isDarkMode }) => {
 
             {/* Optional video title in modal */}
             {currentVideo.title && (
-              <div className="p-4 bg-gradient-to-r from-teal-400/10 to-indigo-500/10">
+              <div className="p-4 text-light-gradient">
                 <h3 className="text-xl font-bold text-white">
                   {currentVideo.title}
                 </h3>

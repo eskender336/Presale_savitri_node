@@ -268,7 +268,7 @@ const TokenSale = ({ isDarkMode }) => {
                       className={`w-full ${theme.progressBg} rounded-full h-4`}
                     >
                       <div
-                        className="bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 h-4 rounded-full"
+                        className="text-light-gradient hover:from-teal-500 hover:to-indigo-600 h-4 rounded-full"
                         style={{
                           width: `${calculateProgressPercentage()}%`,
                         }}
@@ -342,7 +342,7 @@ const TokenSale = ({ isDarkMode }) => {
                   onClick={() => setActiveTab("buyWithETH")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
                     activeTab === "buyWithETH"
-                      ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
@@ -353,7 +353,7 @@ const TokenSale = ({ isDarkMode }) => {
                   onClick={() => setActiveTab("buyWithUSDT")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
                     activeTab === "buyWithUSDT"
-                      ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
@@ -364,7 +364,7 @@ const TokenSale = ({ isDarkMode }) => {
                   onClick={() => setActiveTab("buyWithUSDC")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
                     activeTab === "buyWithUSDC"
-                      ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
@@ -527,7 +527,7 @@ const TokenSale = ({ isDarkMode }) => {
                           ? isDarkMode
                             ? "bg-gray-700 cursor-not-allowed"
                             : "bg-gray-300 cursor-not-allowed text-gray-500"
-                          : "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600"
+                          : "text-light-gradient hover:from-teal-500 hover:to-indigo-600"
                       } text-white font-medium py-4 rounded-lg transition-colors`}
                     >
                       {isLoading

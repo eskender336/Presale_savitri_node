@@ -190,7 +190,7 @@ const ContactUs = ({ isDarkMode }) => {
                   <button
                     type="submit"
                     disabled={state.submitting}
-                    className="w-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {state.submitting ? (
                       <>
@@ -314,7 +314,7 @@ const ContactUs = ({ isDarkMode }) => {
             </p>
             <a
               href="/"
-              className={`${theme.faqBtn} bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 px-8 rounded-lg transition-colors`}
+              className={`${theme.faqBtn} text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium py-3 px-8 rounded-lg transition-colors`}
             >
               Visit FAQ Page
             </a>

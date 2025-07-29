@@ -478,7 +478,7 @@ const Staking = ({ isDarkMode }) => {
                   onClick={() => setActiveTab("stake")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
                     activeTab === "stake"
-                      ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
@@ -489,7 +489,7 @@ const Staking = ({ isDarkMode }) => {
                   onClick={() => setActiveTab("yourStakes")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
                     activeTab === "yourStakes"
-                      ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
@@ -564,7 +564,7 @@ const Staking = ({ isDarkMode }) => {
                             onClick={() => setLockPeriod(period)}
                             className={`py-3 px-4 rounded-lg transition-colors ${
                               lockPeriod === period
-                                ? "bg-gradient-to-r from-teal-400 to-indigo-500 text-white"
+                                ? "text-light-gradient text-white"
                                 : `${theme.cardBg} ${theme.text}`
                             }`}
                           >
@@ -623,7 +623,7 @@ const Staking = ({ isDarkMode }) => {
                           ? isDarkMode
                             ? "bg-gray-700 cursor-not-allowed"
                             : "bg-gray-300 cursor-not-allowed text-gray-500"
-                          : "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600"
+                          : "text-light-gradient hover:from-teal-500 hover:to-indigo-600"
                       } text-white font-medium py-4 rounded-lg transition-colors`}
                     >
                       {isLoading ? "Processing..." : `Stake ${TOKEN_SYMBOL}`}
@@ -699,7 +699,7 @@ const Staking = ({ isDarkMode }) => {
                                       }
                                       className={`px-2 py-1 rounded text-xs ${
                                         parseFloat(stake.pendingRewards) > 0
-                                          ? "bg-gradient-to-r from-teal-400 to-indigo-500 text-white"
+                                          ? "text-light-gradient text-white"
                                           : isDarkMode
                                           ? "bg-gray-700 text-gray-500"
                                           : "bg-gray-200 text-gray-500"
@@ -742,7 +742,7 @@ const Staking = ({ isDarkMode }) => {
                                           unstakeLoading &&
                                           unstakeId === stake.id
                                         }
-                                        className="px-2 py-1 rounded text-xs bg-gradient-to-r from-teal-400 to-indigo-500 text-white"
+                                        className="px-2 py-1 rounded text-xs text-light-gradient text-white"
                                       >
                                         {unstakeLoading &&
                                         unstakeId === stake.id

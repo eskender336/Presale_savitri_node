@@ -100,8 +100,8 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
           <h2
             className={`text-xl font-semibold ${
               isDarkMode
-                ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-                : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
+                ? "bg-clip-text text-transparent text-light-gradient"
+                : "bg-clip-text text-transparent text-light-gradient"
             }`}
           >
             Token Calculator
@@ -246,7 +246,7 @@ const TokenSalePage = ({ isDarkMode }) => {
       <button
         onClick={() => setCalculatorOpen(true)}
         className={`
-        bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600
+        text-light-gradient hover:from-teal-500 hover:to-indigo-600
         text-white py-2 px-4 
         ${isDarkMode ? "rounded" : "rounded-lg shadow"}
         flex items-center transition-all duration-200

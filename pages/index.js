@@ -106,7 +106,7 @@ export default function Home() {
           name="description"
           content="Revolutionizing intelligence through decentralized innovation."
         />
-        <link rel="icon" href="/SavitriNetwork.png" />
+        <link rel="icon" href="/Savitri.png" />
       </Head>
 
       <Header isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />

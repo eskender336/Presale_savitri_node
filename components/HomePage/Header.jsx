@@ -248,7 +248,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
         {!isScrolled && (
           <div className="relative py-3 overflow-hidden whitespace-nowrap">
             {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white z-0"></div>
+            <div className="absolute inset-0 text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white z-0"></div>
 
             {/* Subtle gradient pattern overlay */}
             <div
@@ -379,8 +379,8 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
               onClick={toggleDarkMode}
               className={`p-2 rounded-full transition-all duration-300 ${
                 isDarkMode
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
               }`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
@@ -390,7 +390,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             </button>
 
             <a href="/dashboard" className="group">
-              <div className="w-10 h-10 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+              <div className="w-10 h-10 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
                 <span className="text-white">
                   {/* User placeholder icon */}
                   <svg
@@ -418,8 +418,8 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
               onClick={toggleDarkMode}
               className={`p-2 rounded-full ${
                 isDarkMode
-                  ? "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
               } transition-all`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
@@ -493,7 +493,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   {/* Featured Box - Last column */}
                   <div className={`rounded-xl p-6 ${menu.featuredBox.bgClass}`}>
                     <h3
-                      className={`text-xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500`}
+                      className={`text-xl font-bold mb-2 bg-clip-text text-transparent text-light-gradient`}
                     >
                       {menu.featuredBox.title}
                     </h3>
@@ -506,7 +506,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                     </p>
                     <Link
                       href={menu.featuredBox.linkUrl}
-                      className="inline-flex items-center space-x-1 font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
+                      className="inline-flex items-center space-x-1 font-medium bg-clip-text text-transparent text-light-gradient"
                       onClick={() => setActiveMegaMenu(null)}
                     >
                       <span>{menu.featuredBox.linkText}</span>

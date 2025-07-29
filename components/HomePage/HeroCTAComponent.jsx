@@ -30,7 +30,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
             <div className="w-full md:w-1/3 flex justify-center">
               <div className="relative w-64 h-64 md:w-80 md:h-80 transform transition-all duration-700 hover:scale-105">
                 {/* Outer ring with gradient and glow */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 animate-pulse-slow shadow-lg shadow-indigo-500/30"></div>
+                <div className="absolute inset-0 rounded-full text-light-gradient animate-pulse-slow shadow-lg shadow-indigo-500/30"></div>
 
                 {/* Inner space */}
                 <div
@@ -122,13 +122,13 @@ const HeroCTAComponent = ({ isDarkMode }) => {
 
             {/* Text Content */}
             <div className="w-full md:w-2/3 text-left">
-              <div className="inline-block p-1.5 px-3 rounded-full bg-gradient-to-r from-teal-400/10 to-indigo-500/10 mb-6">
-                <p className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+              <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-6">
+                <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
                   Presale Now Live
                 </p>
               </div>
 
-              <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500 mb-6 leading-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-6 leading-tight">
                 Secure the Future, Join
                 <br />
                 Lightchain Protocol AI
@@ -214,7 +214,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <button className="bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white px-8 py-4 rounded-full shadow-lg shadow-indigo-500/30 transition-all duration-300 font-medium transform hover:scale-105 flex items-center">
+                <button className="text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white px-8 py-4 rounded-full shadow-lg shadow-indigo-500/30 transition-all duration-300 font-medium transform hover:scale-105 flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2"
@@ -255,13 +255,13 @@ const HeroCTAComponent = ({ isDarkMode }) => {
                   <span className={`text-sm ${textSecondary}`}>
                     Presale Progress
                   </span>
-                  <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500">
+                  <span className="text-sm font-bold bg-clip-text text-transparent text-light-gradient">
                     64% Complete
                   </span>
                 </div>
                 <div className="h-2 w-full bg-gray-700/20 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full"
+                    className="h-full text-light-gradient rounded-full"
                     style={{ width: "64%" }}
                   ></div>
                 </div>

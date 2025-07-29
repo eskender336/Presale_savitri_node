@@ -58,8 +58,8 @@ const FooterComponent = ({ isDarkMode }) => {
             <div
               className={`${
                 isDarkMode
-                  ? "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
-                  : "bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-indigo-500"
+                  ? "bg-clip-text text-transparent text-light-gradient"
+                  : "bg-clip-text text-transparent text-light-gradient"
               } text-2xl md:text-3xl font-bold`}
             >
               {TOKEN_NAME}
@@ -89,7 +89,7 @@ const FooterComponent = ({ isDarkMode }) => {
         </p>
 
         {/* Horizontal Line (optional) */}
-        <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full mb-8"></div>
+        <div className="w-16 h-1 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full mb-8"></div>
       </div>
     </footer>
   );

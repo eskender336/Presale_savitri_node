@@ -20,7 +20,7 @@ const BlurOverlay = ({ isLoading, isDarkMode }) => {
           {/* Spinner */}
           <div className="h-12 w-12 relative">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-purple-500"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600"></div>
           </div>
         </div>
       </div>
