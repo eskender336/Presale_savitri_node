@@ -335,7 +335,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 <FiChevronDown className="transition-transform duration-300 group-hover:rotate-180" />
               </button>
               <div
-                className="absolute left-0 mt-2 w-56 rounded-md shadow-lg border dark:border-gray-800 border-gray-200 bg-white dark:bg-[#14101A] opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all"
+                className={`absolute left-0 mt-2 w-56 rounded-md border opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all shadow-xl backdrop-blur-md ${
+                  isDarkMode
+                    ? "bg-[#14101A]/95 border-gray-800/50"
+                    : "bg-white/95 border-gray-200/50"
+                }`}
               >
                 <a
                   href="https://savitrinetwork.com/why-savitri/"
