@@ -293,20 +293,21 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <a
-              href="https://www.savitrinetwork.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`py-2 px-1 transition-colors ${
-                isDarkMode
-                  ? "text-gray-300 hover:text-teal-400"
-                  : "text-gray-700 hover:text-teal-600"
-              }`}
-            >
-              Homepage
-            </a>
+          {/* Desktop Navigation split into two rows */}
+          <nav className="hidden md:flex flex-col">
+            <div className="flex items-center space-x-6">
+              <a
+                href="https://www.savitrinetwork.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                Homepage
+              </a>
 
             <a
               href="https://savitrinetwork.com/about-us/"
@@ -383,54 +384,56 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             >
               SAVI Coin
             </a>
+            </div>
+            <div className="flex items-center space-x-6 mt-2">
+              <a
+                href="https://savitrinetwork.com/blog/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                Blog list
+              </a>
 
-            <a
-              href="https://savitrinetwork.com/blog/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`py-2 px-1 transition-colors ${
-                isDarkMode
-                  ? "text-gray-300 hover:text-teal-400"
-                  : "text-gray-700 hover:text-teal-600"
-              }`}
-            >
-              Blog list
-            </a>
+              <a
+                href="https://savitrinetwork.com/faq/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                FAQs
+              </a>
 
-            <a
-              href="https://savitrinetwork.com/faq/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`py-2 px-1 transition-colors ${
-                isDarkMode
-                  ? "text-gray-300 hover:text-teal-400"
-                  : "text-gray-700 hover:text-teal-600"
-              }`}
-            >
-              FAQs
-            </a>
+              <a
+                href="https://savitrinetwork.com/contact-us/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                Contact Us
+              </a>
 
-            <a
-              href="https://savitrinetwork.com/contact-us/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`py-2 px-1 transition-colors ${
-                isDarkMode
-                  ? "text-gray-300 hover:text-teal-400"
-                  : "text-gray-700 hover:text-teal-600"
-              }`}
-            >
-              Contact Us
-            </a>
-
-            <a
-              href="https://t.me/savitri_group"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 px-3 py-1 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              join our TG group
-            </a>
+              <a
+                href="https://t.me/savitri_group"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 px-3 py-1 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+              >
+                join our TG group
+              </a>
+            </div>
           </nav>
 
           {/* Desktop Right Buttons */}
