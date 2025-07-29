@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import {
-  Header,
   HeroSection,
   Footer,
   BlockchainFeatures,
@@ -17,6 +16,7 @@ import {
   TestimonialsSlider,
   ReferralPopup,
 } from "../components/HomePage/index";
+import { Header } from "../components/HomePage";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;

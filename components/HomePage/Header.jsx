@@ -35,6 +35,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBlockchainOpen, setIsBlockchainOpen] = useState(false);
   const timeoutRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -65,6 +66,18 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
     timeoutRef.current = setTimeout(() => {
       setActiveMegaMenu(null);
     }, 300);
+  };
+
+  // Handle Savitri Blockchain dropdown hover
+  const handleBlockchainEnter = () => {
+    clearTimeout(timeoutRef.current);
+    setIsBlockchainOpen(true);
+  };
+
+  const handleBlockchainLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsBlockchainOpen(false);
+    }, 200);
   };
 
   // Handle scroll events
@@ -293,94 +306,189 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             </Link>
           </div>
 
-          {/* Desktop Navigation with Mega Menu */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {/* Ecosystem Menu Trigger */}
-            <div
-              className="relative group"
-              onMouseEnter={() => handleMenuHover("ecosystem")}
-              onMouseLeave={handleMenuLeave}
-            >
-              <button
-                className={`flex items-center space-x-1 py-2 px-1 transition-colors ${
+          {/* Desktop Navigation split into two rows */}
+          <nav className="hidden md:flex flex-col">
+            <div className="flex items-center space-x-6">
+              <a
+                href="https://www.savitrinetwork.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
                   isDarkMode
                     ? "text-gray-300 hover:text-teal-400"
                     : "text-gray-700 hover:text-teal-600"
-                } ${activeMegaMenu === "ecosystem" ? "text-teal-400" : ""}`}
-                onClick={() =>
-                  setActiveMegaMenu(
-                    activeMegaMenu === "ecosystem" ? null : "ecosystem"
-                  )
-                }
+                }`}
               >
-                <span>Ecosystem</span>
-                <FiChevronDown
-                  className={`transition-transform duration-300 ${
-                    activeMegaMenu === "ecosystem" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </div>
+                Homepage
+              </a>
 
-            {/* Resources Menu Trigger */}
-            <div
-              className="relative group"
-              onMouseEnter={() => handleMenuHover("resources")}
-              onMouseLeave={handleMenuLeave}
-            >
-              <button
-                className={`flex items-center space-x-1 py-2 px-1 transition-colors ${
-                  isDarkMode
-                    ? "text-gray-300 hover:text-teal-400"
-                    : "text-gray-700 hover:text-teal-600"
-                } ${activeMegaMenu === "resources" ? "text-teal-400" : ""}`}
-                onClick={() =>
-                  setActiveMegaMenu(
-                    activeMegaMenu === "resources" ? null : "resources"
-                  )
-                }
-              >
-                <span>Resources</span>
-                <FiChevronDown
-                  className={`transition-transform duration-300 ${
-                    activeMegaMenu === "resources" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Regular Links */}
-            <Link
-              href="/explorer"
+            <a
+              href="https://savitrinetwork.com/about-us/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`py-2 px-1 transition-colors ${
                 isDarkMode
                   ? "text-gray-300 hover:text-teal-400"
                   : "text-gray-700 hover:text-teal-600"
               }`}
             >
-              Explorer
-            </Link>
+              About Us
+            </a>
 
-            <Link
-              href="/about"
+            {/* Savitri Blockchain Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={handleBlockchainEnter}
+              onMouseLeave={handleBlockchainLeave}
+            >
+              <button
+                className={`flex items-center space-x-1 py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                <span>Savitri Blockchain</span>
+                <FiChevronDown
+                  className={`transition-transform duration-300 ${
+                    isBlockchainOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <div
+                className={`absolute left-0 mt-2 w-56 rounded-md border transform transition-all shadow-xl backdrop-blur-md ${
+                  isBlockchainOpen
+                    ? "opacity-100 scale-100 pointer-events-auto"
+                    : "opacity-0 scale-95 pointer-events-none"
+                } ${
+                  isDarkMode
+                    ? "bg-[#14101A]/95 border-gray-800/50"
+                    : "bg-white/95 border-gray-200/50"
+                }`}
+              >
+                <a
+                  href="https://savitrinetwork.com/why-savitri/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
+                >
+                  Why Savitri
+                </a>
+                <a
+                  href="https://savitrinetwork.com/ai-marketplace/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
+                >
+                  AI-Marketplace
+                </a>
+                <a
+                  href="https://savitrinetwork.com/pou/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
+                >
+                  Proof of Unity
+                </a>
+                <a
+                  href="https://savitrinetwork.com/iot-data-integration/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block px-4 py-2 transition-colors ${
+                    isDarkMode
+                      ? "text-gray-300 hover:text-teal-400"
+                      : "text-gray-700 hover:text-teal-600"
+                  }`}
+                >
+                  IoT Data Integration
+                </a>
+              </div>
+            </div>
+
+            <a
+              href="https://savitrinetwork.com/savi-coin/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`py-2 px-1 transition-colors ${
                 isDarkMode
                   ? "text-gray-300 hover:text-teal-400"
                   : "text-gray-700 hover:text-teal-600"
               }`}
             >
-              About
-            </Link>
+              SAVI Coin
+            </a>
+            </div>
+            <div className="flex items-center space-x-6 mt-2">
+              <a
+                href="https://savitrinetwork.com/blog/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                Blog list
+              </a>
+
+              <a
+                href="https://savitrinetwork.com/faq/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                FAQs
+              </a>
+
+              <a
+                href="https://savitrinetwork.com/contact-us/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`py-2 px-1 transition-colors ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-teal-400"
+                    : "text-gray-700 hover:text-teal-600"
+                }`}
+              >
+                Contact Us
+              </a>
+
+              <a
+                href="https://t.me/savitri_group"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 px-3 py-1 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+              >
+                join our TG group
+              </a>
+            </div>
           </nav>
 
           {/* Desktop Right Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full transition-all duration-300 ${
+              className={`p-2 rounded-full transition-colors duration-300 ${
                 isDarkMode
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                  ? "text-yellow-300 hover:text-yellow-400"
+                  : "text-indigo-600 hover:text-indigo-800"
               }`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
@@ -416,11 +524,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           <div className="flex md:hidden items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${
+              className={`p-2 rounded-full transition-colors duration-300 ${
                 isDarkMode
-                  ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-                  : "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
-              } transition-all`}
+                  ? "text-yellow-300 hover:text-yellow-400"
+                  : "text-indigo-600 hover:text-indigo-800"
+              }`}
               aria-label={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
               }
@@ -575,112 +683,127 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
 
             <div className="p-5">
               <nav className="flex flex-col">
-                {/* Mobile Accordion Menu */}
-                <MobileAccordionItem
-                  title="Ecosystem"
-                  isDarkMode={isDarkMode}
-                  items={[
-                    {
-                      icon: <FiActivity className="text-teal-400" />,
-                      label: "PoI Consensus",
-                      href: "/technology/poi-consensus",
-                    },
-                    {
-                      icon: <FiCpu className="text-indigo-500" />,
-                      label: "AIVM",
-                      href: "/technology/aivm",
-                    },
-                    {
-                      icon: <FiLayers className="text-teal-400" />,
-                      label: "Framework",
-                      href: "/technology/framework",
-                    },
-                    {
-                      icon: <FiCompass className="text-indigo-500" />,
-                      label: "Explorer",
-                      href: "/explorer",
-                    },
-                  ]}
-                  toggleMenu={toggleMenu}
-                />
+                <a
+                  href="https://www.savitrinetwork.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
+                      : "border-gray-200/50 text-gray-700 hover:text-teal-600"
+                  } transition-colors`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>Homepage</span>
+                </a>
+
+                <a
+                  href="https://savitrinetwork.com/about-us/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
+                      : "border-gray-200/50 text-gray-700 hover:text-teal-600"
+                  } transition-colors`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>About Us</span>
+                </a>
 
                 <MobileAccordionItem
-                  title="Resources"
+                  title="Savitri Blockchain"
                   isDarkMode={isDarkMode}
                   items={[
                     {
                       icon: <FiFileText className="text-teal-400" />,
-                      label: "Whitepaper",
-                      href: "/lightchain-whitepaper.pdf",
+                      label: "Why Savitri",
+                      href: "https://savitrinetwork.com/why-savitri/",
                     },
                     {
-                      icon: <FiMap className="text-indigo-500" />,
-                      label: "Roadmap",
-                      href: "/roadmap",
+                      icon: <FiCpu className="text-indigo-500" />,
+                      label: "AI-Marketplace",
+                      href: "https://savitrinetwork.com/ai-marketplace/",
                     },
                     {
-                      icon: <FiBook className="text-teal-400" />,
-                      label: "Documentation",
-                      href: "/docs",
+                      icon: <FiLayers className="text-teal-400" />,
+                      label: "Proof of Unity",
+                      href: "https://savitrinetwork.com/pou/",
                     },
                     {
                       icon: <FiDatabase className="text-indigo-500" />,
-                      label: "API",
-                      href: "/api",
+                      label: "IoT Data Integration",
+                      href: "https://savitrinetwork.com/iot-data-integration/",
                     },
                   ]}
                   toggleMenu={toggleMenu}
                 />
 
-                <Link
-                  href="/explorer"
-                  className={`flex items-center space-x-2 py-4 border-b ${
+                <a
+                  href="https://savitrinetwork.com/savi-coin/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
                     isDarkMode
                       ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
                       : "border-gray-200/50 text-gray-700 hover:text-teal-600"
                   } transition-colors`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <FiCompass size={18} />
-                  <span>Explorer</span>
-                </Link>
+                  <span>SAVI Coin</span>
+                </a>
 
-                <Link
-                  href="/about"
-                  className={`flex items-center space-x-2 py-4 border-b ${
+                <a
+                  href="https://savitrinetwork.com/blog/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
                     isDarkMode
                       ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
                       : "border-gray-200/50 text-gray-700 hover:text-teal-600"
                   } transition-colors`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <FiInfo size={18} />
-                  <span>About</span>
-                </Link>
+                  <span>Blog list</span>
+                </a>
 
-                <Link
-                  href="/dashboard"
-                  className={`flex items-center space-x-2 py-4 border-b ${
+                <a
+                  href="https://savitrinetwork.com/faq/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
                     isDarkMode
                       ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
                       : "border-gray-200/50 text-gray-700 hover:text-teal-600"
                   } transition-colors`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Dashboard</span>
-                </Link>
+                  <span>FAQs</span>
+                </a>
+
+                <a
+                  href="https://savitrinetwork.com/contact-us/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`py-4 border-b flex items-center space-x-2 ${
+                    isDarkMode
+                      ? "border-gray-800/50 text-gray-300 hover:text-teal-400"
+                      : "border-gray-200/50 text-gray-700 hover:text-teal-600"
+                  } transition-colors`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>Contact Us</span>
+                </a>
+
+                <a
+                  href="https://t.me/savitri_group"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-4 border-b flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>Join our community</span>
+                </a>
 
                 <div className="mt-6">
                   <CustomConnectButton active={false} />
