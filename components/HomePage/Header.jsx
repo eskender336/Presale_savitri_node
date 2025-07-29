@@ -35,6 +35,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBlockchainOpen, setIsBlockchainOpen] = useState(false);
   const timeoutRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -65,6 +66,18 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
     timeoutRef.current = setTimeout(() => {
       setActiveMegaMenu(null);
     }, 300);
+  };
+
+  // Handle Savitri Blockchain dropdown hover
+  const handleBlockchainEnter = () => {
+    clearTimeout(timeoutRef.current);
+    setIsBlockchainOpen(true);
+  };
+
+  const handleBlockchainLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsBlockchainOpen(false);
+    }, 200);
   };
 
   // Handle scroll events
@@ -323,7 +336,11 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             </a>
 
             {/* Savitri Blockchain Dropdown */}
-            <div className="relative group">
+            <div
+              className="relative"
+              onMouseEnter={handleBlockchainEnter}
+              onMouseLeave={handleBlockchainLeave}
+            >
               <button
                 className={`flex items-center space-x-1 py-2 px-1 transition-colors ${
                   isDarkMode
@@ -332,10 +349,18 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 }`}
               >
                 <span>Savitri Blockchain</span>
-                <FiChevronDown className="transition-transform duration-300 group-hover:rotate-180" />
+                <FiChevronDown
+                  className={`transition-transform duration-300 ${
+                    isBlockchainOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
               <div
-                className={`absolute left-0 mt-2 w-56 rounded-md border opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all shadow-xl backdrop-blur-md ${
+                className={`absolute left-0 mt-2 w-56 rounded-md border transform transition-all shadow-xl backdrop-blur-md ${
+                  isBlockchainOpen
+                    ? "opacity-100 scale-100 pointer-events-auto"
+                    : "opacity-0 scale-95 pointer-events-none"
+                } ${
                   isDarkMode
                     ? "bg-[#14101A]/95 border-gray-800/50"
                     : "bg-white/95 border-gray-200/50"
