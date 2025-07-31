@@ -74,7 +74,7 @@ async function main() {
     console.log("NEXT_PUBLIC_BNB_ADDRESS:", mockBNB.address);
     console.log("NEXT_PUBLIC_SOL_ADDRESS:", mockSOL.address);
 
-    if (network.chainId === 17000) {
+    if (network.chainId === 17000 || network.chainId === 11155111) {
       if (!tokenICO.address) {
         console.error(
           "Please set the NEXT_PUBLIC_TOKEN_ICO_ADDRESS environment variable"
@@ -82,13 +82,16 @@ async function main() {
         process.exit(1);
       }
 
-      console.log("Verifying TokenICO contract at address:", tokenICO.address);
+      const networkName = network.chainId === 17000 ? "holesky" : "sepolia";
+      console.log(
+        `Verifying TokenICO contract at address: ${tokenICO.address} on ${networkName}`
+      );
 
       try {
         await hre.run("verify:verify", {
           address: tokenICO.address,
           constructorArguments: [],
-          network: "holesky", // Explicitly specify Holesky network
+          network: networkName,
         });
 
         console.log("Contract verification successful!");

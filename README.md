@@ -119,6 +119,20 @@ If you download the final source code then you can follow the following instruct
   URL: https://www.alchemy.com/
 ```
 
+## Deploying to Sepolia
+
+1. Set your RPC and wallet private key in `web3/.env`:
+   ```
+   NETWORK_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
+   PRIVATE_KEY=0xYOUR_PRIVATE_KEY
+   ```
+2. Configure the frontend by updating `.env.local` with the Sepolia values and contract addresses.
+3. Run the deployment script with Hardhat:
+   ```bash
+   cd web3 && npx hardhat run scripts/deploy.js --network sepolia
+   ```
+   The script will output the contract address to copy back into `.env.local`.
+
 ## Important Links
 
 - [Get Pro Blockchain Developer Course](https://www.theblockchaincoders.com/pro-nft-marketplace)
