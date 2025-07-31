@@ -16,6 +16,8 @@ contract TokenICO {
     // Payment token addresses
     address public usdtAddress;
     address public usdcAddress;
+    address public bnbAddress;
+    address public solAddress;
     
     // Price Configuration
     uint256 public ethPriceForToken = 0.001 ether;    // 1 token = 0.001 ETH
@@ -24,6 +26,8 @@ contract TokenICO {
     // Token ratios
     uint256 public usdtRatio;  // Tokens per 1 USDT
     uint256 public usdcRatio;  // Tokens per 1 USDC
+    uint256 public bnbRatio;   // Tokens per 1 BNB
+    uint256 public solRatio;   // Tokens per 1 SOL
     
     uint256 public tokensSold;
     
@@ -127,6 +131,8 @@ contract TokenICO {
         owner = msg.sender;
         usdtRatio = 20;
         usdcRatio = 20;
+        bnbRatio = 20;
+        solRatio = 20;
     }
     
     // Admin Functions
@@ -157,6 +163,20 @@ contract TokenICO {
         require(newRatio > 0, "Invalid ratio");
         usdcAddress = newAddress;
         usdcRatio = newRatio;
+    }
+
+    function updateBNB(address newAddress, uint256 newRatio) external onlyOwner {
+        require(newAddress != address(0), "Invalid address");
+        require(newRatio > 0, "Invalid ratio");
+        bnbAddress = newAddress;
+        bnbRatio = newRatio;
+    }
+
+    function updateSOL(address newAddress, uint256 newRatio) external onlyOwner {
+        require(newAddress != address(0), "Invalid address");
+        require(newRatio > 0, "Invalid ratio");
+        solAddress = newAddress;
+        solRatio = newRatio;
     }
     
     function setSaleToken(address _token) external onlyOwner {
@@ -275,6 +295,64 @@ contract TokenICO {
         );
         
         emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithBNB(uint256 bnbAmount) external notBlocked {
+        require(bnbAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(bnbAddress != address(0), "BNB not configured");
+
+        uint256 bnbInSmallestUnit = bnbAmount * 1e18;
+        uint256 tokenAmount = bnbAmount * bnbRatio * 1e18;
+
+        require(
+            IERC20(bnbAddress).transferFrom(msg.sender, owner, bnbInSmallestUnit),
+            "BNB transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            bnbAddress,
+            saleToken,
+            bnbAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, bnbAddress, bnbAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithSOL(uint256 solAmount) external notBlocked {
+        require(solAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(solAddress != address(0), "SOL not configured");
+
+        uint256 solInSmallestUnit = solAmount * 1e9;
+        uint256 tokenAmount = solAmount * solRatio * 1e18;
+
+        require(
+            IERC20(solAddress).transferFrom(msg.sender, owner, solInSmallestUnit),
+            "SOL transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            solAddress,
+            saleToken,
+            solAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
     }
     
     /// User Functions - Buying Stablecoins

@@ -37,6 +37,15 @@ async function main() {
     await mockFSX.deployed();
     console.log("Mock TBC deployed to:", mockFSX.address);
 
+    // Deploy mock BNB and SOL tokens for testing
+    const mockBNB = await MockStableCoins.deploy("BNB", "BNB", 18);
+    await mockBNB.deployed();
+    console.log("Mock BNB deployed to:", mockBNB.address);
+
+    const mockSOL = await MockStableCoins.deploy("SOL", "SOL", 9);
+    await mockSOL.deployed();
+    console.log("Mock SOL deployed to:", mockSOL.address);
+
     const usdtAddress = mockUSDT.address;
     const usdcAddress = mockUSDC.address;
     const fsxAddress = mockFSX.address;
@@ -45,6 +54,8 @@ async function main() {
     const mintAmount = hre.ethers.utils.parseUnits("1000000000", 6); // 1B tokens
     await mockUSDT.mint(deployer.address, mintAmount);
     await mockUSDC.mint(deployer.address, mintAmount);
+    await mockBNB.mint(deployer.address, hre.ethers.utils.parseUnits("1000000000", 18));
+    await mockSOL.mint(deployer.address, hre.ethers.utils.parseUnits("1000000000", 9));
 
     // Deploy TokenICO Contract
     console.log("\nDeploying TokenICO contract...");
@@ -60,6 +71,8 @@ async function main() {
     console.log("NEXT_PUBLIC_USDT_ADDRESS:", usdtAddress);
     console.log("NEXT_PUBLIC_USDC_ADDRESS:", usdcAddress);
     console.log("NEXT_PUBLIC_TBC_ADDRESS:", fsxAddress);
+    console.log("NEXT_PUBLIC_BNB_ADDRESS:", mockBNB.address);
+    console.log("NEXT_PUBLIC_SOL_ADDRESS:", mockSOL.address);
 
     if (network.chainId === 17000) {
       if (!tokenICO.address) {
