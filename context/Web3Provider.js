@@ -12,8 +12,6 @@ import { handleTransactionError, erc20Abi, generateId } from "./Utility";
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
 const FSX_ADDRESS = process.env.NEXT_PUBLIC_FSX_ADDRESS;
-const BNB_ADDRESS = process.env.NEXT_PUBLIC_BNB_ADDRESS;
-const SOL_ADDRESS = process.env.NEXT_PUBLIC_SOL_ADDRESS;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL;
@@ -532,6 +530,64 @@ export const Web3Provider = ({ children }) => {
       const { message: errorMessage, code: errorCode } = handleTransactionError(
         error,
         "buying with BNB"
+      );
+      if (errorCode === "ACTION_REJECTED") {
+        notify.reject(toastId, "Transaction rejected by user");
+        return null;
+      }
+
+      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    }
+  };
+
+  const buyWithSOL = async (solAmount) => {
+    if (!contract || !address) return null;
+    const toastId = notify.start(`Initializing buy With SOL transaction...`);
+    try {
+      const parsedAmount = ethers.utils.parseUnits(solAmount, 9);
+
+      const solContract = new ethers.Contract(
+        contractInfo.solAddress,
+        [
+          "function approve(address spender, uint256 amount) public returns (bool)",
+          "function allowance(address owner, address spender) view returns (uint256)",
+        ],
+        signer
+      );
+
+      const currentAllowance = await solContract.allowance(address, CONTRACT_ADDRESS);
+
+      if (currentAllowance.lt(parsedAmount)) {
+        const gasPrice = await signer.getGasPrice();
+        const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+        const approveTx = await solContract.approve(CONTRACT_ADDRESS, parsedAmount, {
+          gasPrice: optimizedGasPrice,
+        });
+        await approveTx.wait();
+        notify.approve(toastId, "SOL spending approved!");
+      } else {
+        notify.update(toastId, "info", "SOL already approved, proceeding with purchase...");
+      }
+
+      const gasPrice = await signer.getGasPrice();
+      const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+      const estimatedGas = await contract.estimateGas.buyWithSOL(solAmount);
+      const gasLimit = estimatedGas.mul(120).div(100);
+
+      const tx = await contract.buyWithSOL(solAmount, {
+        gasPrice: optimizedGasPrice,
+        gasLimit,
+      });
+      const returnTransaction = await tx.wait();
+      setReCall(reCall + 1);
+      notify.complete(toastId, `Successfully purchased with ${solAmount} SOL!`);
+      return returnTransaction;
+    } catch (error) {
+      const { message: errorMessage, code: errorCode } = handleTransactionError(
+        error,
+        "buying with SOL"
       );
       if (errorCode === "ACTION_REJECTED") {
         notify.reject(toastId, "Transaction rejected by user");
@@ -2019,6 +2075,7 @@ export const Web3Provider = ({ children }) => {
     buyWithUSDT,
     buyWithUSDC,
     buyWithBNB,
+    buyWithSOL,
     buyUSDT,
     buyUSDC,
     updateStablecoinPrice,
