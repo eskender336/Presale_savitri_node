@@ -161,32 +161,43 @@ const Footer = ({ isDarkMode }) => {
           </div>
 
           {/* Newsletter subscription */}
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold mb-2">
-              Stay updated with our newsletter
-            </h4>
-            <form onSubmit={handleSubmit} className="flex">
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="your@email.com"
-                className={`flex-grow px-3 py-2 text-sm rounded-l-md focus:outline-none ${
-                  isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-                } border`}
-              />
-              <ValidationError prefix="Email" field="email" errors={state.errors} />
-              <button
-                type="submit"
-                disabled={state.submitting}
-                className="px-4 py-2 bg-gradient-to-r from-teal-400 to-indigo-500 text-white rounded-r-md text-sm"
-              >
-                {state.submitting ? "Subscribing..." : "Subscribe"}
-              </button>
+          <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-teal-400/5 to-indigo-500/5 backdrop-blur-sm">
+            <h4 className="text-sm font-semibold mb-2">Stay updated with our newsletter</h4>
+            <form onSubmit={handleSubmit}>
+              {/* Success Message */}
+              {state.succeeded && (
+                <div className={`mb-4 p-3 rounded-lg flex items-start gap-2`}>
+                  <FaCheck className="mt-1 flex-shrink-0" />
+                  <span>Your message has been sent successfully! We'll get back to you soon.</span>
+                </div>
+              )}
+              <div className="flex">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="your@email.com"
+                  className={`flex-grow px-4 py-2 text-sm rounded-l-lg focus:outline-none ${
+                    isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                  } border`}
+                />
+                <ValidationError prefix="Email" field="email" errors={state.errors} />
+
+                <button
+                  disabled={state.submitting}
+                  className="px-4 py-2 text-light-gradient text-white rounded-r-lg text-sm whitespace-nowrap hover:from-teal-500 hover:to-indigo-600 transition-all duration-300"
+                >
+                  {state.submitting ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Subscribing...
+                    </>
+                  ) : (
+                    <>Subscribe</>
+                  )}
+                </button>
+              </div>{" "}
             </form>
-            {state.succeeded && (
-              <p className="text-xs mt-2">Thanks for subscribing!</p>
-            )}
           </div>
         </div>
       </div>
