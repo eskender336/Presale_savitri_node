@@ -122,7 +122,6 @@ export default function Home() {
         <RoadmapComponent isDarkMode={isDarkMode} />
         <TokenomicsComponent isDarkMode={isDarkMode} />
         <FAQComponent isDarkMode={isDarkMode} />
-        <HeroCTAComponent isDarkMode={isDarkMode} />
         <FooterComponent isDarkMode={isDarkMode} />
       </main>
 
