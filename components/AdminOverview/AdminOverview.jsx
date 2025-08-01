@@ -147,7 +147,7 @@ const AdminOverview = ({ isDarkMode }) => {
       <span className="text-blue-500">
         {" "}
         <img
-          src="/SavitriNetwork.png"
+          src={isDarkMode ? "/SavitriNetwork.png" : "/SavitriNetworkBlack.png"}
           style={{
             width: ".9rem",
           }}
