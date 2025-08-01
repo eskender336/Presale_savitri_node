@@ -24,7 +24,7 @@
 //           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-2">
 //             Tokenomics
 //           </h2>
-//           <p className="text-gray-400 text-lg">Lightchain AI Tokenomics</p>
+//           <p className="text-gray-400 text-lg">Savitri Network Tokenomics</p>
 //         </div>
 
 //         {/* Tokenomics Diagram - Responsive Container */}
@@ -32,7 +32,7 @@
 //           <div className="aspect-square relative">
 //             <Image
 //               src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
-//               alt="Lightchain Tokenomics Chart"
+//               alt="Savitri NetworkTokenomics Chart"
 //               layout="fill"
 //               objectFit="contain"
 //               priority
@@ -130,7 +130,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Lightchain AI Tokenomics - Strategic distribution for sustainable
+            Savitri Network Tokenomics - Strategic distribution for sustainable
             growth
           </p>
 
@@ -151,7 +151,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
             <div className="aspect-square relative">
               <Image
                 src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
-                alt="Lightchain Tokenomics Chart"
+                alt="Savitri NetworkTokenomics Chart"
                 layout="fill"
                 objectFit="contain"
                 priority
@@ -353,7 +353,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
                 className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
               >
                 Governance, staking rewards, network fees, and access to premium
-                Lightchain AI features
+                Savitri Network features
               </p>
             </div>
           </div>

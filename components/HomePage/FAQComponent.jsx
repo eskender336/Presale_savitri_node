@@ -136,7 +136,7 @@ const FAQComponent = ({ isDarkMode }) => {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Everything you need to know about Lightchain AI and our ecosystem
+            Everything you need to know about Savitri Network and our ecosystem
           </p>
 
           {/* Decorative elements */}

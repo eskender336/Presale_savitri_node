@@ -259,7 +259,7 @@ const Footer = ({ isDarkMode }) => {
           className={`mt-16 pt-8 border-t ${borderColor} flex flex-col md:flex-row justify-between items-center`}
         >
           <p className={`text-sm ${textColorTertiary} mb-4 md:mb-0`}>
-            &copy; {new Date().getFullYear()} Lightchain Protocol. All rights
+            &copy; {new Date().getFullYear()} Savitri NetworkProtocol. All rights
             reserved.
           </p>
 

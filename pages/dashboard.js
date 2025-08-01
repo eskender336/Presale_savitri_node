@@ -72,7 +72,7 @@ export default function Home() {
           name={TOKEN_NAME}
           content="Revolutionizing intelligence through decentralized innovation."
         />
-        <link rel="icon" href="/SavitriNetwork.png" />
+        <link rel="icon" href="/Savitri.png" />
       </Head>
       {/* Mobile Header */}
       <MobileHeader

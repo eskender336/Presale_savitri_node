@@ -86,13 +86,13 @@ const RoadmapComponent = ({ isDarkMode }) => {
         <div className="text-center mb-16 relative">
           <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
             <p className={`text-sm font-medium ${subtitleColor}`}>
-              Lightchain Protocol
+              Savitri NetworkProtocol
             </p>
           </div>
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold ${textColor} mb-6`}
           >
-            Lightchain Roadmap
+            Savitri NetworkRoadmap
           </h2>
           <p
             className={`max-w-2xl mx-auto ${

@@ -66,7 +66,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
         {/* Enhanced Thumbnail Container */}
         <div className="max-w-5xl mx-auto relative group">
           {/* Main gradient border with glow effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400 via-indigo-500 to-teal-400 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-gradient-x"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400 via-indigo-500 to-teal-400 rounded-xl blur opacity-80 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-gradient-x"></div>
 
           {/* Thumbnail Card */}
           <div
@@ -84,7 +84,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
               />
 
               {/* Gradient overlay with depth effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition duration-300"></div>
 
               {/* Play Button Overlay with pulse effect */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">

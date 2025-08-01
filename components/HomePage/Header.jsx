@@ -175,7 +175,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
       featuredBox: {
         title: "Join Our Community",
         description:
-          "Be part of the Lightchain revolution and help shape the future of AI-driven blockchain.",
+          "Be part of the Savitri Networkrevolution and help shape the future of AI-driven blockchain.",
         linkText: "Join Discord",
         linkUrl: "/dashboard",
         bgClass: isDarkMode ? "bg-indigo-500/10" : "bg-indigo-100/60",
@@ -233,7 +233,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
       featuredBox: {
         title: "Start Building Today",
         description:
-          "Access developer resources and start building on the Lightchain Protocol.",
+          "Access developer resources and start building on the Savitri NetworkProtocol.",
         linkText: "Developer Portal",
         linkUrl: "/dashboard",
         bgClass: isDarkMode ? "bg-teal-500/10" : "bg-teal-100/60",

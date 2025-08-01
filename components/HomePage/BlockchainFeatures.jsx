@@ -104,7 +104,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
               Decentralization without trade-offs
               </h3>
               <p className={`leading-relaxed ${textSecondary} mb-6`}>
-                Lightchain AI introduces Proof of Intelligence (PoI), a
+                Savitri Network introduces Proof of Intelligence (PoI), a
                 revolutionary consensus mechanism designed to reward nodes for
                 performing valuable AI computations, such as model training,
                 inference, and optimization tasks. Unlike traditional consensus
