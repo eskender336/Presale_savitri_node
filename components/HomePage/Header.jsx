@@ -485,20 +485,14 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full transition-colors duration-300 ${
-                isDarkMode
-                  ? "text-yellow-300 hover:text-yellow-400"
-                  : "text-indigo-600 hover:text-indigo-800"
-              }`}
-              aria-label={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
+              className="p-2 rounded-full transition-all duration-300 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
 
             <a href="/dashboard" className="group">
-              <div className="w-10 h-10 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+              <div className="w-10 h-10 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
                 <span className="text-white">
                   {/* User placeholder icon */}
                   <svg
@@ -524,14 +518,8 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
           <div className="flex md:hidden items-center space-x-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-full transition-colors duration-300 ${
-                isDarkMode
-                  ? "text-yellow-300 hover:text-yellow-400"
-                  : "text-indigo-600 hover:text-indigo-800"
-              }`}
-              aria-label={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
+              className="p-2 rounded-full transition-all duration-300 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 text-white"
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
