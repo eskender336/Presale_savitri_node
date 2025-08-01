@@ -510,7 +510,7 @@ const UserDashboard = ({ isDarkMode }) => {
                             style={{
                               width: "3rem",
                             }}
-                            src="/SavitriNetwork.png"
+                            src={isDarkMode ? "/SavitriNetwork.png" : "/SavitriNetworkBlack.png"}
                             alt=""
                             srcset=""
                           />

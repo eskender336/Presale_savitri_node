@@ -296,7 +296,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 <div className="absolute inset-0 "></div>
                 <div className="absolute inset-1 flex items-center justify-center">
                   <img
-                    src="/SavitriNetwork.png"
+                    src={isDarkMode ? "/SavitriNetwork.png" : "/SavitriNetworkBlack.png"}
                     alt="Logo"
                     className="w-full h-full object-contain"
                   />
@@ -654,7 +654,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                   <div className="absolute inset-0 "></div>
                   <div className="absolute inset-1 flex items-center justify-center ">
                     <img
-                      src="/SavitriNetwork.png"
+                      src={isDarkMode ? "/SavitriNetwork.png" : "/SavitriNetworkBlack.png"}
                       alt="Logo"
                       className="w-12 h-12 object-contain"
                     />
