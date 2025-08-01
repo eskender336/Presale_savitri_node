@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { useForm, ValidationError } from "@formspree/react";
 import {
   FaMapMarkerAlt,
   FaEnvelope,
@@ -13,6 +14,8 @@ import {
 } from "react-icons/fa";
 
 const Footer = ({ isDarkMode }) => {
+  const FORMSPREE_API_KEY = process.env.NEXT_PUBLIC_FORMSPREE_API_KEY;
+  const [state, handleSubmit] = useForm(FORMSPREE_API_KEY);
   const textColor = isDarkMode ? "text-gray-300" : "text-gray-700";
   const bgColor = isDarkMode ? "bg-[#0E0B12]" : "bg-[#f3f3f7]";
   const headingColor = "bg-clip-text text-transparent text-light-gradient";
@@ -155,6 +158,35 @@ const Footer = ({ isDarkMode }) => {
             >
               <FaYoutube />
             </a>
+          </div>
+
+          {/* Newsletter subscription */}
+          <div className="mt-6">
+            <h4 className="text-sm font-semibold mb-2">
+              Stay updated with our newsletter
+            </h4>
+            <form onSubmit={handleSubmit} className="flex">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="your@email.com"
+                className={`flex-grow px-3 py-2 text-sm rounded-l-md focus:outline-none ${
+                  isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                } border`}
+              />
+              <ValidationError prefix="Email" field="email" errors={state.errors} />
+              <button
+                type="submit"
+                disabled={state.submitting}
+                className="px-4 py-2 bg-gradient-to-r from-teal-400 to-indigo-500 text-white rounded-r-md text-sm"
+              >
+                {state.submitting ? "Subscribing..." : "Subscribe"}
+              </button>
+            </form>
+            {state.succeeded && (
+              <p className="text-xs mt-2">Thanks for subscribing!</p>
+            )}
           </div>
         </div>
       </div>
