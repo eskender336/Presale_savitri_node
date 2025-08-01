@@ -119,6 +119,18 @@ If you download the final source code then you can follow the following instruct
   URL: https://www.alchemy.com/
 ```
 
+## Environment Setup
+
+Copy `.env.local.example` to `.env.local` in the project root and
+`web3/.env.example` to `web3/.env`:
+
+```bash
+cp .env.local.example .env.local
+cp web3/.env.example web3/.env
+```
+
+Then update the newly created files with your own credentials.
+
 ## Important Links
 
 - [Get Pro Blockchain Developer Course](https://www.theblockchaincoders.com/pro-nft-marketplace)
