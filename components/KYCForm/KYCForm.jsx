@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useWeb3 } from "../../context/Web3Provider";
 
 const KYCForm = ({ isDarkMode }) => {
+  const { account } = useWeb3();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -22,11 +25,22 @@ const KYCForm = ({ isDarkMode }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Normally you would send the data to a backend service here.
-    console.log("KYC Submission", formData);
-    setSubmitted(true);
+    if (!account) return;
+    setSubmitting(true);
+    try {
+      await fetch('/api/kyc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: account, ...formData }),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Error submitting KYC', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -119,9 +133,10 @@ const KYCForm = ({ isDarkMode }) => {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 rounded-lg text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium"
+                disabled={submitting || !account}
+                className="w-full py-3 rounded-lg text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white font-medium disabled:opacity-50"
               >
-                Submit KYC
+                {submitting ? "Submitting..." : "Submit KYC"}
               </button>
             </form>
           )}
