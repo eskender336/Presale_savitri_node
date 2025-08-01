@@ -27,6 +27,11 @@ yarn-error.log*
 
 # local env files
 
+.env*
+web3/.env*
+!.env.local.example
+!web3/.env.example
+
 
 # vercel
 .vercel
