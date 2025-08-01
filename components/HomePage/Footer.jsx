@@ -113,14 +113,53 @@ const Footer = ({ isDarkMode }) => {
             Savitri Network<br />Technology built for people, not platforms.<br />We unite blockchain, AI, and IoT to power real solutions across communities, business, and the planet.
           </p>
           <div className="flex space-x-4">
-            <a href="https://www.instagram.com/savitrinetwork/" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-            <a href="https://x.com/Savitri_Net" target="_blank" rel="noopener noreferrer"><FaTwitter /></a>
-            <a href="https://www.linkedin.com/company/savitri-network" target="_blank" rel="noopener noreferrer"><FaLinkedin /></a>
-            <a href="https://t.me/savitri_group" target="_blank" rel="noopener noreferrer"><FaTelegram /></a>
-            <a href="https://medium.com/@savitri-network" target="_blank" rel="noopener noreferrer"><FaMedium /></a>
-            <a href="https://www.youtube.com/@savitri_network" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
+            <a
+              href="https://www.instagram.com/savitrinetwork/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaInstagram />
+            </a>
+            <a
+              href="https://x.com/Savitri_Net"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaTwitter />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/savitri-network"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaLinkedin />
+            </a>
+            <a
+              href="https://t.me/savitri_group"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaTelegram />
+            </a>
+            <a
+              href="https://medium.com/@savitri-network"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaMedium />
+            </a>
+            <a
+              href="https://www.youtube.com/@savitri_network"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaYoutube />
+            </a>
           </div>
         </div>
+      </div>
+      <div className="mt-8 text-center text-xs">
+        Savitri Network 2025 &copy; Copyright | Powered by Savitri Labs
       </div>
     </footer>
   );
