@@ -127,7 +127,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
                 isDarkMode ? "bg-teal-400" : "bg-teal-500"
               }`}
             ></span>
-            <span className={isDarkMode ? "text-teal-300" : "text-teal-700"}>
+            <span className={isDarkMode ? "text-teal-300" :  "text-white"}>
               Learn about {TOKEN_NAME}
             </span>
           </div>
@@ -142,7 +142,7 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
               }`}
             ></span>
             <span
-              className={isDarkMode ? "text-indigo-300" : "text-indigo-700"}
+              className={isDarkMode ? "text-indigo-300" : "text-white"}
             >
               Current Price: ${PER_TOKEN_USD_PRICE}
             </span>
