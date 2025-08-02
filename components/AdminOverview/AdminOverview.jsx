@@ -8,10 +8,12 @@ import {
   FaWallet,
   FaEthereum,
   FaSyncAlt,
+  FaIdCard,
 } from "react-icons/fa";
 import { SiTether } from "react-icons/si";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
+import KYCData from "./KYCData";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
@@ -184,6 +186,7 @@ const AdminOverview = ({ isDarkMode }) => {
     { id: "prices", icon: <FaDollarSign />, label: "Prices & Ratios" },
     { id: "balances", icon: <FaWallet />, label: "Token Balances" },
     { id: "transactions", icon: <FaHistory />, label: "Transactions" },
+    { id: "kyc", icon: <FaIdCard />, label: "KYC Data" },
   ];
 
   return (
@@ -665,6 +668,9 @@ const AdminOverview = ({ isDarkMode }) => {
                   </div>
                 </div>
               )}
+
+              {/* KYC Tab */}
+              {activeTab === "kyc" && <KYCData isDarkMode={isDarkMode} />}
             </div>
           </>
         )}
