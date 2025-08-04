@@ -29,7 +29,7 @@
 
 //         {/* Tokenomics Diagram - Responsive Container */}
 //         <div className="relative max-w-3xl mx-auto mb-16">
-//           <div className="aspect-square relative">
+//           <div className="relative aspect-[16/9]">
 //             <Image
 //               src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
 //               alt="Savitri NetworkTokenomics Chart"
@@ -148,7 +148,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
         >
           {/* Tokenomics Diagram */}
           <div className="relative max-w-3xl mx-auto mb-12">
-            <div className="aspect-square relative">
+            <div className="relative aspect-[16/9]">
               <Image
                 src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
                 alt="Savitri NetworkTokenomics Chart"
