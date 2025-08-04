@@ -275,7 +275,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             ></div>
 
             {/* Marquee text content */}
-            <div className="animate-marquee inline-block whitespace-nowrap text-white relative z-10">
+            <div className={`animate-marquee inline-block whitespace-nowrap relative z-10 ${isDarkMode ? "text-white" : "text-black"}`}>
               <span className="mx-4 text-sm md:text-base">
                 🚀 {TOKEN_NAME} {TOKEN_SYMBOL} Presale is NOW LIVE! Be part of
                 the future—claim your discounted tokens and exclusive access to
@@ -285,6 +285,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 <span className="ml-1">🔥</span>
               </span>
             </div>
+
           </div>
         )}
         {/* Main Navigation */}
@@ -476,7 +477,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 rel="noopener noreferrer"
                 className="ml-2 px-3 py-1 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
               >
-                join our TG group
+                Join our TG group
               </a>
             </div>
           </nav>

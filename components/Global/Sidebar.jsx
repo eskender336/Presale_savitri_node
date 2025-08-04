@@ -254,7 +254,16 @@ const Sidebar = ({
                 }
               }}
             >
-              <item.icon className={`w-5 h-5 ${activeItem === item.name ? "text-white" : ""}`} />
+              <item.icon
+                  className={`w-5 h-5 ${
+                    activeItem === item.name
+                      ? isDarkMode
+                        ? "text-white"
+                        : "text-purple-600"
+                      : ""
+                  }`}
+                />
+
               <span className={activeItem === item.name ? "text-light-gradient" : ""}>{item.name}</span>
             </Link>
           ))}

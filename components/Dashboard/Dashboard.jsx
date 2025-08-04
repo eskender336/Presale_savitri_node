@@ -124,7 +124,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
         <div className={`rounded-xl p-6 ${theme.card} ${theme.shadow}`}>
           <div className="mb-4">
             <div className="w-12 h-12 flex items-center justify-center rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
-              <FaMedal className="w-6 h-6 text-white" />
+              <FaMedal className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-gray-700"}`} />
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
@@ -145,7 +145,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
         <div className={`rounded-xl p-6 ${theme.card} ${theme.shadow}`}>
           <div className="mb-4">
             <div className="w-12 h-12 flex items-center justify-center rounded-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 transition-all duration-200">
-              <FaGift className="w-6 h-6 text-white" />
+              <FaGift className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-gray-700"}`} />
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
