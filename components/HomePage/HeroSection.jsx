@@ -838,28 +838,28 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <a
-                        href="#"
+                        href="#participate-pre-sale"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>
                         How to Buy
                       </a>
                       <a
-                        href="#"
+                        href="#supported-wallets"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>
                         Wallet Connection
                       </a>
                       <a
-                        href="#"
+                        href="#savi-coin-use"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>
                         Token Info
                       </a>
                       <a
-                        href="#"
+                        href="#faq"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>

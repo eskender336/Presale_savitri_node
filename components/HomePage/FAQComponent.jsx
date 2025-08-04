@@ -1,85 +1,116 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 const FAQComponent = ({ isDarkMode }) => {
-  const [openIndex, setOpenIndex] = useState(0);
-
-  const faqItems = [
+  const faqItems = useMemo(
+    () => [
     {
+      id: "savitri-network",
       question: "What is Savitri Network?",
       answer:
         "Savitri is a next-generation blockchain infrastructure that combines blockchain, IoT, and AI in a unified platform. Our mission is to create decentralized systems that are scalable, inclusive, and human-centered — enabling real-world use cases across finance, governance, supply chains, and more."
     },
     {
+      id: "savi-coin-use",
       question: "What is the SAVI coin used for?",
       answer:
         "The SAVI coin powers the entire Savitri ecosystem. Key utilities include:\n- Paying for transactions (at fixed near-zero fees)\n- Accessing AI models, tools, and decentralized applications\n- Staking to earn rewards and receive VOTE tokens\n- Participating in network governance and proposal voting\n- Unlocking enterprise tools and smart contract automation",
     },
     {
+      id: "why-bep20",
       question: "Why is Savi coin made in BEP20?",
       answer:
         "During the pre-sale and ICO phases, Savi Token will be released as a BEP20 token on the BNB Smart Chain. This temporary version is essential to manage the token sale efficiently and ensure broad compatibility with popular wallets and platforms. After the ICO ends, holders of the BEP20 Savi Token will be able to claim the native SAVI COIN on our own Layer 1 blockchain. This two-step approach ensures a smooth launch experience while preparing for full migration to the Savitri mainnet."
     },
     {
+      id: "participate-pre-sale",
       question: "How can I participate in the pre-sale?",
       answer:
         "Joining the Savi Coin pre-sale is simple and secure. Just follow these steps:\n1. Connect your wallet (e.g., Trust Wallet, MetaMask, WalletConnect)\n2. Access the Token Sale page\n3. Select the cryptocurrency you want to use (BNB, USDT, etc.)\n4. Enter the amount of Savi Coins you want to buy\n5. Confirm the transaction via your wallet\nYour Savi Token (BEP20) will be sent directly to your wallet. These tokens will later be used to claim the native SAVI COIN after the ICO."
     },
     {
+      id: "token-price-pre-sale",
       question: "What is the token price during pre-sale?",
       answer:
         "The initial price of Savi Coin during the pre-sale starts at $0.35 per token. With each new round, the price will gradually increase, rewarding early supporters with the best entry point. Secure your Savi Coins early to maximize your value before the price goes up!"
     },
     {
+      id: "vesting-lockup",
       question: "Is there a vesting or lock-up period?",
       answer:
         "To ensure a fair and sustainable launch, Savi Coin follows a simple and transparent vesting model:\n- 20% of the purchased tokens will be distributed immediately at the end of the pre-sale.\n- The remaining 80% will be released in monthly installments of 20%, completing the full vesting over four months.\n🎁 Loyalty Rewards: Users who hold their tokens throughout the vesting period or actively participate in the project’s governance may become eligible for additional rewards, including early unlocks, bonus tokens, or exclusive NFTs."
     },
     {
+      id: "presale-start",
       question: "When the Pre-sale will start?",
       answer:
         "The Pre-Sale begins in the 1st week of August and ends in the 4th week of October. The Public ICO is tentatively planned for November to January — but the exact timeline depends on the outcome of the Pre-Sale. If we successfully reach our fundraising milestones, we will proceed with the public launch and token distribution as scheduled. Otherwise, the roadmap may adjust to reflect resource realities and community feedback. We believe in transparency and responsible growth — and we’ll keep our community fully updated throughout each stage."
     },
     {
+      id: "kyc-required",
       question: "Is KYC required to participate?",
       answer:
         "No KYC is required to participate in the pre-sale. You can purchase Savi Tokens freely by connecting your wallet. However, KYC will be mandatory at the time of claiming the native SAVI COIN after the ICO ends. This ensures compliance with regulations and helps protect the long-term integrity of the project."
     },
     {
+      id: "smart-contract-audit",
       question: "Is the smart contract audited?",
       answer:
         "The audit will be provided during the pre-sale."
     },
     {
+      id: "supported-wallets",
       question: "Which wallets can I use to buy SAVI?",
       answer:
         "Every wallet available in the market: MetaMask, Trust Wallet, WalletConnect, etc."
     },
     {
+      id: "receive-tokens",
       question: "Where will I receive my tokens?",
       answer:
         "Your Savi Tokens (BEP20) will be automatically sent to the same wallet you used to complete the purchase. There’s no need for manual claiming during the pre-sale — tokens are delivered instantly after each transaction."
     },
     {
+      id: "goals-2025-2026",
       question: "What are the main goals of Savitri in 2025–2026?",
       answer:
         "Release the main net and reach the first 1,500 nodes active in the network."
     },
     {
+      id: "listing-exchanges",
       question: "When will SAVI be listed on exchanges?",
       answer:
         "The listing is planned for the end of Q2 2026, but initially a SWAP DEX will be provided where every user will be able to swap the SAVI COIN with different pairs."
     },
     {
+      id: "difference-other-layer1s",
       question: "How is Savitri different from other Layer 1s or AI blockchains?",
       answer:
         "Savitri was built to fix what others haven’t:\n- 230,000 TPS (transactions per second)\n- Up to 95% lower energy consumption\n- Proof of Unity – our novel consensus designed for speed, fairness, and inclusion\n- Easy API & SDK access for developers\n- Real-world interoperability (IoT devices, AI models, enterprise systems)\nMost blockchains are technical, closed-off, or energy-intensive. We’re not just another Layer 1 — we’re the infrastructure for meaningful change."
     },
     {
+      id: "run-node-stake",
       question: "Can I run a node or stake my tokens?",
       answer:
-        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up."
-    }
-  ];
+        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up.",
+    },
+  ],
+  []
+);
+  const [openIndex, setOpenIndex] = useState(0);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      const index = faqItems.findIndex((item) => item.id === hash);
+      if (index !== -1) {
+        setOpenIndex(index);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [faqItems]);
 
   const toggleQuestion = (index) => {
     setOpenIndex(openIndex === index ? -1 : index);
@@ -121,7 +152,7 @@ const FAQComponent = ({ isDarkMode }) => {
   );
 
   return (
-    <div className={`w-full py-20 ${bgGradient}`}>
+    <div className={`w-full py-20 ${bgGradient}`} id="faq">
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         {/* Header with animation */}
         <div className="text-center mb-16">
@@ -153,6 +184,7 @@ const FAQComponent = ({ isDarkMode }) => {
             return (
               <div
                 key={index}
+                id={item.id}
                 className={`rounded-xl overflow-hidden transition-all duration-500 ${cardBg} backdrop-blur-sm border ${borderColor} shadow-lg ${
                   isOpen ? "shadow-indigo-500/10" : ""
                 }`}
