@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 const FAQComponent = ({ isDarkMode }) => {
-  const [openIndex, setOpenIndex] = useState(0);
-
-  const faqItems = [
+  const faqItems = useMemo(
+    () => [
     {
       id: "savitri-network",
       question: "What is Savitri Network?",
@@ -92,9 +91,26 @@ const FAQComponent = ({ isDarkMode }) => {
       id: "run-node-stake",
       question: "Can I run a node or stake my tokens?",
       answer:
-        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up."
-    }
-  ];
+        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up.",
+    },
+  ],
+  []
+);
+  const [openIndex, setOpenIndex] = useState(0);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      const index = faqItems.findIndex((item) => item.id === hash);
+      if (index !== -1) {
+        setOpenIndex(index);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [faqItems]);
 
   const toggleQuestion = (index) => {
     setOpenIndex(openIndex === index ? -1 : index);
