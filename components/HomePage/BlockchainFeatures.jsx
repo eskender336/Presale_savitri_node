@@ -312,60 +312,19 @@ const BlockchainFeatures = ({ isDarkMode }) => {
         </div>
 
         {/* AIVM Section */}
-        <div className="flex flex-col lg:flex-row items-center justify-between py-12 md:py-16 gap-12">
-          <div className="w-full lg:w-1/2 order-2">
-            <div
-              className={`p-8 rounded-2xl ${
-                isDarkMode ? "bg-[#14101A]/60" : "bg-white/60"
-              } backdrop-blur-sm border ${
-                isDarkMode ? "border-gray-800/30" : "border-gray-200/60"
-              } shadow-xl`}
-            >
-              <div className="inline-flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-400 to-indigo-500 flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-                    />
-                  </svg>
-                </div>
-                <h2
-                  className={`text-3xl md:text-4xl font-bold ${textGradient}`}
-                >
-                  AITL: Decentralized AI Training, Built for Privacy and Collaboration
-                </h2>
-              </div>
-
-              <p className={`leading-relaxed ${textSecondary} mb-6`}>
-                The Artificial Intelligent Virtual Training (AITL) engine is the
-                foundation of Savitri’s decentralized AI infrastructure. It empowers
-                developers, enterprises, and communities to train, deploy, and
-                monetize AI models securely — without compromising data privacy.
-                Unlike centralized platforms that lock user data and extract
-                value, AITL leverages federated learning and the Proof of Unity
-                consensus to ensure that models evolve collaboratively across the
-                network, while sensitive information stays local and protected.
-              </p>
-
-              {/* Feature highlights */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                <div
-                  className={`flex items-start space-x-3 p-4 rounded-lg ${
-                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
-                  }`}
-                >
-                  <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center mt-0.5">
+          <div className="flex flex-col lg:flex-row items-center justify-between py-12 md:py-16 gap-12">
+            <div className="w-full lg:w-1/2 order-2">
+              <div
+                className={`p-8 rounded-2xl ${
+                  isDarkMode ? "bg-[#14101A]/60" : "bg-white/60"
+                } backdrop-blur-sm border ${
+                  isDarkMode ? "border-gray-800/30" : "border-gray-200/60"
+                } shadow-xl`}
+              >
+                <div className="inline-flex items-center space-x-2 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-400 to-indigo-500 flex items-center justify-center">
                     <svg
-                      className="w-4 h-4 text-teal-400"
+                      className="w-5 h-5 text-white"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -375,220 +334,261 @@ const BlockchainFeatures = ({ isDarkMode }) => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M5 13l4 4L19 7"
+                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
                       />
                     </svg>
                   </div>
-                  <span
-                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  <h2
+                    className={`text-3xl md:text-4xl font-bold ${textGradient}`}
                   >
-                    <span className="font-semibold">Privacy-Preserving by Design:</span>{" "}
-                    Data never leaves the local device; only model updates are shared.
-                  </span>
+                    AITL: Decentralized AI Training, Built for Privacy and Collaboration
+                  </h2>
                 </div>
-                <div
-                  className={`flex items-start space-x-3 p-4 rounded-lg ${
-                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
-                  }`}
-                >
-                  <div className="w-6 h-6 rounded-full bg-indigo-400/20 flex items-center justify-center mt-0.5">
-                    <svg
-                      className="w-4 h-4 text-indigo-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span
-                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
-                  >
-                    <span className="font-semibold">Federated Learning Infrastructure:</span>{" "}
-                    Train AI models across distributed nodes without centralizing datasets.
-                  </span>
-                </div>
-                <div
-                  className={`flex items-start space-x-3 p-4 rounded-lg ${
-                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
-                  }`}
-                >
-                  <div className="w-6 h-6 rounded-full bg-purple-400/20 flex items-center justify-center mt-0.5">
-                    <svg
-                      className="w-4 h-4 text-purple-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span
-                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
-                  >
 
-                    <span className="font-semibold">Proof of Unity Consensus:</span>{" "}
-                    Secure, energy-efficient aggregation and verification of model updates.
-                  </span>
-                </div>
-                <div
-                  className={`flex items-start space-x-3 p-4 rounded-lg ${
-                    isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
-                  }`}
-                >
-                  <div className="w-6 h-6 rounded-full bg-yellow-400/20 flex items-center justify-center mt-0.5">
-                    <svg
-                      className="w-4 h-4 text-yellow-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span
-                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
-                  >
-                  <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
-                    Tokenized marketplace to license and monetize AI models.
+                <p className={`leading-relaxed ${textSecondary} mb-6`}>
+                  The Artificial Intelligent Virtual Training (AITL) engine is the
+                  foundation of Savitri’s decentralized AI infrastructure. It empowers
+                  developers, enterprises, and communities to train, deploy, and
+                  monetize AI models securely — without compromising data privacy.
+                  Unlike centralized platforms that lock user data and extract
+                  value, AITL leverages federated learning and the Proof of Unity
+                  consensus to ensure that models evolve collaboratively across the
+                  network, while sensitive information stays local and protected.
+                </p>
 
-                  </span>
+                {/* Feature highlights */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg ${
+                      isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center mt-0.5">
+                      <svg
+                        className="w-4 h-4 text-teal-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                    >
+                      <span className="font-semibold">Privacy-Preserving by Design:</span>{" "}
+                      Data never leaves the local device; only model updates are shared.
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg ${
+                      isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-indigo-400/20 flex items-center justify-center mt-0.5">
+                      <svg
+                        className="w-4 h-4 text-indigo-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                    >
+                      <span className="font-semibold">Federated Learning Infrastructure:</span>{" "}
+                      Train AI models across distributed nodes without centralizing datasets.
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg ${
+                      isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-purple-400/20 flex items-center justify-center mt-0.5">
+                      <svg
+                        className="w-4 h-4 text-purple-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                    >
+
+                      <span className="font-semibold">Proof of Unity Consensus:</span>{" "}
+                      Secure, energy-efficient aggregation and verification of model updates.
+                    </span>
+                  </div>
+                  <div
+                    className={`flex items-start space-x-3 p-4 rounded-lg ${
+                      isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-yellow-400/20 flex items-center justify-center mt-0.5">
+                      <svg
+                        className="w-4 h-4 text-yellow-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                    >
+                    <span className="font-semibold">Built-in Monetization Tools:</span>{" "}
+                      Tokenized marketplace to license and monetize AI models.
+
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="w-full lg:w-1/2 order-1 flex justify-center">
-            <div className="relative w-64 h-64 md:w-80 md:h-80 hologram-container">
-              {/* Holographic base */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-64 h-4 hologram-base rounded-full"></div>
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-1 bg-indigo-500/60 rounded-full blur-sm"></div>
+            <div className="w-full lg:w-1/2 order-1 flex justify-center">
+              <div className="relative w-64 h-64 md:w-80 md:h-80 hologram-container">
+                {/* Holographic base */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-64 h-4 hologram-base rounded-full"></div>
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-1 bg-indigo-500/60 rounded-full blur-sm"></div>
 
-              {/* Floating platform with circuit patterns */}
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-48 h-48 hologram-glow flex items-center justify-center">
-                {/* Main processor chip */}
-                <div
-                  className={`absolute w-36 h-36 hexagon border-2 ${
-                    isDarkMode ? "border-indigo-600/80" : "border-indigo-500/80"
-                  } glass-effect flex items-center justify-center shadow-lg shadow-indigo-500/50 rotating-element`}
-                  style={{ animationDuration: "40s" }}
-                >
-                  {/* Inner circuit patterns */}
+                {/* Floating platform with circuit patterns */}
+                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-48 h-48 hologram-glow flex items-center justify-center">
+                  {/* Main processor chip */}
                   <div
-                    className={`absolute w-28 h-28 hexagon border ${
-                      isDarkMode ? "border-teal-400/60" : "border-teal-500/60"
-                    }`}
-                  ></div>
-
-                  {/* Inner energy core */}
-                  <div
-                    className="w-20 h-20 hexagon glass-effect flex items-center justify-center border border-white/30 rotating-element"
-                    style={{
-                      animationDuration: "20s",
-                      animationDirection: "reverse",
-                    }}
+                    className={`absolute w-36 h-36 hexagon border-2 ${
+                      isDarkMode ? "border-indigo-600/80" : "border-indigo-500/80"
+                    } glass-effect flex items-center justify-center shadow-lg shadow-indigo-500/50 rotating-element`}
+                    style={{ animationDuration: "40s" }}
                   >
-                    <div className="w-12 h-12 rounded-full energy-core flex items-center justify-center">
-                      <div className="w-6 h-6 rounded-full bg-white/80 animate-pulse"></div>
+                    {/* Inner circuit patterns */}
+                    <div
+                      className={`absolute w-28 h-28 hexagon border ${
+                        isDarkMode ? "border-teal-400/60" : "border-teal-500/60"
+                      }`}
+                    ></div>
+
+                    {/* Inner energy core */}
+                    <div
+                      className="w-20 h-20 hexagon glass-effect flex items-center justify-center border border-white/30 rotating-element"
+                      style={{
+                        animationDuration: "20s",
+                        animationDirection: "reverse",
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full energy-core flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-white/80 animate-pulse"></div>
+                      </div>
+                    </div>
+
+                    {/* Circuit patterns */}
+                    <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                      {/* Horizontal lines */}
+                      <div className="absolute top-1/4 left-0 w-full h-px circuit-line"></div>
+                      <div className="absolute top-3/4 left-0 w-full h-px circuit-line"></div>
+                      {/* Vertical lines */}
+                      <div className="absolute top-0 left-1/4 w-px h-full circuit-line"></div>
+                      <div className="absolute top-0 left-3/4 w-px h-full circuit-line"></div>
                     </div>
                   </div>
 
-                  {/* Circuit patterns */}
-                  <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                    {/* Horizontal lines */}
-                    <div className="absolute top-1/4 left-0 w-full h-px circuit-line"></div>
-                    <div className="absolute top-3/4 left-0 w-full h-px circuit-line"></div>
-                    {/* Vertical lines */}
-                    <div className="absolute top-0 left-1/4 w-px h-full circuit-line"></div>
-                    <div className="absolute top-0 left-3/4 w-px h-full circuit-line"></div>
+                  {/* Scan line effect */}
+                  <div className="scan-line"></div>
+
+                  {/* Connection lines radiating out */}
+                  <div className="absolute w-full h-full">
+                    {/* Diagonal lines */}
+                    <div className="absolute top-0 left-0 w-full h-full">
+                      {[...Array(8)].map((_, i) => {
+                        const angle = i * 45 * (Math.PI / 180);
+                        const length = 32;
+
+                        return (
+                          <div
+                            key={`line-${i}`}
+                            className={`absolute top-1/2 left-1/2 w-px h-8 ${
+                              isDarkMode ? "bg-indigo-500/60" : "bg-indigo-400/60"
+                            }`}
+                            style={{
+                              transform: `translate(-50%, -50%) rotate(${
+                                i * 45
+                              }deg) translateY(${length}px)`,
+                              transformOrigin: "bottom center",
+                              boxShadow: isDarkMode
+                                ? "0 0 4px rgba(99, 102, 241, 0.6)"
+                                : "0 0 4px rgba(129, 140, 248, 0.6)",
+                            }}
+                          ></div>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {/* Energy dots */}
+                  {[...Array(16)].map((_, i) => (
+                    <div
+                      key={`energy-${i}`}
+                      className="absolute w-1 h-1 glowing-particle"
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        top: `${Math.random() * 100}%`,
+                        opacity: Math.random() * 0.8 + 0.2,
+                        animation: `pulse-glow ${
+                          2 + Math.random() * 3
+                        }s ease-in-out infinite`,
+                      }}
+                    ></div>
+                  ))}
                 </div>
 
-                {/* Scan line effect */}
-                <div className="scan-line"></div>
-
-                {/* Connection lines radiating out */}
-                <div className="absolute w-full h-full">
-                  {/* Diagonal lines */}
-                  <div className="absolute top-0 left-0 w-full h-full">
-                    {[...Array(8)].map((_, i) => {
-                      const angle = i * 45 * (Math.PI / 180);
-                      const length = 32;
-
-                      return (
-                        <div
-                          key={`line-${i}`}
-                          className={`absolute top-1/2 left-1/2 w-px h-8 ${
-                            isDarkMode ? "bg-indigo-500/60" : "bg-indigo-400/60"
-                          }`}
-                          style={{
-                            transform: `translate(-50%, -50%) rotate(${
-                              i * 45
-                            }deg) translateY(${length}px)`,
-                            transformOrigin: "bottom center",
-                            boxShadow: isDarkMode
-                              ? "0 0 4px rgba(99, 102, 241, 0.6)"
-                              : "0 0 4px rgba(129, 140, 248, 0.6)",
-                          }}
-                        ></div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Energy dots */}
-                {[...Array(16)].map((_, i) => (
+                {/* Small floating particles */}
+                {[...Array(8)].map((_, i) => (
                   <div
-                    key={`energy-${i}`}
-                    className="absolute w-1 h-1 glowing-particle"
+                    key={`particle-aivm-${i}`}
+                    className="absolute w-1 h-1 bg-teal-400/80 rounded-full"
                     style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      opacity: Math.random() * 0.8 + 0.2,
-                      animation: `pulse-glow ${
-                        2 + Math.random() * 3
-                      }s ease-in-out infinite`,
+                      left: `${20 + Math.random() * 60}%`,
+                      bottom: `${10 + Math.random() * 60}%`,
+                      boxShadow: "0 0 6px 2px rgba(45, 212, 191, 0.6)",
+                      animation: `float ${
+                        3 + Math.random() * 4
+                      }s ease-in-out infinite ${Math.random() * 2}s`,
                     }}
                   ></div>
                 ))}
               </div>
-
-              {/* Small floating particles */}
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={`particle-aivm-${i}`}
-                  className="absolute w-1 h-1 bg-teal-400/80 rounded-full"
-                  style={{
-                    left: `${20 + Math.random() * 60}%`,
-                    bottom: `${10 + Math.random() * 60}%`,
-                    boxShadow: "0 0 6px 2px rgba(45, 212, 191, 0.6)",
-                    animation: `float ${
-                      3 + Math.random() * 4
-                    }s ease-in-out infinite ${Math.random() * 2}s`,
-                  }}
-                ></div>
-              ))}
             </div>
           </div>
-        </div>
 
         {/* CTA Section */}
         <div className="mt-16 text-center">
@@ -596,7 +596,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
             className={`max-w-3xl mx-auto p-8 rounded-2xl ${
               isDarkMode
                 ? "bg-gradient-to-br from-teal-400/10 to-indigo-500/10"
-                : "bg-gradient-to-br from-teal-100/50 to-indigo-100/50"
+                : "bg-white/60"
             } backdrop-blur-sm`}
           >
             <h3 className={`text-2xl font-bold mb-4 ${textGradient}`}>
@@ -608,7 +608,7 @@ const BlockchainFeatures = ({ isDarkMode }) => {
             </p>
             <a
               href="#"
-              className="inline-flex items-center px-6 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"
+              className="inline-flex items-center px-6 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30 bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600"
             >
               Discover Savitri
               <svg

@@ -476,13 +476,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
             </p>
 
             {/* Feature highlights */}
-            <div className="flex flex-wrap gap-4 mb-8 justify-center">
+            <div className="flex flex-col gap-4 mb-8 items-center">
               <div
                 className={`px-4 py-2 rounded-full ${
                   isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
-                } ${
-                  isDarkMode ? "text-teal-300" : "text-teal-700"
-                } text-sm font-medium flex items-center`}
+                } ${isDarkMode ? "text-teal-300" : "text-white"} text-sm font-medium flex items-center`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -497,14 +495,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   />
                 </svg>
                 Low fees. High throughput. Built to last.
-
               </div>
+
               <div
                 className={`px-4 py-2 rounded-full ${
-                  isDarkMode ? "bg-indigo-500/10" : "bg-indigo-100"
-                } ${
-                  isDarkMode ? "text-indigo-300" : "text-indigo-700"
-                } text-sm font-medium flex items-center`}
+                  isDarkMode ? "bg-teal-500/10" : "bg-teal-100"
+                } ${isDarkMode ? "text-teal-300" : "text-white"} text-sm font-medium flex items-center`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -518,10 +514,14 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                Own $SAVI early and help shape the decentralized future.
+                Own SAVI early and help shape the decentralized future.
               </div>
-              Join the network. Claim your stake. Build what’s next.
+
+              <p className="text-center mt-4 text-white">
+                Join the network. Claim your stake. Build what’s next.
+              </p>
             </div>
+
 
             {/* Referral button - Mobile only */}
             <button
