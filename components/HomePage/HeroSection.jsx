@@ -845,7 +845,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                         How to Buy
                       </a>
                       <a
-                        href="#supported-wallets"
+                        href="https://support.metamask.io/start/getting-started-with-metamask/"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>
