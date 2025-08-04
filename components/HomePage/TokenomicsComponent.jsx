@@ -97,7 +97,19 @@ const TokenomicsComponent = ({ isDarkMode }) => {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(FSX_ADDRESS);
+    if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(FSX_ADDRESS);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = FSX_ADDRESS;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
     setCopiedAddress(true);
     setTimeout(() => setCopiedAddress(false), 2000);
   };
