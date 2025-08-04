@@ -33,34 +33,39 @@ const RoadmapComponent = ({ isDarkMode }) => {
   // Define phases with completion status
   const phases = [
     {
-      title: "Phase 1: Prototype Development",
+      title: "Phase 1: Core Infrastructure & Testnet",
       completed: true,
+      quarter: "Q4 2024 – Q1 2025",
       items: [
-        "Development of PoI and AIVM",
-        "Governance Framework",
-        "Community Engagement",
+        "Design and implementation of PoU (Proof of Unity) consensus",
+        "Deployment of AIVM (AI Virtual Machine) on testnet",
+        "Launch of public testnet and validator onboarding",
       ],
     },
     {
-      title: "Phase 2: Testnet Rollout",
-      completed: true,
-      items: [
-        "Testnet Deployment",
-        "Performance Optimization",
-        "Feedback Integration",
-      ],
-    },
-    {
-      title: "Phase 3: Mainnet Launch",
+      title: "Phase 2: Mainnet Launch & Node Growth",
       completed: false,
+      quarter: "Q2 – Q4 2025",
       items: [
-        "Full Activation of PoI and AIVM",
-        "Validator and Contributor Nodes",
-        "Partnership Expansion",
+        "Mainnet release of Savitri Network",
+        "Scaling to 1,500 active validator and contributor nodes",
+        "Integration of on-chain governance and community tools",
+      ],
+    },
+    {
+      title: "Phase 3: Token Utility & Exchange Access",
+      completed: false,
+      quarter: "Q1 – Q2 2026",
+      items: [
+        "Launch of native Savitri SWAP DEX",
+        "SAVI token swapping with major asset pairs",
+        "Official listing of SAVI on external exchanges (end of Q2 2026)",
       ],
     },
   ];
-
+  
+  
+  
   // Icon for completed items
   const CheckIcon = () => (
     <svg
@@ -86,13 +91,13 @@ const RoadmapComponent = ({ isDarkMode }) => {
         <div className="text-center mb-16 relative">
           <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
             <p className={`text-sm font-medium ${subtitleColor}`}>
-              Savitri NetworkProtocol
+              Savitri Network Protocol
             </p>
           </div>
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold ${textColor} mb-6`}
           >
-            Savitri NetworkRoadmap
+            Savitri Network Roadmap
           </h2>
           <p
             className={`max-w-2xl mx-auto ${
@@ -177,7 +182,7 @@ const RoadmapComponent = ({ isDarkMode }) => {
                     )}
                   </div>
                   <div className="text-xs font-medium mt-2 text-center text-gray-500">
-                    {`Q${index + 1} 2025`}
+                    {phase.quarter}
                   </div>
                 </div>
               ))}

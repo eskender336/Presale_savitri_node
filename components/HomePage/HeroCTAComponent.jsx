@@ -131,7 +131,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
               <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-6 leading-tight">
                 Secure the Future, Join
                 <br />
-                Savitri NetworkProtocol AI
+                Savitri Network Protocol AI
               </h2>
 
               <p
