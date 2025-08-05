@@ -23,7 +23,9 @@ const TokenICOAbi = TOKEN_ICO_ABI.abi;
 const Web3Context = createContext(null);
 
 // Constants
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
+const CONTRACT_ADDRESS =
+  process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS ??
+  "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
 
 const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
