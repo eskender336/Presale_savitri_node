@@ -224,35 +224,38 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // Calculate token amount based on input amount and selected token
   const calculateTokenAmount = (amount, token) => {
-    if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) return "0";
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) return "0";
 
-    let calculatedAmount;
     try {
       switch (token) {
-        case "ETH":
-          // Convert ETH value to tokens based on contract's formula
-          const amountInWei = ethers.utils.parseEther(amount);
-          const tokensPerEth = ethers.utils.formatEther(prices.ethPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerEth);
-          break;
-        case "BNB":
-          calculatedAmount = parseFloat(amount) * prices.bnbRatio;
-          break;
-        case "USDT":
-          calculatedAmount = parseFloat(amount) * prices.usdtRatio;
-          break;
-        case "USDC":
-          calculatedAmount = parseFloat(amount) * prices.usdcRatio;
-          break;
+        case "ETH": {
+          if (!prices.ethPrice || prices.ethPrice.isZero()) return "0";
+          const tokensPerEth = parseFloat(
+            ethers.utils.formatEther(prices.ethPrice)
+          );
+          if (isNaN(tokensPerEth) || tokensPerEth <= 0) return "0";
+          return (numericAmount / tokensPerEth).toFixed(6);
+        }
+        case "BNB": {
+          const ratio = parseFloat(prices.bnbRatio);
+          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
+        }
+        case "USDT": {
+          const ratio = parseFloat(prices.usdtRatio);
+          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
+        }
+        case "USDC": {
+          const ratio = parseFloat(prices.usdcRatio);
+          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
+        }
         default:
-          calculatedAmount = 0;
+          return "0";
       }
     } catch (error) {
       console.error(`Error calculating token amount:`, error);
-      calculatedAmount = 0;
+      return "0";
     }
-
-    return calculatedAmount.toFixed(6);
   };
 
   // Handle input amount changes
