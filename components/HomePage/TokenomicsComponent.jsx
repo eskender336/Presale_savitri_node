@@ -160,17 +160,18 @@ const TokenomicsComponent = ({ isDarkMode }) => {
         >
           {/* Tokenomics Diagram */}
           <div className="relative max-w-3xl mx-auto mb-12">
-            <div className="aspect-square relative">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
               <Image
                 src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
-                alt="Savitri NetworkTokenomics Chart"
+                alt="Savitri Network Tokenomics Chart"
                 layout="fill"
-                objectFit="contain"
+                objectFit="cover" // or "contain" depending on your preference
                 priority
                 className="filter drop-shadow-lg transform transition-transform duration-500 hover:scale-105"
               />
             </div>
           </div>
+
 
           {/* Contract Address Section */}
           <div className="flex flex-col items-center mb-10">
