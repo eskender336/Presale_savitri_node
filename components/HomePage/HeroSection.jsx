@@ -34,6 +34,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     registerReferrer,
   } = useWeb3();
 
+  console.log("AAAAAAAAAAAA", contractInfo);
+  
   const [selectedToken, setSelectedToken] = useState("BNB");
   const [inputAmount, setInputAmount] = useState("0");
   const [tokenAmount, setTokenAmount] = useState("0");

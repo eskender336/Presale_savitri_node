@@ -26,6 +26,8 @@ const Web3Context = createContext(null);
 const CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS ??
   "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
+
+console.log("CONTRACT_ADDRESS", CONTRACT_ADDRESS);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
 
 const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
@@ -110,43 +112,51 @@ export const Web3Provider = ({ children }) => {
 
   // Modified useEffect
   useEffect(() => {
+    console.log("USE EFFECT DO YOU COPY");
     const fetchContractInfo = async () => {
+      console.log("FETCH CONTRACT INFO DO YOU COPY");
       setGlobalLoad(true);
       try {
+        console.log("TRY DO YOU COPY");
         // Constants
         const TOKEN_DECIMALS = 18;
         const STABLE_DECIMALS = 6; // Both USDT and USDC use 6 decimals
-
+        console.log("TOKEN DECIMALS", TOKEN_DECIMALS);
+        console.log("STABLE DECIMALS", STABLE_DECIMALS);
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
         const currentSigner = signer || fallbackProvider;
-
+        console.log("CURRENT PROVIDER", currentProvider);
         // Create read-only contract instances
         const readOnlyContract = new ethers.Contract(
           CONTRACT_ADDRESS,
           TokenICOAbi, // Make sure you have your contract ABI defined
           currentProvider
         );
-
+        console.log("READ ONLY CONTRACT", readOnlyContract);
         const readOnlyUsdtContract = new ethers.Contract(
           USDT_ADDRESS,
           erc20Abi,
           currentProvider
         );
-
+        console.log("READ ONLY USDT CONTRACT", readOnlyUsdtContract);
         const readOnlyUsdcContract = new ethers.Contract(
           USDC_ADDRESS,
           erc20Abi,
           currentProvider
         );
-
+        console.log("READ ONLY USDC CONTRACT", readOnlyUsdcContract);
         // Fetch basic contract info
         const info = await readOnlyContract.getContractInfo();
+        console.log("INFO", info);
         const bnbAddr = await readOnlyContract.bnbAddress();
+        console.log("BNB ADDRESS", bnbAddr);
         const solAddr = await readOnlyContract.solAddress();
+        console.log("SOL ADDRESS", solAddr);
         const bnbRatio = await readOnlyContract.bnbRatio();
+        console.log("BNB RATIO", bnbRatio);
         const solRatio = await readOnlyContract.solRatio();
-
+        console.log("SOL RATIO", solRatio);
         // Create token contract after we have the address from info
         const tokenContract = new ethers.Contract(
           info.tokenAddress,
@@ -194,6 +204,7 @@ export const Web3Provider = ({ children }) => {
             ethers.utils.formatUnits(amount.toString(), decimals)
           ).toFixed(fixedDigits);
 
+        console.log("INFO", info.tokenAddress);
         // Set contract info
         setContractInfo({
           fsxAddress: info.tokenAddress,
@@ -2059,6 +2070,8 @@ export const Web3Provider = ({ children }) => {
       console.error("Error handling referral registration:", error);
     }
   };
+
+  console.log("CONTRACT_INFO", contractInfo);
 
   const value = {
     provider,
