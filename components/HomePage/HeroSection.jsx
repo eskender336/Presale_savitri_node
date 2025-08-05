@@ -224,36 +224,30 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // Calculate token amount based on input amount and selected token
   const calculateTokenAmount = (amount, token) => {
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) return "0";
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return "0";
 
     try {
-      switch (token) {
-        case "ETH": {
-          if (!prices.ethPrice || prices.ethPrice.isZero()) return "0";
-          const tokensPerEth = parseFloat(
-            ethers.utils.formatEther(prices.ethPrice)
-          );
-          if (isNaN(tokensPerEth) || tokensPerEth <= 0) return "0";
-          return (numericAmount / tokensPerEth).toFixed(6);
-        }
-        case "BNB": {
-          const ratio = parseFloat(prices.bnbRatio);
-          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
-        }
-        case "USDT": {
-          const ratio = parseFloat(prices.usdtRatio);
-          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
-        }
-        case "USDC": {
-          const ratio = parseFloat(prices.usdcRatio);
-          return ratio > 0 ? (numericAmount * ratio).toFixed(6) : "0";
-        }
-        default:
-          return "0";
+      if (token === "ETH") {
+        if (!prices.ethPrice || prices.ethPrice.isZero()) return "0";
+        const pricePerToken = Number(
+          ethers.utils.formatEther(prices.ethPrice)
+        );
+        if (!Number.isFinite(pricePerToken) || pricePerToken <= 0) return "0";
+        return (numericAmount / pricePerToken).toFixed(6);
       }
+
+      const ratios = {
+        BNB: Number(prices.bnbRatio),
+        USDT: Number(prices.usdtRatio),
+        USDC: Number(prices.usdcRatio),
+      };
+      const ratio = ratios[token];
+      return Number.isFinite(ratio) && ratio > 0
+        ? (numericAmount * ratio).toFixed(6)
+        : "0";
     } catch (error) {
-      console.error(`Error calculating token amount:`, error);
+      console.error("Error calculating token amount:", error);
       return "0";
     }
   };
