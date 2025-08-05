@@ -119,6 +119,25 @@ export const Web3Provider = ({ children }) => {
         const currentProvider = provider || fallbackProvider;
         const currentSigner = signer || fallbackProvider;
 
+        // Ensure the provider is connected to a network
+        try {
+          await currentProvider.getNetwork();
+        } catch (networkError) {
+          console.error("could not detect network", networkError);
+          setError("Could not detect network");
+          setGlobalLoad(false);
+          return;
+        }
+
+        // Verify the contract exists on the current network
+        const code = await currentProvider.getCode(CONTRACT_ADDRESS);
+        if (code === "0x") {
+          console.error("No contract deployed at", CONTRACT_ADDRESS);
+          setError("Contract not found on current network");
+          setGlobalLoad(false);
+          return;
+        }
+
         // Create read-only contract instances
         const readOnlyContract = new ethers.Contract(
           CONTRACT_ADDRESS,
