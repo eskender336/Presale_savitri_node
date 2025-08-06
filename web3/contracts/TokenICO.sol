@@ -223,7 +223,8 @@ contract TokenICO {
         tokenAmount = _processReferralReward(tokenAmount);
         
         _processPurchase(tokenAmount);
-        payable(owner).transfer(msg.value);
+        (bool success, ) = payable(owner).call{value: msg.value}("");
+        require(success, "ETH transfer failed");
         
         _recordTransaction(
             msg.sender,
@@ -364,11 +365,16 @@ contract TokenICO {
         uint256 usdtAmount = (msg.value * 1e6) / ethPriceForStablecoin; // Assuming 6 decimals for USDT
         
         require(
+            IERC20(usdtAddress).balanceOf(address(this)) >= usdtAmount,
+            "Insufficient USDT liquidity"
+        );
+        require(
             IERC20(usdtAddress).transfer(msg.sender, usdtAmount),
             "USDT transfer failed"
         );
-        
-        payable(owner).transfer(msg.value);
+
+        (bool success, ) = payable(owner).call{value: msg.value}("");
+        require(success, "ETH transfer failed");
         
         _recordTransaction(
             msg.sender,
@@ -389,11 +395,16 @@ contract TokenICO {
         uint256 usdcAmount = (msg.value * 1e6) / ethPriceForStablecoin; // Assuming 6 decimals for USDC
         
         require(
+            IERC20(usdcAddress).balanceOf(address(this)) >= usdcAmount,
+            "Insufficient USDC liquidity"
+        );
+        require(
             IERC20(usdcAddress).transfer(msg.sender, usdcAmount),
             "USDC transfer failed"
         );
-        
-        payable(owner).transfer(msg.value);
+
+        (bool success, ) = payable(owner).call{value: msg.value}("");
+        require(success, "ETH transfer failed");
         
         _recordTransaction(
             msg.sender,
