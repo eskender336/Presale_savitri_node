@@ -11,6 +11,8 @@ export function clientToProvider(client) {
     ensAddress: chain.contracts?.ensRegistry?.address,
   };
 
+  console.log("CHAIN ID FROM WAGMI:", chain.id);
+
   if (transport.type === "fallback") {
     return new providers.FallbackProvider(
       transport.transports.map(
@@ -18,7 +20,7 @@ export function clientToProvider(client) {
       )
     );
   }
-  return new providers.JsonRpcProvider(transport.url, network);
+  return new providers.JsonRpcProvider(transport.url, network); 
 }
 
 export function useEthersProvider({ chainId } = {}) {
