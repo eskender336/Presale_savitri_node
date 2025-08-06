@@ -34,6 +34,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     registerReferrer,
   } = useWeb3();
 
+  console.log("AAAAAAAAAAAA", contractInfo);
+  
   const [selectedToken, setSelectedToken] = useState("BNB");
   const [inputAmount, setInputAmount] = useState("0");
   const [tokenAmount, setTokenAmount] = useState("0");
@@ -224,35 +226,32 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // Calculate token amount based on input amount and selected token
   const calculateTokenAmount = (amount, token) => {
-    if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) return "0";
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return "0";
 
-    let calculatedAmount;
     try {
-      switch (token) {
-        case "ETH":
-          // Convert ETH value to tokens based on contract's formula
-          const amountInWei = ethers.utils.parseEther(amount);
-          const tokensPerEth = ethers.utils.formatEther(prices.ethPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerEth);
-          break;
-        case "BNB":
-          calculatedAmount = parseFloat(amount) * prices.bnbRatio;
-          break;
-        case "USDT":
-          calculatedAmount = parseFloat(amount) * prices.usdtRatio;
-          break;
-        case "USDC":
-          calculatedAmount = parseFloat(amount) * prices.usdcRatio;
-          break;
-        default:
-          calculatedAmount = 0;
+      if (token === "ETH") {
+        if (!prices.ethPrice || prices.ethPrice.isZero()) return "0";
+        const pricePerToken = Number(
+          ethers.utils.formatEther(prices.ethPrice)
+        );
+        if (!Number.isFinite(pricePerToken) || pricePerToken <= 0) return "0";
+        return (numericAmount / pricePerToken).toFixed(6);
       }
-    } catch (error) {
-      console.error(`Error calculating token amount:`, error);
-      calculatedAmount = 0;
-    }
 
-    return calculatedAmount.toFixed(6);
+      const ratios = {
+        BNB: Number(prices.bnbRatio),
+        USDT: Number(prices.usdtRatio),
+        USDC: Number(prices.usdcRatio),
+      };
+      const ratio = ratios[token];
+      return Number.isFinite(ratio) && ratio > 0
+        ? (numericAmount * ratio).toFixed(6)
+        : "0";
+    } catch (error) {
+      console.error("Error calculating token amount:", error);
+      return "0";
+    }
   };
 
   // Handle input amount changes

@@ -39,7 +39,6 @@ const RoadmapComponent = ({ isDarkMode }) => {
       items: [
         "Design and implementation of PoU (Proof of Unity) consensus",
         "Deployment of AIVM (AI Virtual Machine) on testnet",
-        "Launch of public testnet and validator onboarding",
       ],
     },
     {
@@ -47,7 +46,7 @@ const RoadmapComponent = ({ isDarkMode }) => {
       completed: false,
       quarter: "Q2 – Q4 2025",
       items: [
-        "Mainnet release of Savitri Network",
+        "Launch of public testnet and validator onboarding",
         "Scaling to 1,500 active validator and contributor nodes",
         "Integration of on-chain governance and community tools",
       ],
@@ -57,6 +56,7 @@ const RoadmapComponent = ({ isDarkMode }) => {
       completed: false,
       quarter: "Q1 – Q2 2026",
       items: [
+        "Mainnet release of Savitri Network",
         "Launch of native Savitri SWAP DEX",
         "SAVI token swapping with major asset pairs",
         "Official listing of SAVI on external exchanges (end of Q2 2026)",
