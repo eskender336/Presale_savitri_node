@@ -41,9 +41,10 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
+  console.log("PROVIDER ETHER ", provider)
   const signer = useEthersSigner();
   const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-
+  console.log("FALLBACK PROVIDER", fallbackProvider)
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -117,6 +118,7 @@ export const Web3Provider = ({ children }) => {
 
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
+        console.log("CURRENT PROVIDER", currentProvider)
         const currentSigner = signer || fallbackProvider;
 
         // Ensure the provider is connected to a network
