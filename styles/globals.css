@@ -149,3 +149,14 @@ body {
   color: transparent;
 }
 
+/* Hide Next.js error overlay */
+nextjs-portal {
+  display: none;
+}
+
+/* Prevent overlay from altering page layout */
+body {
+  padding: 0 !important;
+  overflow: auto !important;
+}
+
