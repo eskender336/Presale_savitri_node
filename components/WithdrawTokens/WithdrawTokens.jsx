@@ -57,13 +57,13 @@ const WithdrawTokens = ({ isDarkMode }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawals, setWithdrawals] = useState([]);
   const [tokenBalancesNew, setTokenBalancesNew] = useState({
-    TBC: tokenBalances?.fsxBalance,
+    SAV: tokenBalances?.fsxBalance,
     ETH: tokenBalances?.contractEthBalance,
     USDT: tokenBalances?.usdtBalance,
     USDC: tokenBalances?.usdcBalance,
   });
   const [tokenAddresses, setTokenAddresses] = useState({
-    TBC: FSX_ADDRESS,
+    SAV: FSX_ADDRESS,
     ETH: ETH_ADDRESS,
     USDT: USDT_ADDRESS,
     USDC: USDC_ADDRESS,
@@ -277,7 +277,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
                       Select Token
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {["ETH", "TBC", "USDT", "USDC"].map((token) => (
+                      {["ETH", "SAV", "USDT", "USDC"].map((token) => (
                         <button
                           key={token}
                           type="button"
