@@ -72,6 +72,7 @@ export const Web3Provider = ({ children }) => {
     contractEthBalance: null,
     userEthBalance: null,
     userBNBBalance: "0",
+    userSOLBalance: "0",
     fsxBalance: "0",
     ethPrice: "0",
     stablecoinPrice: "0",
@@ -190,6 +191,7 @@ export const Web3Provider = ({ children }) => {
           currentProvider
         );
         const bnbContract = new ethers.Contract(bnbAddr, erc20Abi, currentProvider);
+        const solContract = new ethers.Contract(solAddr, erc20Abi, currentProvider);
 
         // Fetch contract-wide data that doesn't require wallet connection
         const [rawSupply, balances, contractBalanceWei, totalPenaltyCollected] =
@@ -206,6 +208,7 @@ export const Web3Provider = ({ children }) => {
         let usdtBalanceMy = ethers.BigNumber.from(0);
         let usdcBalanceMy = ethers.BigNumber.from(0);
         let bnbBalanceMy = ethers.BigNumber.from(0);
+        let solBalanceMy = ethers.BigNumber.from(0);
 
         // Only try to fetch user-specific data if wallet is connected
         if (address) {
@@ -215,12 +218,14 @@ export const Web3Provider = ({ children }) => {
             usdtBalanceMy,
             usdcBalanceMy,
             bnbBalanceMy,
+            solBalanceMy,
           ] = await Promise.all([
             tokenContract.balanceOf(address),
             currentProvider.getBalance(address),
             readOnlyUsdtContract.balanceOf(address),
             readOnlyUsdcContract.balanceOf(address),
             bnbContract.balanceOf(address),
+            solContract.balanceOf(address),
           ]);
         }
 
@@ -259,6 +264,7 @@ export const Web3Provider = ({ children }) => {
           contractEthBalance: ethers.utils.formatEther(contractBalanceWei),
           userEthBalance: ethers.utils.formatEther(balanceWei),
           userBNBBalance: formatAmount(bnbBalanceMy, TOKEN_DECIMALS),
+          userSOLBalance: formatAmount(solBalanceMy, TOKEN_DECIMALS),
           fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
           ethPrice: formatAmount(info.ethPrice, TOKEN_DECIMALS, 6),
           stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
@@ -1288,14 +1294,16 @@ export const Web3Provider = ({ children }) => {
 
         // Fetch additional data concurrently
         const bnbContract = new ethers.Contract(bnbAddr, erc20Abi, provider);
+        const solContract = new ethers.Contract(solAddr, erc20Abi, provider);
 
-        const [rawSupply, userFsxBalance, balances, totalPenaltyCollected, bnbBalanceMy] =
+        const [rawSupply, userFsxBalance, balances, totalPenaltyCollected, bnbBalanceMy, solBalanceMy] =
           await Promise.all([
             tokenContract.totalSupply(),
             tokenContract.balanceOf(address),
             contract.getTokenBalances(),
             readOnlyContract.getTotalPenaltyCollected(),
             bnbContract.balanceOf(address),
+            solContract.balanceOf(address),
           ]);
 
         // Helper function to format units and fix decimals
@@ -1332,6 +1340,7 @@ export const Web3Provider = ({ children }) => {
           contractEthBalance: ethers.utils.formatEther(contractBalanceWei),
           userEthBalance: ethers.utils.formatEther(balanceWei),
           userBNBBalance: formatAmount(bnbBalanceMy, TOKEN_DECIMALS),
+          userSOLBalance: formatAmount(solBalanceMy, TOKEN_DECIMALS),
           fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
           ethPrice: formatAmount(info.ethPrice, TOKEN_DECIMALS, 6),
           stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
