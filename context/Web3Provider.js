@@ -64,6 +64,8 @@ export const Web3Provider = ({ children }) => {
     solAddress: null,
     bnbTokenRatio: "0",
     solTokenRatio: "0",
+    btcAddress: null,
+    btcTokenRatio: "0",
   });
 
   const [tokenBalances, setTokenBalances] = useState({
@@ -72,6 +74,8 @@ export const Web3Provider = ({ children }) => {
     contractEthBalance: null,
     userEthBalance: null,
     userBNBBalance: "0",
+    userSOLBalance: "0",
+    userBTCBalance: "0",
     fsxBalance: "0",
     ethPrice: "0",
     stablecoinPrice: "0",
@@ -178,8 +182,10 @@ export const Web3Provider = ({ children }) => {
         const info = await readOnlyContract.getContractInfo();
         const bnbAddr = await readOnlyContract.bnbAddress();
         const solAddr = await readOnlyContract.solAddress();
+        const btcAddr = await readOnlyContract.btcAddress();
         const bnbRatio = await readOnlyContract.bnbRatio();
         const solRatio = await readOnlyContract.solRatio();
+        const btcRatio = await readOnlyContract.btcRatio();
 
         console.log("BNB ADDDRESs", bnbAddr)
 
@@ -190,6 +196,8 @@ export const Web3Provider = ({ children }) => {
           currentProvider
         );
         const bnbContract = new ethers.Contract(bnbAddr, erc20Abi, currentProvider);
+        const solContract = new ethers.Contract(solAddr, erc20Abi, currentProvider);
+        const btcContract = new ethers.Contract(btcAddr, erc20Abi, currentProvider);
 
         // Fetch contract-wide data that doesn't require wallet connection
         const [rawSupply, balances, contractBalanceWei, totalPenaltyCollected] =
@@ -206,6 +214,8 @@ export const Web3Provider = ({ children }) => {
         let usdtBalanceMy = ethers.BigNumber.from(0);
         let usdcBalanceMy = ethers.BigNumber.from(0);
         let bnbBalanceMy = ethers.BigNumber.from(0);
+        let solBalanceMy = ethers.BigNumber.from(0);
+        let btcBalanceMy = ethers.BigNumber.from(0);
 
         // Only try to fetch user-specific data if wallet is connected
         if (address) {
@@ -215,12 +225,16 @@ export const Web3Provider = ({ children }) => {
             usdtBalanceMy,
             usdcBalanceMy,
             bnbBalanceMy,
+            solBalanceMy,
+            btcBalanceMy,
           ] = await Promise.all([
             tokenContract.balanceOf(address),
             currentProvider.getBalance(address),
             readOnlyUsdtContract.balanceOf(address),
             readOnlyUsdcContract.balanceOf(address),
             bnbContract.balanceOf(address),
+            solContract.balanceOf(address),
+            btcContract.balanceOf(address),
           ]);
         }
 
@@ -248,8 +262,10 @@ export const Web3Provider = ({ children }) => {
           usdcTokenRatio: info.usdcTokenRatio.toString(),
           bnbAddress: bnbAddr,
           solAddress: solAddr,
+          btcAddress: btcAddr,
           bnbTokenRatio: bnbRatio.toString(),
           solTokenRatio: solRatio.toString(),
+          btcTokenRatio: btcRatio.toString(),
         });
 
         // Set token balances
@@ -259,6 +275,8 @@ export const Web3Provider = ({ children }) => {
           contractEthBalance: ethers.utils.formatEther(contractBalanceWei),
           userEthBalance: ethers.utils.formatEther(balanceWei),
           userBNBBalance: formatAmount(bnbBalanceMy, TOKEN_DECIMALS),
+          userSOLBalance: formatAmount(solBalanceMy, TOKEN_DECIMALS),
+          userBTCBalance: formatAmount(btcBalanceMy, TOKEN_DECIMALS),
           fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
           ethPrice: formatAmount(info.ethPrice, TOKEN_DECIMALS, 6),
           stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
@@ -565,6 +583,64 @@ export const Web3Provider = ({ children }) => {
       const { message: errorMessage, code: errorCode } = handleTransactionError(
         error,
         "buying with BNB"
+      );
+      if (errorCode === "ACTION_REJECTED") {
+        notify.reject(toastId, "Transaction rejected by user");
+        return null;
+      }
+
+      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    }
+  };
+
+  const buyWithBTC = async (btcAmount) => {
+    if (!contract || !address) return null;
+    const toastId = notify.start(`Initializing buy With BTC transaction...`);
+    try {
+      const parsedAmount = ethers.utils.parseUnits(btcAmount, 8);
+
+      const btcContract = new ethers.Contract(
+        contractInfo.btcAddress,
+        [
+          "function approve(address spender, uint256 amount) public returns (bool)",
+          "function allowance(address owner, address spender) view returns (uint256)",
+        ],
+        signer
+      );
+
+      const currentAllowance = await btcContract.allowance(address, CONTRACT_ADDRESS);
+
+      if (currentAllowance.lt(parsedAmount)) {
+        const gasPrice = await signer.getGasPrice();
+        const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+        const approveTx = await btcContract.approve(CONTRACT_ADDRESS, parsedAmount, {
+          gasPrice: optimizedGasPrice,
+        });
+        await approveTx.wait();
+        notify.approve(toastId, "BTC spending approved!");
+      } else {
+        notify.update(toastId, "info", "BTC already approved, proceeding with purchase...");
+      }
+
+      const gasPrice = await signer.getGasPrice();
+      const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+      const estimatedGas = await contract.estimateGas.buyWithBTC(btcAmount);
+      const gasLimit = estimatedGas.mul(120).div(100);
+
+      const tx = await contract.buyWithBTC(btcAmount, {
+        gasPrice: optimizedGasPrice,
+        gasLimit,
+      });
+      const returnTransaction = await tx.wait();
+      setReCall(reCall + 1);
+      notify.complete(toastId, `Successfully purchased with ${btcAmount} BTC!`);
+      return returnTransaction;
+    } catch (error) {
+      const { message: errorMessage, code: errorCode } = handleTransactionError(
+        error,
+        "buying with BTC"
       );
       if (errorCode === "ACTION_REJECTED") {
         notify.reject(toastId, "Transaction rejected by user");
@@ -1263,8 +1339,10 @@ export const Web3Provider = ({ children }) => {
           info,
           bnbAddr,
           solAddr,
+          btcAddr,
           bnbRatio,
           solRatio,
+          btcRatio,
           usdtBalanceMy,
           usdcBalanceMy,
           balanceWei,
@@ -1272,8 +1350,10 @@ export const Web3Provider = ({ children }) => {
           contract.getContractInfo(),
           contract.bnbAddress(),
           contract.solAddress(),
+          contract.btcAddress(),
           contract.bnbRatio(),
           contract.solRatio(),
+          contract.btcRatio(),
           usdtContract.balanceOf(address),
           usdcContract.balanceOf(address),
           provider.getBalance(address),
@@ -1288,14 +1368,18 @@ export const Web3Provider = ({ children }) => {
 
         // Fetch additional data concurrently
         const bnbContract = new ethers.Contract(bnbAddr, erc20Abi, provider);
+        const solContract = new ethers.Contract(solAddr, erc20Abi, provider);
+        const btcContract = new ethers.Contract(btcAddr, erc20Abi, provider);
 
-        const [rawSupply, userFsxBalance, balances, totalPenaltyCollected, bnbBalanceMy] =
+        const [rawSupply, userFsxBalance, balances, totalPenaltyCollected, bnbBalanceMy, solBalanceMy, btcBalanceMy] =
           await Promise.all([
             tokenContract.totalSupply(),
             tokenContract.balanceOf(address),
             contract.getTokenBalances(),
             readOnlyContract.getTotalPenaltyCollected(),
             bnbContract.balanceOf(address),
+            solContract.balanceOf(address),
+            btcContract.balanceOf(address),
           ]);
 
         // Helper function to format units and fix decimals
@@ -1321,8 +1405,10 @@ export const Web3Provider = ({ children }) => {
           usdcTokenRatio: info.usdcTokenRatio.toString(),
           bnbAddress: bnbAddr,
           solAddress: solAddr,
+          btcAddress: btcAddr,
           bnbTokenRatio: bnbRatio.toString(),
           solTokenRatio: solRatio.toString(),
+          btcTokenRatio: btcRatio.toString(),
         });
 
         // Set token balances
@@ -1332,6 +1418,8 @@ export const Web3Provider = ({ children }) => {
           contractEthBalance: ethers.utils.formatEther(contractBalanceWei),
           userEthBalance: ethers.utils.formatEther(balanceWei),
           userBNBBalance: formatAmount(bnbBalanceMy, TOKEN_DECIMALS),
+          userSOLBalance: formatAmount(solBalanceMy, TOKEN_DECIMALS),
+          userBTCBalance: formatAmount(btcBalanceMy, TOKEN_DECIMALS),
           fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
           ethPrice: formatAmount(info.ethPrice, TOKEN_DECIMALS, 6),
           stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
@@ -1803,11 +1891,13 @@ export const Web3Provider = ({ children }) => {
     try {
       // Get basic contract info as you already do
       const info = await contract.getContractInfo();
-      const [bnbAddr, solAddr, bnbRatio, solRatio] = await Promise.all([
+      const [bnbAddr, solAddr, btcAddr, bnbRatio, solRatio, btcRatio] = await Promise.all([
         contract.bnbAddress(),
         contract.solAddress(),
+        contract.btcAddress(),
         contract.bnbRatio(),
         contract.solRatio(),
+        contract.btcRatio(),
       ]);
 
       // Get staking specific information
@@ -1833,8 +1923,10 @@ export const Web3Provider = ({ children }) => {
         usdcTokenRatio: info.usdcTokenRatio.toString(),
         bnbAddress: bnbAddr,
         solAddress: solAddr,
+        btcAddress: btcAddr,
         bnbTokenRatio: bnbRatio.toString(),
         solTokenRatio: solRatio.toString(),
+        btcTokenRatio: btcRatio.toString(),
 
         // Staking info
         baseAPY: stakingInfo ? stakingInfo.baseApyRate.toString() : "12",
@@ -2110,6 +2202,7 @@ export const Web3Provider = ({ children }) => {
     buyWithUSDT,
     buyWithUSDC,
     buyWithBNB,
+    buyWithBTC,
     buyWithSOL,
     buyUSDT,
     buyUSDC,
