@@ -327,7 +327,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
                   isDarkMode ? "bg-gray-800" : "bg-gray-200"
                 } px-2 py-1 rounded`}
               >
-                TBC
+                SAV
               </span>
             </p>
             <h1 className={`text-3xl font-bold mb-2 ${theme.text}`}>

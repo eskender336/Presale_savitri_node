@@ -10,6 +10,9 @@ export function clientToProvider(client) {
     name: chain.name,
     ensAddress: chain.contracts?.ensRegistry?.address,
   };
+  console.log("BUILD ENV CHAIN ID:", process.env.NEXT_PUBLIC_CHAIN_ID);
+
+  console.log("CHAIN ID FROM WAGMI:", chain.id);
 
   if (transport.type === "fallback") {
     return new providers.FallbackProvider(
@@ -18,7 +21,7 @@ export function clientToProvider(client) {
       )
     );
   }
-  return new providers.JsonRpcProvider(transport.url, network);
+  return new providers.JsonRpcProvider(transport.url, network); 
 }
 
 export function useEthersProvider({ chainId } = {}) {

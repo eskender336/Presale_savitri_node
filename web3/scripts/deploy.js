@@ -30,17 +30,20 @@ async function main() {
     await mockUSDC.deployed();
     console.log("Mock USDC deployed to:", mockUSDC.address);
 
-    // Deploy mock TBC
-    const MockERC20 = await hre.ethers.getContractFactory("CryptoKing");
-    console.log("Deploy mock TBC");
-    const mockFSX = await MockERC20.deploy();
-    await mockFSX.deployed();
-    console.log("Mock TBC deployed to:", mockFSX.address);
+    // Deploy mock SAV
+    const SavitriCoin = await hre.ethers.getContractFactory("SavitriCoin");
+    const savitriToken = await SavitriCoin.deploy();
+    await savitriToken.deployed();
+    console.log("✅ Savitri Coin (SAV) deployed to:", savitriToken.address);
+    
 
     // Deploy mock BNB and SOL tokens for testing
     const mockBNB = await MockStableCoins.deploy("BNB", "BNB", 18);
     await mockBNB.deployed();
     console.log("Mock BNB deployed to:", mockBNB.address);
+
+    await tokenICO.updateBNB(mockBNB.address, 1000); // 1000 = token ratio per 1 BNB
+    console.log("✅ BNB address and ratio set:", mockBNB.address);
 
     const mockSOL = await MockStableCoins.deploy("SOL", "SOL", 9);
     await mockSOL.deployed();
@@ -48,7 +51,7 @@ async function main() {
 
     const usdtAddress = mockUSDT.address;
     const usdcAddress = mockUSDC.address;
-    const fsxAddress = mockFSX.address;
+    const savAddress = savitriToken.address;
 
     // Mint some tokens to deployer
     const mintAmount = hre.ethers.utils.parseUnits("1000000000", 6); // 1B tokens
@@ -61,16 +64,30 @@ async function main() {
     console.log("\nDeploying TokenICO contract...");
     const TokenICO = await hre.ethers.getContractFactory("TokenICO");
     const tokenICO = await TokenICO.deploy();
-
     await tokenICO.deployed();
 
     console.log("\nDeployment Successful!");
+    
+        // ✅ Set the sale token and fund the ICO
+    await tokenICO.setSaleToken(savitriToken.address);
+    console.log("✅ saleToken set:", savitriToken.address);
+
+    await savitriToken.transfer(tokenICO.address, hre.ethers.utils.parseUnits("500000", 18));
+    console.log("✅ ICO funded with 500,000 SAV tokens");
+    
+    // ✅ Set USDT and USDC addresses and ratios (e.g., 1000 tokens per 1 USDT/USDC)
+    await tokenICO.updateUSDT(mockUSDT.address, 1000);
+    console.log("✅ USDT address and ratio set:", mockUSDT.address);
+
+    await tokenICO.updateUSDC(mockUSDC.address, 1000);
+    console.log("✅ USDC address and ratio set:", mockUSDC.address);
+
     console.log("------------------------");
     console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS:", tokenICO.address);
     console.log("NEXT_PUBLIC_OWNER_ADDRESS:", deployer.address);
     console.log("NEXT_PUBLIC_USDT_ADDRESS:", usdtAddress);
     console.log("NEXT_PUBLIC_USDC_ADDRESS:", usdcAddress);
-    console.log("NEXT_PUBLIC_TBC_ADDRESS:", fsxAddress);
+    console.log("NEXT_PUBLIC_SAV_ADDRESS:", savAddress);
     console.log("NEXT_PUBLIC_BNB_ADDRESS:", mockBNB.address);
     console.log("NEXT_PUBLIC_SOL_ADDRESS:", mockSOL.address);
 

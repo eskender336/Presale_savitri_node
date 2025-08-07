@@ -41,9 +41,10 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
+  console.log("PROVIDER ETHER ", provider)
   const signer = useEthersSigner();
   const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-
+  console.log("FALLBACK PROVIDER", fallbackProvider)
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -109,15 +110,48 @@ export const Web3Provider = ({ children }) => {
   // Modified useEffect
   useEffect(() => {
     const fetchContractInfo = async () => {
-      setGlobalLoad(true);
+      console.log("▶️ NEXT_PUBLIC_RPC_URL:", process.env.NEXT_PUBLIC_RPC_URL);
+      console.log("▶️ fallback RPC_URL:", RPC_URL);
+      console.log("▶️ CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
+
+      // 1) Stand up a brand‐new provider just for debugging
+      const probe = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
       try {
+        const code = await probe.getCode(CONTRACT_ADDRESS);
+        console.log("▶️ on-chain bytecode (first 100 chars):", code.slice(0,100));
+      } catch (e) {
+        console.error("‼️ error fetching bytecode:", e);
+      }
+      setGlobalLoad(true);
+      
         // Constants
         const TOKEN_DECIMALS = 18;
         const STABLE_DECIMALS = 6; // Both USDT and USDC use 6 decimals
 
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
+        console.log("CURRENT PROVIDER", currentProvider)
         const currentSigner = signer || fallbackProvider;
+
+        // Ensure the provider is connected to a network
+        try {
+          await currentProvider.getNetwork();
+        } catch (networkError) {
+          console.error("could not detect network", networkError);
+          setError("Could not detect network");
+          setGlobalLoad(false);
+          return;
+        }
+        
+        console.log('⛓ CONTRACT_ADDRESS:', CONTRACT_ADDRESS)
+        // Verify the contract exists on the current network
+        const code = await currentProvider.getCode(CONTRACT_ADDRESS);
+        if (code === "0x") {
+          console.error("No contract deployed at", CONTRACT_ADDRESS);
+          setError("Contract not found on current network");
+          setGlobalLoad(false);
+          return;
+        }
 
         // Create read-only contract instances
         const readOnlyContract = new ethers.Contract(
@@ -125,6 +159,8 @@ export const Web3Provider = ({ children }) => {
           TokenICOAbi, // Make sure you have your contract ABI defined
           currentProvider
         );
+
+        console.log("READ ONLY CONTRACT", readOnlyContract)
 
         const readOnlyUsdtContract = new ethers.Contract(
           USDT_ADDRESS,
@@ -144,6 +180,8 @@ export const Web3Provider = ({ children }) => {
         const solAddr = await readOnlyContract.solAddress();
         const bnbRatio = await readOnlyContract.bnbRatio();
         const solRatio = await readOnlyContract.solRatio();
+
+        console.log("BNB ADDDRESs", bnbAddr)
 
         // Create token contract after we have the address from info
         const tokenContract = new ethers.Contract(
@@ -186,6 +224,7 @@ export const Web3Provider = ({ children }) => {
           ]);
         }
 
+        
         // Helper function to format units and fix decimals
         const formatAmount = (amount, decimals, fixedDigits = 2) =>
           parseFloat(
@@ -231,11 +270,7 @@ export const Web3Provider = ({ children }) => {
         });
 
         setGlobalLoad(false);
-      } catch (error) {
-        console.error("Error fetching contract info:", error);
-        setError("Failed to fetch contract data");
-        setGlobalLoad(false);
-      }
+      
     };
 
     fetchContractInfo();
