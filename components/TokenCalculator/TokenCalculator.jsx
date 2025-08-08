@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaEthereum, FaCalculator } from "react-icons/fa";
-import { SiTether, SiUsdCoin } from "react-icons/si";
+import { SiTether, SiUsdCoin, SiBinance, SiSolana, SiBitcoin } from "react-icons/si";
 import { Header } from "../index";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
@@ -14,33 +14,45 @@ const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
 const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("ETH");
+  const [currency, setCurrency] = useState("BNB");
   const [tokensToReceive, setTokensToReceive] = useState(0);
 
   // Token rates (example values)
   const rates = {
+    BNB: 1000, // 1000 tokens per BNB
     ETH: 1000, // 1000 tokens per ETH
+    SOL: 1000, // 1000 tokens per SOL
+    BTC: 1000, // 1000 tokens per BTC
     USDT: 20, // 1 tokens per USDT
     USDC: 20, // 1 tokens per USDC
   };
 
   // Price per token in different currencies
   const tokenPrice = {
+    BNB: 0.001, // BNB per token
     ETH: 0.001, // ETH per token
+    SOL: 0.001, // SOL per token
+    BTC: 0.001, // BTC per token
     USDT: 1, // USDT per token
     USDC: 1, // USDC per token
   };
 
   // Quick calculate options
   const quickOptions = {
+    BNB: [0.1, 0.5, 1, 2],
     ETH: [0.1, 0.5, 1, 2],
+    SOL: [0.1, 0.5, 1, 2],
+    BTC: [0.1, 0.5, 1, 2],
     USDT: [50, 100, 500, 1000],
     USDC: [50, 100, 500, 1000],
   };
 
   // Min and max buy limits
   const limits = {
+    BNB: { min: 0.1, max: 2.0 },
     ETH: { min: 0.1, max: 2.0 },
+    SOL: { min: 0.1, max: 2.0 },
+    BTC: { min: 0.1, max: 2.0 },
     USDT: { min: 50, max: 4000 },
     USDC: { min: 50, max: 4000 },
   };
@@ -74,14 +86,20 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
 
   const getCurrencyIcon = () => {
     switch (currency) {
+      case "BNB":
+        return <SiBinance />;
       case "ETH":
         return <FaEthereum />;
+      case "SOL":
+        return <SiSolana />;
+      case "BTC":
+        return <SiBitcoin />;
       case "USDT":
         return <SiTether />;
       case "USDC":
-        return <SiTether />;
+        return <SiUsdCoin />;
       default:
-        return <FaEthereum />;
+        return <SiBinance />;
     }
   };
 
@@ -142,7 +160,10 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
                   isDarkMode ? "text-white" : "text-gray-900"
                 } outline-none`}
               >
+                <option value="BNB">BNB</option>
                 <option value="ETH">ETH</option>
+                <option value="SOL">SOL</option>
+                <option value="BTC">BTC</option>
                 <option value="USDT">USDT</option>
                 <option value="USDC">USDC</option>
               </select>
