@@ -64,7 +64,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   // Properly handle the price calculations with useMemo to avoid recalculations
   const prices = useMemo(() => {
     // Default fallback values
-    const defaultEthPrice = contractInfo?.ethPrice;
+    const defaultEthPrice = contractInfo?.ethPrice ?? "0";
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
     const defaultBnbRatio = contractInfo?.bnbTokenRatio;
@@ -88,7 +88,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         }
       } else {
         // Default fallback
-        ethPrice = ethers.utils.parseEther(defaultEthPrice);
+        ethPrice = ethers.utils.parseEther(defaultEthPrice.toString());
       }
 
       // Handle USDT ratio
@@ -605,10 +605,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 >
               <div className="p-6 md:p-8">
                 {tokenBalances?.userFsxBalance > 0 && (
-                  <div
-                    className={`text-center text-xs ${secondaryTextColor} mb-4 bg-gradient-to-r from-teal-400/5 to-indigo-500/5 py-2 px-4 rounded-lg`}
-                  >
-                    Can't find tokens in your wallet?
+                    <div
+                      className={`text-center text-xs ${secondaryTextColor} mb-4 bg-gradient-to-r from-teal-400/5 to-indigo-500/5 py-2 px-4 rounded-lg`}
+                    >
+                      Can&apos;t find tokens in your wallet?
                     <button
                       onClick={addtokenToMetaMask}
                       className="ml-2 text-teal-400 hover:text-teal-300 transition-colors"
