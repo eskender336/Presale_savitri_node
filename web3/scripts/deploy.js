@@ -1,4 +1,3 @@
-// scripts/deploy.js
 const hre = require("hardhat");
 
 async function main() {
@@ -6,122 +5,90 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  // Check if we're on localhost/hardhat network
   const network = await hre.ethers.provider.getNetwork();
-  if (
-    network.chainId === 1337 ||
-    network.chainId === 84532 ||
-    network.chainId === 11155111 ||
-    network.chainId === 17000
-  ) {
-    // Local network
+  if ([1337, 84532, 11155111, 17000].includes(network.chainId)) {
     console.log("\nDeploying Mock Tokens for Local Testing:");
     console.log("------------------------");
 
-    // Deploy mock USDT
+    // Mock Stablecoins Contract Factory
     const MockStableCoins = await hre.ethers.getContractFactory("StableCoins");
+
+    // Deploy mock USDT (6 decimals)
     const mockUSDT = await MockStableCoins.deploy("USDT", "USDT", 6);
     await mockUSDT.deployed();
-    console.log("Mock USDT deployed to:", mockUSDT.address);
+    console.log("✅ Mock USDT deployed to:", mockUSDT.address);
 
-    // Deploy mock USDC
-    console.log("Deploy mock USDC");
+    // Deploy mock USDC (6 decimals)
     const mockUSDC = await MockStableCoins.deploy("USDC", "USDC", 6);
     await mockUSDC.deployed();
-    console.log("Mock USDC deployed to:", mockUSDC.address);
+    console.log("✅ Mock USDC deployed to:", mockUSDC.address);
 
-    // Deploy mock SAV
+    // Deploy mock BNB (18 decimals)
+    const mockBNB = await MockStableCoins.deploy("BNB", "BNB", 18);
+    await mockBNB.deployed();
+    console.log("✅ Mock BNB deployed to:", mockBNB.address);
+
+    // Deploy mock SOL (9 decimals)
+    const mockSOL = await MockStableCoins.deploy("SOL", "SOL", 9);
+    await mockSOL.deployed();
+    console.log("✅ Mock SOL deployed to:", mockSOL.address);
+
+    // Deploy mock BTC (8 decimals)
+    const mockBTC = await MockStableCoins.deploy("BTC", "BTC", 8);
+    await mockBTC.deployed();
+    console.log("✅ Mock BTC deployed to:", mockBTC.address);
+
+    // Deploy SAV token
     const SavitriCoin = await hre.ethers.getContractFactory("SavitriCoin");
     const savitriToken = await SavitriCoin.deploy();
     await savitriToken.deployed();
-    console.log("✅ Savitri Coin (SAV) deployed to:", savitriToken.address);
-    
+    console.log("✅ SAV token deployed to:", savitriToken.address);
 
-    // Deploy mock BNB and SOL tokens for testing
-    const mockBNB = await MockStableCoins.deploy("BNB", "BNB", 18);
-    await mockBNB.deployed();
-    console.log("Mock BNB deployed to:", mockBNB.address);
-
-    await tokenICO.updateBNB(mockBNB.address, 1000); // 1000 = token ratio per 1 BNB
-    console.log("✅ BNB address and ratio set:", mockBNB.address);
-
-    const mockSOL = await MockStableCoins.deploy("SOL", "SOL", 9);
-    await mockSOL.deployed();
-    console.log("Mock SOL deployed to:", mockSOL.address);
-
-    const usdtAddress = mockUSDT.address;
-    const usdcAddress = mockUSDC.address;
-    const savAddress = savitriToken.address;
-
-    // Mint some tokens to deployer
-    const mintAmount = hre.ethers.utils.parseUnits("1000000000", 6); // 1B tokens
-    await mockUSDT.mint(deployer.address, mintAmount);
-    await mockUSDC.mint(deployer.address, mintAmount);
-    await mockBNB.mint(deployer.address, hre.ethers.utils.parseUnits("1000000000", 18));
-    await mockSOL.mint(deployer.address, hre.ethers.utils.parseUnits("1000000000", 9));
-
-    // Deploy TokenICO Contract
-    console.log("\nDeploying TokenICO contract...");
+    // Deploy TokenICO contract
     const TokenICO = await hre.ethers.getContractFactory("TokenICO");
     const tokenICO = await TokenICO.deploy();
     await tokenICO.deployed();
+    console.log("✅ TokenICO contract deployed to:", tokenICO.address);
 
-    console.log("\nDeployment Successful!");
-    
-        // ✅ Set the sale token and fund the ICO
+    // Mint large supply to deployer
+    const mintStable = hre.ethers.utils.parseUnits("1000000000", 6); // for USDT/USDC
+    const mintBNB = hre.ethers.utils.parseUnits("1000000000", 18);
+    const mintSOL = hre.ethers.utils.parseUnits("1000000000", 9);
+    const mintBTC = hre.ethers.utils.parseUnits("1000000000", 8);
+
+    await mockUSDT.mint(deployer.address, mintStable);
+    await mockUSDC.mint(deployer.address, mintStable);
+    await mockBNB.mint(deployer.address, mintBNB);
+    await mockSOL.mint(deployer.address, mintSOL);
+    await mockBTC.mint(deployer.address, mintBTC);
+
+    // Set sale token
     await tokenICO.setSaleToken(savitriToken.address);
     console.log("✅ saleToken set:", savitriToken.address);
 
+    // Transfer SAV to ICO contract
     await savitriToken.transfer(tokenICO.address, hre.ethers.utils.parseUnits("500000", 18));
     console.log("✅ ICO funded with 500,000 SAV tokens");
-    
-    // ✅ Set USDT and USDC addresses and ratios (e.g., 1000 tokens per 1 USDT/USDC)
+
+    // Set token payment options with ratios
     await tokenICO.updateUSDT(mockUSDT.address, 1000);
-    console.log("✅ USDT address and ratio set:", mockUSDT.address);
-
     await tokenICO.updateUSDC(mockUSDC.address, 1000);
-    console.log("✅ USDC address and ratio set:", mockUSDC.address);
+    await tokenICO.updateBNB(mockBNB.address, 1000);
+    await tokenICO.updateSOL(mockSOL.address, 1000);
+    await tokenICO.updateBTC(mockBTC.address, 1000); // requires function in your contract
 
+    console.log("✅ All token payment methods registered with ICO");
+
+    // Output ENV-style addresses
     console.log("------------------------");
-    console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS:", tokenICO.address);
-    console.log("NEXT_PUBLIC_OWNER_ADDRESS:", deployer.address);
-    console.log("NEXT_PUBLIC_USDT_ADDRESS:", usdtAddress);
-    console.log("NEXT_PUBLIC_USDC_ADDRESS:", usdcAddress);
-    console.log("NEXT_PUBLIC_SAV_ADDRESS:", savAddress);
-    console.log("NEXT_PUBLIC_BNB_ADDRESS:", mockBNB.address);
-    console.log("NEXT_PUBLIC_SOL_ADDRESS:", mockSOL.address);
-
-    if (network.chainId === 17000) {
-      if (!tokenICO.address) {
-        console.error(
-          "Please set the NEXT_PUBLIC_TOKEN_ICO_ADDRESS environment variable"
-        );
-        process.exit(1);
-      }
-
-      console.log("Verifying TokenICO contract at address:", tokenICO.address);
-
-      try {
-        await hre.run("verify:verify", {
-          address: tokenICO.address,
-          constructorArguments: [],
-          network: "holesky", // Explicitly specify Holesky network
-        });
-
-        console.log("Contract verification successful!");
-      } catch (error) {
-        if (error.message.includes("Already Verified")) {
-          console.log("Contract is already verified!");
-        } else if (error.message.includes("Compilation failed")) {
-          console.error(
-            "Compilation error. Ensure all contracts are compiled."
-          );
-        } else {
-          console.error("Verification failed:", error);
-          process.exit(1);
-        }
-      }
-    }
+    console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS =", tokenICO.address);
+    console.log("NEXT_PUBLIC_OWNER_ADDRESS =", deployer.address);
+    console.log("NEXT_PUBLIC_USDT_ADDRESS =", mockUSDT.address);
+    console.log("NEXT_PUBLIC_USDC_ADDRESS =", mockUSDC.address);
+    console.log("NEXT_PUBLIC_SAV_ADDRESS =", savitriToken.address);
+    console.log("NEXT_PUBLIC_BNB_ADDRESS =", mockBNB.address);
+    console.log("NEXT_PUBLIC_SOL_ADDRESS =", mockSOL.address);
+    console.log("NEXT_PUBLIC_BTC_ADDRESS =", mockBTC.address);
   }
 }
 

@@ -5,8 +5,9 @@ import {
   FaChartBar,
   FaExchangeAlt,
   FaHistory,
+  FaBitcoin,
 } from "react-icons/fa";
-import { SiTether } from "react-icons/si";
+import { SiTether, SiBinance, SiSolana } from "react-icons/si";
 import { TokenCalculator, CustomConnectButton } from "../index";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
@@ -34,6 +35,9 @@ const TokenSale = ({ isDarkMode }) => {
     buyWithETH,
     buyWithUSDT,
     buyWithUSDC,
+    buyWithBNB,
+    buyWithBTC,
+    buyWithSOL,
     reCall,
     updateTokenPrice,
     updateUSDT,
@@ -54,6 +58,9 @@ const TokenSale = ({ isDarkMode }) => {
   const [ethAmount, setEthAmount] = useState("");
   const [usdtAmount, setUsdtAmount] = useState("");
   const [usdcAmount, setUsdcAmount] = useState("");
+  const [bnbAmount, setBnbAmount] = useState("");
+  const [btcAmount, setBtcAmount] = useState("");
+  const [solAmount, setSolAmount] = useState("");
   const [calculatedTokens, setCalculatedTokens] = useState("0");
   const [isLoading, setIsLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
@@ -127,10 +134,30 @@ const TokenSale = ({ isDarkMode }) => {
       const tokens =
         parseFloat(usdcAmount) * parseFloat(contractInfo.usdcTokenRatio);
       setCalculatedTokens(tokens.toLocaleString());
+    } else if (activeTab === "buyWithBNB" && bnbAmount) {
+      const tokens =
+        parseFloat(bnbAmount) * parseFloat(contractInfo.bnbTokenRatio);
+      setCalculatedTokens(tokens.toLocaleString());
+    } else if (activeTab === "buyWithBTC" && btcAmount) {
+      const tokens =
+        parseFloat(btcAmount) * parseFloat(contractInfo.btcTokenRatio);
+      setCalculatedTokens(tokens.toLocaleString());
+    } else if (activeTab === "buyWithSOL" && solAmount) {
+      const tokens =
+        parseFloat(solAmount) * parseFloat(contractInfo.solTokenRatio);
+      setCalculatedTokens(tokens.toLocaleString());
     } else {
       setCalculatedTokens("0");
     }
-  }, [activeTab, ethAmount, usdtAmount, usdcAmount]);
+  }, [
+    activeTab,
+    ethAmount,
+    usdtAmount,
+    usdcAmount,
+    bnbAmount,
+    btcAmount,
+    solAmount,
+  ]);
 
   // Function to handle token purchase
   const handlePurchase = async (e) => {
@@ -149,11 +176,23 @@ const TokenSale = ({ isDarkMode }) => {
       // Assuming USDC has 6 decimals
       const transaction = await buyWithUSDC(usdcAmount);
       console.log(transaction);
+    } else if (activeTab === "buyWithBNB") {
+      const transaction = await buyWithBNB(bnbAmount);
+      console.log(transaction);
+    } else if (activeTab === "buyWithBTC") {
+      const transaction = await buyWithBTC(btcAmount);
+      console.log(transaction);
+    } else if (activeTab === "buyWithSOL") {
+      const transaction = await buyWithSOL(solAmount);
+      console.log(transaction);
     }
 
     if (activeTab === "buyWithETH") setEthAmount("");
     if (activeTab === "buyWithUSDT") setUsdtAmount("");
     if (activeTab === "buyWithUSDC") setUsdcAmount("");
+    if (activeTab === "buyWithBNB") setBnbAmount("");
+    if (activeTab === "buyWithBTC") setBtcAmount("");
+    if (activeTab === "buyWithSOL") setSolAmount("");
 
     setIsLoading(false);
   };
@@ -378,6 +417,39 @@ const TokenSale = ({ isDarkMode }) => {
                   </span>
                   <span>USDC</span>
                 </button>
+                <button
+                  onClick={() => setActiveTab("buyWithBNB")}
+                  className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
+                    activeTab === "buyWithBNB"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                      : `${theme.textSecondary} ${theme.hover}`
+                  }`}
+                >
+                  <SiBinance className="text-yellow-400" />
+                  <span>BNB</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("buyWithBTC")}
+                  className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
+                    activeTab === "buyWithBTC"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                      : `${theme.textSecondary} ${theme.hover}`
+                  }`}
+                >
+                  <FaBitcoin className="text-orange-500" />
+                  <span>BTC</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("buyWithSOL")}
+                  className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
+                    activeTab === "buyWithSOL"
+                      ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
+                      : `${theme.textSecondary} ${theme.hover}`
+                  }`}
+                >
+                  <SiSolana className="text-purple-500" />
+                  <span>SOL</span>
+                </button>
               </div>
 
               {/* Purchase Form */}
@@ -503,6 +575,102 @@ const TokenSale = ({ isDarkMode }) => {
                       </div>
                     )}
 
+                    {/* BNB Purchase Form */}
+                    {activeTab === "buyWithBNB" && (
+                      <div>
+                        <label className={`block ${theme.textSecondary} mb-2`}>
+                          BNB Amount
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={bnbAmount}
+                            onChange={(e) => setBnbAmount(e.target.value)}
+                            placeholder="0.0"
+                            step="0.0001"
+                            min="0"
+                            className={`w-full ${theme.inputBg} rounded-lg p-4 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16`}
+                            required
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <SiBinance className="text-yellow-400" />
+                            <span className={theme.textSecondary}>BNB</span>
+                          </div>
+                        </div>
+                        <p className={`text-sm ${theme.textMuted} mt-2`}>
+                          1 BNB ={" "}
+                          {parseFloat(
+                            contractInfo?.bnbTokenRatio || 1
+                          ).toLocaleString()}{" "}
+                          {TOKEN_SYMBOL}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* BTC Purchase Form */}
+                    {activeTab === "buyWithBTC" && (
+                      <div>
+                        <label className={`block ${theme.textSecondary} mb-2`}>
+                          BTC Amount
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={btcAmount}
+                            onChange={(e) => setBtcAmount(e.target.value)}
+                            placeholder="0.0"
+                            step="0.00000001"
+                            min="0"
+                            className={`w-full ${theme.inputBg} rounded-lg p-4 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16`}
+                            required
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <FaBitcoin className="text-orange-500" />
+                            <span className={theme.textSecondary}>BTC</span>
+                          </div>
+                        </div>
+                        <p className={`text-sm ${theme.textMuted} mt-2`}>
+                          1 BTC ={" "}
+                          {parseFloat(
+                            contractInfo?.btcTokenRatio || 1
+                          ).toLocaleString()}{" "}
+                          {TOKEN_SYMBOL}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* SOL Purchase Form */}
+                    {activeTab === "buyWithSOL" && (
+                      <div>
+                        <label className={`block ${theme.textSecondary} mb-2`}>
+                          SOL Amount
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={solAmount}
+                            onChange={(e) => setSolAmount(e.target.value)}
+                            placeholder="0.0"
+                            step="0.000000001"
+                            min="0"
+                            className={`w-full ${theme.inputBg} rounded-lg p-4 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16`}
+                            required
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <SiSolana className="text-purple-500" />
+                            <span className={theme.textSecondary}>SOL</span>
+                          </div>
+                        </div>
+                        <p className={`text-sm ${theme.textMuted} mt-2`}>
+                          1 SOL ={" "}
+                          {parseFloat(
+                            contractInfo?.solTokenRatio || 1
+                          ).toLocaleString()}{" "}
+                          {TOKEN_SYMBOL}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Token Calculation */}
                     <div className={`${theme.cardBg} rounded-lg p-4`}>
                       <div className="flex justify-between">
@@ -539,7 +707,13 @@ const TokenSale = ({ isDarkMode }) => {
                               ? "ETH"
                               : activeTab === "buyWithUSDT"
                               ? "USDT"
-                              : "USDC"
+                              : activeTab === "buyWithUSDC"
+                              ? "USDC"
+                              : activeTab === "buyWithBNB"
+                              ? "BNB"
+                              : activeTab === "buyWithBTC"
+                              ? "BTC"
+                              : "SOL"
                           }`}
                     </button>
                   </form>
