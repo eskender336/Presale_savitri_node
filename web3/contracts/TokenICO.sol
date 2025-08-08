@@ -17,6 +17,7 @@ contract TokenICO {
     address public usdtAddress;
     address public usdcAddress;
     address public bnbAddress;
+    address public btcAddress;
     address public solAddress;
     
     // Price Configuration
@@ -27,6 +28,7 @@ contract TokenICO {
     uint256 public usdtRatio;  // Tokens per 1 USDT
     uint256 public usdcRatio;  // Tokens per 1 USDC
     uint256 public bnbRatio;   // Tokens per 1 BNB
+    uint256 public btcRatio;   // Tokens per 1 BTC
     uint256 public solRatio;   // Tokens per 1 SOL
     
     uint256 public tokensSold;
@@ -172,6 +174,13 @@ contract TokenICO {
         bnbRatio = newRatio;
     }
 
+    function updateBTC(address newAddress, uint256 newRatio) external onlyOwner {
+        require(newAddress != address(0), "Invalid address");
+        require(newRatio > 0, "Invalid ratio");
+        btcAddress = newAddress;
+        btcRatio = newRatio;
+    }
+
     function updateSOL(address newAddress, uint256 newRatio) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
         require(newRatio > 0, "Invalid ratio");
@@ -303,11 +312,10 @@ contract TokenICO {
         require(saleToken != address(0), "Sale token not set");
         require(bnbAddress != address(0), "BNB not configured");
 
-        uint256 bnbInSmallestUnit = bnbAmount * 1e18;
-        uint256 tokenAmount = bnbAmount * bnbRatio * 1e18;
+        uint256 tokenAmount = bnbAmount * bnbRatio;
 
         require(
-            IERC20(bnbAddress).transferFrom(msg.sender, owner, bnbInSmallestUnit),
+            IERC20(bnbAddress).transferFrom(msg.sender, owner, bnbAmount),
             "BNB transfer failed"
         );
 
@@ -327,16 +335,43 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, bnbAddress, bnbAmount, tokenAmount, block.timestamp);
     }
 
+    function buyWithBTC(uint256 btcAmount) external notBlocked {
+        require(btcAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(btcAddress != address(0), "BTC not configured");
+
+        uint256 tokenAmount = btcAmount * btcRatio * 1e10;
+
+        require(
+            IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
+            "BTC transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            btcAddress,
+            saleToken,
+            btcAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
+    }
+
     function buyWithSOL(uint256 solAmount) external notBlocked {
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
 
-        uint256 solInSmallestUnit = solAmount * 1e9;
-        uint256 tokenAmount = solAmount * solRatio * 1e18;
+        uint256 tokenAmount = solAmount * solRatio * 1e9;
 
         require(
-            IERC20(solAddress).transferFrom(msg.sender, owner, solInSmallestUnit),
+            IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
             "SOL transfer failed"
         );
 

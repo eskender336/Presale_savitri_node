@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { FaEthereum } from "react-icons/fa";
-import { SiTether, SiBinance } from "react-icons/si";
+import { FaEthereum, FaBitcoin } from "react-icons/fa";
+import { SiTether, SiBinance, SiSolana } from "react-icons/si";
 import { IoWalletOutline } from "react-icons/io5";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { BsFillInfoCircleFill, BsCurrencyDollar } from "react-icons/bs";
@@ -28,13 +28,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     buyWithUSDT,
     buyWithUSDC,
     buyWithBNB,
+    buyWithBTC,
+    buyWithSOL,
     addtokenToMetaMask,
     getReferralInfo,
     checkReferralCode,
     registerReferrer,
   } = useWeb3();
 
-  const [selectedToken, setSelectedToken] = useState("BNB");
+  const [selectedToken, setSelectedToken] = useState("ETH");
   const [inputAmount, setInputAmount] = useState("0");
   const [tokenAmount, setTokenAmount] = useState("0");
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
@@ -66,8 +68,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
     const defaultBnbRatio = contractInfo?.bnbTokenRatio;
+    const defaultBtcRatio = contractInfo?.btcTokenRatio;
+    const defaultSolRatio = contractInfo?.solTokenRatio;
 
-    let ethPrice, usdtRatio, usdcRatio, bnbRatio;
+    let ethPrice, usdtRatio, usdcRatio, bnbRatio, btcRatio, solRatio;
 
     try {
       // Handle ETH price
@@ -101,15 +105,27 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       bnbRatio = contractInfo?.bnbTokenRatio
         ? parseFloat(contractInfo.bnbTokenRatio)
         : defaultBnbRatio;
+
+      // Handle BTC ratio
+      btcRatio = contractInfo?.btcTokenRatio
+        ? parseFloat(contractInfo.btcTokenRatio)
+        : defaultBtcRatio;
+
+      // Handle SOL ratio
+      solRatio = contractInfo?.solTokenRatio
+        ? parseFloat(contractInfo.solTokenRatio)
+        : defaultSolRatio;
     } catch (error) {
       console.error("Error parsing prices:", error);
       ethPrice = ethers.utils.parseEther(defaultEthPrice);
       usdtRatio = defaultUsdtRatio;
       usdcRatio = defaultUsdcRatio;
       bnbRatio = defaultBnbRatio;
+      btcRatio = defaultBtcRatio;
+      solRatio = defaultSolRatio;
     }
 
-    return { ethPrice, usdtRatio, usdcRatio, bnbRatio };
+    return { ethPrice, usdtRatio, usdcRatio, bnbRatio, btcRatio, solRatio };
   }, [contractInfo]);
 
   // Start loading effect when component mounts
@@ -151,6 +167,14 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       case "BNB":
         const bnbBalance = parseFloat(tokenBalances?.userBNBBalance || "0");
         hasBalance = bnbBalance >= inputAmountFloat && inputAmountFloat > 0;
+        break;
+      case "BTC":
+        const btcBalance = parseFloat(tokenBalances?.userBTCBalance || "0");
+        hasBalance = btcBalance >= inputAmountFloat && inputAmountFloat > 0;
+        break;
+      case "SOL":
+        const solBalance = parseFloat(tokenBalances?.userSOLBalance || "0");
+        hasBalance = solBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
       case "USDT":
         const usdtBalance = parseFloat(tokenBalances?.userUSDTBalance || "0");
@@ -238,6 +262,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         case "BNB":
           calculatedAmount = parseFloat(amount) * prices.bnbRatio;
           break;
+        case "BTC":
+          calculatedAmount = parseFloat(amount) * prices.btcRatio;
+          break;
+        case "SOL":
+          calculatedAmount = parseFloat(amount) * prices.solRatio;
+          break;
         case "USDT":
           calculatedAmount = parseFloat(amount) * prices.usdtRatio;
           break;
@@ -299,6 +329,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         case "BNB":
           tx = await buyWithBNB(inputAmount);
           break;
+        case "BTC":
+          tx = await buyWithBTC(inputAmount);
+          break;
+        case "SOL":
+          tx = await buyWithSOL(inputAmount);
+          break;
         case "USDT":
           tx = await buyWithUSDT(inputAmount);
           break;
@@ -331,6 +367,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         return tokenBalances?.userEthBalance || "0";
       case "BNB":
         return tokenBalances?.userBNBBalance || "0";
+      case "BTC":
+        return tokenBalances?.userBTCBalance || "0";
+      case "SOL":
+        return tokenBalances?.userSOLBalance || "0";
       case "USDT":
         return tokenBalances?.userUSDTBalance || "0";
       case "USDC":
@@ -357,6 +397,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         return <FaEthereum className="text-blue-400" />;
       case "BNB":
         return <SiBinance className="text-yellow-400" />;
+      case "BTC":
+        return <FaBitcoin className="text-orange-400" />;
+      case "SOL":
+        return <SiSolana className="text-purple-400" />;
       case "USDT":
         return <SiTether className="text-green-400" />;
       case "USDC":
@@ -393,6 +437,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
           break;
         case "BNB":
           selectedColorClass = "bg-gradient-to-r from-yellow-400 to-yellow-600";
+          break;
+        case "BTC":
+          selectedColorClass = "bg-gradient-to-r from-orange-500 to-yellow-600";
+          break;
+        case "SOL":
+          selectedColorClass = "bg-gradient-to-r from-purple-500 to-purple-700";
           break;
         case "USDT":
           selectedColorClass = "bg-gradient-to-r from-green-500 to-teal-600";
@@ -671,7 +721,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                 </div>
 
                 {/* Token selection */}
-                <div className="flex space-x-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4">
                   <button
                     onClick={() => handleTokenSelection("BNB")}
                     className={getTokenButtonStyle("BNB")}
@@ -683,6 +733,42 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                       size={18}
                     />
                     BNB
+                  </button>
+                  <button
+                    onClick={() => handleTokenSelection("ETH")}
+                    className={getTokenButtonStyle("ETH")}
+                  >
+                    <FaEthereum
+                      className={`mr-2 ${
+                        selectedToken === "ETH" ? "text-white" : ""
+                      }`}
+                      size={18}
+                    />
+                    ETH
+                  </button>
+                  <button
+                    onClick={() => handleTokenSelection("BTC")}
+                    className={getTokenButtonStyle("BTC")}
+                  >
+                    <FaBitcoin
+                      className={`mr-2 ${
+                        selectedToken === "BTC" ? "text-white" : ""
+                      }`}
+                      size={18}
+                    />
+                    BTC
+                  </button>
+                  <button
+                    onClick={() => handleTokenSelection("SOL")}
+                    className={getTokenButtonStyle("SOL")}
+                  >
+                    <SiSolana
+                      className={`mr-2 ${
+                        selectedToken === "SOL" ? "text-white" : ""
+                      }`}
+                      size={18}
+                    />
+                    SOL
                   </button>
                   <button
                     onClick={() => handleTokenSelection("USDT")}
