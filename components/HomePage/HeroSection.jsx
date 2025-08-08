@@ -36,7 +36,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     registerReferrer,
   } = useWeb3();
 
-  const [selectedToken, setSelectedToken] = useState("ETH");
+  const [selectedToken, setSelectedToken] = useState("BNB");
   const [inputAmount, setInputAmount] = useState("0");
   const [tokenAmount, setTokenAmount] = useState("0");
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
@@ -64,31 +64,28 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   // Properly handle the price calculations with useMemo to avoid recalculations
   const prices = useMemo(() => {
     // Default fallback values
-    const defaultEthPrice = contractInfo?.ethPrice ?? "0";
+    const defaultBnbPrice = contractInfo?.bnbPrice ?? "0";
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
-    const defaultBnbRatio = contractInfo?.bnbTokenRatio;
+    const defaultEthRatio = contractInfo?.ethTokenRatio;
     const defaultBtcRatio = contractInfo?.btcTokenRatio;
     const defaultSolRatio = contractInfo?.solTokenRatio;
 
-    let ethPrice, usdtRatio, usdcRatio, bnbRatio, btcRatio, solRatio;
+    let bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
 
     try {
-      // Handle ETH price
-      if (contractInfo?.ethPrice) {
-        // If it's already a BigNumber or a BigNumber-compatible object
+      // Handle BNB price
+      if (contractInfo?.bnbPrice) {
         if (
-          typeof contractInfo.ethPrice === "object" &&
-          contractInfo.ethPrice._isBigNumber
+          typeof contractInfo.bnbPrice === "object" &&
+          contractInfo.bnbPrice._isBigNumber
         ) {
-          ethPrice = contractInfo.ethPrice;
+          bnbPrice = contractInfo.bnbPrice;
         } else {
-          // If it's a string, convert it
-          ethPrice = ethers.utils.parseEther(contractInfo.ethPrice.toString());
+          bnbPrice = ethers.utils.parseEther(contractInfo.bnbPrice.toString());
         }
       } else {
-        // Default fallback
-        ethPrice = ethers.utils.parseEther(defaultEthPrice.toString());
+        bnbPrice = ethers.utils.parseEther(defaultBnbPrice.toString());
       }
 
       // Handle USDT ratio
@@ -101,10 +98,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         ? parseFloat(contractInfo.usdcTokenRatio)
         : defaultUsdcRatio;
 
-      // Handle BNB ratio
-      bnbRatio = contractInfo?.bnbTokenRatio
-        ? parseFloat(contractInfo.bnbTokenRatio)
-        : defaultBnbRatio;
+      // Handle ETH ratio
+      ethRatio = contractInfo?.ethTokenRatio
+        ? parseFloat(contractInfo.ethTokenRatio)
+        : defaultEthRatio;
 
       // Handle BTC ratio
       btcRatio = contractInfo?.btcTokenRatio
@@ -117,15 +114,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         : defaultSolRatio;
     } catch (error) {
       console.error("Error parsing prices:", error);
-      ethPrice = ethers.utils.parseEther(defaultEthPrice);
+      bnbPrice = ethers.utils.parseEther(defaultBnbPrice);
       usdtRatio = defaultUsdtRatio;
       usdcRatio = defaultUsdcRatio;
-      bnbRatio = defaultBnbRatio;
+      ethRatio = defaultEthRatio;
       btcRatio = defaultBtcRatio;
       solRatio = defaultSolRatio;
     }
 
-    return { ethPrice, usdtRatio, usdcRatio, bnbRatio, btcRatio, solRatio };
+    return { bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
   }, [contractInfo]);
 
   // Start loading effect when component mounts
@@ -253,14 +250,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     let calculatedAmount;
     try {
       switch (token) {
-        case "ETH":
-          // Convert ETH value to tokens based on contract's formula
-          const amountInWei = ethers.utils.parseEther(amount);
-          const tokensPerEth = ethers.utils.formatEther(prices.ethPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerEth);
+        case "BNB": {
+          const tokensPerBnb = ethers.utils.formatEther(prices.bnbPrice);
+          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerBnb);
           break;
-        case "BNB":
-          calculatedAmount = parseFloat(amount) * prices.bnbRatio;
+        }
+        case "ETH":
+          calculatedAmount = parseFloat(amount) * prices.ethRatio;
           break;
         case "BTC":
           calculatedAmount = parseFloat(amount) * prices.btcRatio;
