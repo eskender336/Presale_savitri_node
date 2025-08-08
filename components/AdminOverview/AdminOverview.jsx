@@ -6,10 +6,10 @@ import {
   FaExchangeAlt,
   FaHistory,
   FaWallet,
-  FaEthereum,
   FaSyncAlt,
 } from "react-icons/fa";
-import { SiTether } from "react-icons/si";
+import { SiTether, SiBinance } from "react-icons/si";
+import { FaEthereum } from "react-icons/fa";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
 
@@ -33,7 +33,7 @@ const AdminOverview = ({ isDarkMode }) => {
     connectWallet,
     disconnectWallet,
     switchNetwork,
-    buyWithETH,
+    buyWithBNB,
     buyWithUSDT,
     buyWithUSDC,
 
@@ -101,7 +101,7 @@ const AdminOverview = ({ isDarkMode }) => {
   // Helper function to format addresses
   const formatAddress = (address) => {
     if (!address || address === "0x0000000000000000000000000000000000000000")
-      return "ETH";
+      return "BNB";
     return `${address.substring(0, 6)}...${address.substring(
       address.length - 4
     )}`;
@@ -115,9 +115,10 @@ const AdminOverview = ({ isDarkMode }) => {
   // Helper function to determine token name
   const getTokenName = (address) => {
     if (!address || address === "0x0000000000000000000000000000000000000000")
-      return "ETH";
+      return "BNB";
     if (address === contractInfo.usdtAddress) return "USDT";
     if (address === contractInfo.usdcAddress) return "USDC";
+    if (address === contractInfo.ethAddress) return "ETH";
     if (address === contractInfo.fsxAddress) return `${TOKEN_SYMBOL}`;
     return formatAddress(address);
   };
@@ -125,6 +126,9 @@ const AdminOverview = ({ isDarkMode }) => {
   /// Helper function to get token icon
   const getTokenIcon = (address) => {
     if (!address || address === "0x0000000000000000000000000000000000000000") {
+      return <SiBinance className="text-yellow-400" />;
+    }
+    if (address === contractInfo.ethAddress) {
       return <FaEthereum className="text-[#627EEA]" />;
     }
     if (address === contractInfo.usdtAddress) {
@@ -388,15 +392,15 @@ const AdminOverview = ({ isDarkMode }) => {
                           <p
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
-                            {contractInfo.ethPrice} {CURRENCY}
+                              {contractInfo.bnbPrice} {CURRENCY}
                           </p>
                         </div>
                         <div>
                           <h3 className="text-gray-400 mb-2">
-                            Stablecoin Price (ETH)
+                            Stablecoin Price (BNB)
                           </h3>
                           <p className="text-white font-bold text-lg sm:text-xl">
-                            {contractInfo.stablecoinPrice} ETH
+                            {contractInfo.stablecoinPrice} BNB
                           </p>
                         </div>
                       </div>
@@ -643,7 +647,7 @@ const AdminOverview = ({ isDarkMode }) => {
                               >
                                 {tx.tokenIn ===
                                 "0x0000000000000000000000000000000000000000"
-                                  ? tx.amountIn + " ETH"
+                                  ? tx.amountIn + " BNB"
                                   : tx.amountIn +
                                     " " +
                                     getTokenName(tx.tokenInAddress)}

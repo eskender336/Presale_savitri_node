@@ -49,7 +49,7 @@ const Sidebar = ({
     connectWallet,
     disconnectWallet,
     switchNetwork,
-    buyWithETH,
+    buyWithBNB,
     buyWithUSDT,
     buyWithUSDC,
 

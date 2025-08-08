@@ -32,10 +32,10 @@ const TokenSale = ({ isDarkMode }) => {
     connectWallet,
     disconnectWallet,
     switchNetwork,
-    buyWithETH,
+    buyWithBNB,
     buyWithUSDT,
     buyWithUSDC,
-    buyWithBNB,
+    buyWithETH,
     buyWithBTC,
     buyWithSOL,
     reCall,
@@ -54,11 +54,11 @@ const TokenSale = ({ isDarkMode }) => {
   } = useWeb3();
 
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState("buyWithETH");
-  const [ethAmount, setEthAmount] = useState("");
+  const [activeTab, setActiveTab] = useState("buyWithBNB");
+  const [bnbAmount, setBnbAmount] = useState("");
   const [usdtAmount, setUsdtAmount] = useState("");
   const [usdcAmount, setUsdcAmount] = useState("");
-  const [bnbAmount, setBnbAmount] = useState("");
+  const [ethAmount, setEthAmount] = useState("");
   const [btcAmount, setBtcAmount] = useState("");
   const [solAmount, setSolAmount] = useState("");
   const [calculatedTokens, setCalculatedTokens] = useState("0");
@@ -123,8 +123,9 @@ const TokenSale = ({ isDarkMode }) => {
 
   // Calculate tokens based on input and payment method
   useEffect(() => {
-    if (activeTab === "buyWithETH" && ethAmount) {
-      const tokens = parseFloat(ethAmount) / parseFloat(contractInfo.ethPrice);
+    if (activeTab === "buyWithBNB" && bnbAmount) {
+      const tokens =
+        parseFloat(bnbAmount) / parseFloat(contractInfo.bnbPrice);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithUSDT" && usdtAmount) {
       const tokens =
@@ -134,9 +135,9 @@ const TokenSale = ({ isDarkMode }) => {
       const tokens =
         parseFloat(usdcAmount) * parseFloat(contractInfo.usdcTokenRatio);
       setCalculatedTokens(tokens.toLocaleString());
-    } else if (activeTab === "buyWithBNB" && bnbAmount) {
+    } else if (activeTab === "buyWithETH" && ethAmount) {
       const tokens =
-        parseFloat(bnbAmount) * parseFloat(contractInfo.bnbTokenRatio);
+        parseFloat(ethAmount) * parseFloat(contractInfo.ethTokenRatio);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithBTC" && btcAmount) {
       const tokens =
@@ -151,10 +152,10 @@ const TokenSale = ({ isDarkMode }) => {
     }
   }, [
     activeTab,
-    ethAmount,
+    bnbAmount,
     usdtAmount,
     usdcAmount,
-    bnbAmount,
+    ethAmount,
     btcAmount,
     solAmount,
   ]);
@@ -165,8 +166,8 @@ const TokenSale = ({ isDarkMode }) => {
     setIsLoading(true);
 
     // In a real implementation, you would call contract methods:
-    if (activeTab === "buyWithETH") {
-      const transaction = await buyWithETH(ethAmount);
+    if (activeTab === "buyWithBNB") {
+      const transaction = await buyWithBNB(bnbAmount);
       console.log(transaction);
     } else if (activeTab === "buyWithUSDT") {
       // Assuming USDT has 6 decimals
@@ -176,8 +177,8 @@ const TokenSale = ({ isDarkMode }) => {
       // Assuming USDC has 6 decimals
       const transaction = await buyWithUSDC(usdcAmount);
       console.log(transaction);
-    } else if (activeTab === "buyWithBNB") {
-      const transaction = await buyWithBNB(bnbAmount);
+    } else if (activeTab === "buyWithETH") {
+      const transaction = await buyWithETH(ethAmount);
       console.log(transaction);
     } else if (activeTab === "buyWithBTC") {
       const transaction = await buyWithBTC(btcAmount);
@@ -187,10 +188,10 @@ const TokenSale = ({ isDarkMode }) => {
       console.log(transaction);
     }
 
-    if (activeTab === "buyWithETH") setEthAmount("");
+    if (activeTab === "buyWithBNB") setBnbAmount("");
     if (activeTab === "buyWithUSDT") setUsdtAmount("");
     if (activeTab === "buyWithUSDC") setUsdcAmount("");
-    if (activeTab === "buyWithBNB") setBnbAmount("");
+    if (activeTab === "buyWithETH") setEthAmount("");
     if (activeTab === "buyWithBTC") setBtcAmount("");
     if (activeTab === "buyWithSOL") setSolAmount("");
 
@@ -378,15 +379,15 @@ const TokenSale = ({ isDarkMode }) => {
               {/* Payment Method Tabs */}
               <div className={`flex border-b ${theme.border}`}>
                 <button
-                  onClick={() => setActiveTab("buyWithETH")}
+                  onClick={() => setActiveTab("buyWithBNB")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
-                    activeTab === "buyWithETH"
+                    activeTab === "buyWithBNB"
                       ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
-                  <FaEthereum />
-                  <span>{CURRENCY}</span>
+                  <SiBinance className="text-yellow-400" />
+                  <span>BNB</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("buyWithUSDT")}
@@ -418,15 +419,15 @@ const TokenSale = ({ isDarkMode }) => {
                   <span>USDC</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab("buyWithBNB")}
+                  onClick={() => setActiveTab("buyWithETH")}
                   className={`flex-1 py-4 px-6 flex justify-center items-center gap-2 ${
-                    activeTab === "buyWithBNB"
+                    activeTab === "buyWithETH"
                       ? "text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white"
                       : `${theme.textSecondary} ${theme.hover}`
                   }`}
                 >
-                  <SiBinance className="text-yellow-400" />
-                  <span>BNB</span>
+                  <FaEthereum />
+                  <span>ETH</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("buyWithBTC")}
@@ -470,17 +471,17 @@ const TokenSale = ({ isDarkMode }) => {
                   </div>
                 ) : (
                   <form onSubmit={handlePurchase} className="space-y-6">
-                    {/* ETH Purchase Form */}
-                    {activeTab === "buyWithETH" && (
+                    {/* BNB Purchase Form */}
+                    {activeTab === "buyWithBNB" && (
                       <div>
                         <label className={`block ${theme.textSecondary} mb-2`}>
-                          {CURRENCY} Amount
+                          BNB Amount
                         </label>
                         <div className="relative">
                           <input
                             type="number"
-                            value={ethAmount}
-                            onChange={(e) => setEthAmount(e.target.value)}
+                            value={bnbAmount}
+                            onChange={(e) => setBnbAmount(e.target.value)}
                             placeholder="0.0"
                             step="0.01"
                             min="0"
@@ -488,16 +489,14 @@ const TokenSale = ({ isDarkMode }) => {
                             required
                           />
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <FaEthereum className="text-[#627EEA]" />
-                            <span className={theme.textSecondary}>
-                              {CURRENCY}
-                            </span>
+                            <SiBinance className="text-yellow-400" />
+                            <span className={theme.textSecondary}>BNB</span>
                           </div>
                         </div>
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
-                          1 {CURRENCY} ={" "}
+                          1 BNB ={" "}
                           {(
-                            1 / parseFloat(Number(contractInfo?.ethPrice) || 1)
+                            1 / parseFloat(Number(contractInfo?.bnbPrice) || 1)
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -575,17 +574,17 @@ const TokenSale = ({ isDarkMode }) => {
                       </div>
                     )}
 
-                    {/* BNB Purchase Form */}
-                    {activeTab === "buyWithBNB" && (
+                    {/* ETH Purchase Form */}
+                    {activeTab === "buyWithETH" && (
                       <div>
                         <label className={`block ${theme.textSecondary} mb-2`}>
-                          BNB Amount
+                          ETH Amount
                         </label>
                         <div className="relative">
                           <input
                             type="number"
-                            value={bnbAmount}
-                            onChange={(e) => setBnbAmount(e.target.value)}
+                            value={ethAmount}
+                            onChange={(e) => setEthAmount(e.target.value)}
                             placeholder="0.0"
                             step="0.0001"
                             min="0"
@@ -593,14 +592,14 @@ const TokenSale = ({ isDarkMode }) => {
                             required
                           />
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <SiBinance className="text-yellow-400" />
-                            <span className={theme.textSecondary}>BNB</span>
+                            <FaEthereum className="text-[#627EEA]" />
+                            <span className={theme.textSecondary}>ETH</span>
                           </div>
                         </div>
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
-                          1 BNB ={" "}
+                          1 ETH ={" "}
                           {parseFloat(
-                            contractInfo?.bnbTokenRatio || 1
+                            contractInfo?.ethTokenRatio || 1
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -703,14 +702,14 @@ const TokenSale = ({ isDarkMode }) => {
                         : parseFloat(tokenBalances?.fsxBalance || 0) < 20
                         ? "Insufficient Token Supply"
                         : `Buy with ${
-                            activeTab === "buyWithETH"
-                              ? "ETH"
+                            activeTab === "buyWithBNB"
+                              ? "BNB"
                               : activeTab === "buyWithUSDT"
                               ? "USDT"
                               : activeTab === "buyWithUSDC"
                               ? "USDC"
-                              : activeTab === "buyWithBNB"
-                              ? "BNB"
+                              : activeTab === "buyWithETH"
+                              ? "ETH"
                               : activeTab === "buyWithBTC"
                               ? "BTC"
                               : "SOL"
@@ -777,9 +776,9 @@ const TokenSale = ({ isDarkMode }) => {
                             <td className="py-3 px-4">2024-02-25 10:30</td>
                             <td className="py-3 px-4">
                               <span className="flex items-center">
-                                {tx.tokenIn === "ETH" ? (
+                                {tx.tokenIn === "BNB" ? (
                                   <>
-                                    <FaEthereum className="mr-2 text-[#627EEA]" />
+                                    <SiBinance className="mr-2 text-yellow-400" />
                                     {tx.tokenIn} Purchase
                                   </>
                                 ) : tx.tokenIn === "USDT" ? (
