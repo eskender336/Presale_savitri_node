@@ -62,29 +62,26 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   // Properly handle the price calculations with useMemo to avoid recalculations
   const prices = useMemo(() => {
     // Default fallback values
-    const defaultEthPrice = contractInfo?.ethPrice;
+    const defaultBnbPrice = contractInfo?.bnbPrice;
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
-    const defaultBnbRatio = contractInfo?.bnbTokenRatio;
+    const defaultEthRatio = contractInfo?.ethTokenRatio;
 
-    let ethPrice, usdtRatio, usdcRatio, bnbRatio;
+    let bnbPrice, usdtRatio, usdcRatio, ethRatio;
 
     try {
-      // Handle ETH price
-      if (contractInfo?.ethPrice) {
-        // If it's already a BigNumber or a BigNumber-compatible object
+      // Handle BNB price
+      if (contractInfo?.bnbPrice) {
         if (
-          typeof contractInfo.ethPrice === "object" &&
-          contractInfo.ethPrice._isBigNumber
+          typeof contractInfo.bnbPrice === "object" &&
+          contractInfo.bnbPrice._isBigNumber
         ) {
-          ethPrice = contractInfo.ethPrice;
+          bnbPrice = contractInfo.bnbPrice;
         } else {
-          // If it's a string, convert it
-          ethPrice = ethers.utils.parseEther(contractInfo.ethPrice.toString());
+          bnbPrice = ethers.utils.parseEther(contractInfo.bnbPrice.toString());
         }
       } else {
-        // Default fallback
-        ethPrice = ethers.utils.parseEther(defaultEthPrice);
+        bnbPrice = ethers.utils.parseEther(defaultBnbPrice);
       }
 
       // Handle USDT ratio
@@ -97,19 +94,19 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         ? parseFloat(contractInfo.usdcTokenRatio)
         : defaultUsdcRatio;
 
-      // Handle BNB ratio
-      bnbRatio = contractInfo?.bnbTokenRatio
-        ? parseFloat(contractInfo.bnbTokenRatio)
-        : defaultBnbRatio;
+      // Handle ETH ratio
+      ethRatio = contractInfo?.ethTokenRatio
+        ? parseFloat(contractInfo.ethTokenRatio)
+        : defaultEthRatio;
     } catch (error) {
       console.error("Error parsing prices:", error);
-      ethPrice = ethers.utils.parseEther(defaultEthPrice);
+      bnbPrice = ethers.utils.parseEther(defaultBnbPrice);
       usdtRatio = defaultUsdtRatio;
       usdcRatio = defaultUsdcRatio;
-      bnbRatio = defaultBnbRatio;
+      ethRatio = defaultEthRatio;
     }
 
-    return { ethPrice, usdtRatio, usdcRatio, bnbRatio };
+    return { bnbPrice, usdtRatio, usdcRatio, ethRatio };
   }, [contractInfo]);
 
   // Start loading effect when component mounts
@@ -229,14 +226,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     let calculatedAmount;
     try {
       switch (token) {
-        case "ETH":
-          // Convert ETH value to tokens based on contract's formula
-          const amountInWei = ethers.utils.parseEther(amount);
-          const tokensPerEth = ethers.utils.formatEther(prices.ethPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerEth);
-          break;
         case "BNB":
-          calculatedAmount = parseFloat(amount) * prices.bnbRatio;
+          const tokensPerBnb = ethers.utils.formatEther(prices.bnbPrice);
+          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerBnb);
+          break;
+        case "ETH":
+          calculatedAmount = parseFloat(amount) * prices.ethRatio;
           break;
         case "USDT":
           calculatedAmount = parseFloat(amount) * prices.usdtRatio;
