@@ -590,8 +590,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
           </div>
 
           {/* Right side content - Token purchase card */}
-          <div className="w-full md:w-1/2 max-w-md mx-auto relative">
-            {/* Loading overlay */}
+          <div className="w-full max-w-[600px] mx-auto relative">            {/* Loading overlay */}
             {isLoading && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
                 <div className="flex flex-col items-center">
@@ -602,8 +601,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
             {/* Main card */}
             <div
-              className={`${cardBg} backdrop-blur-sm rounded-xl ${cardBorder} border shadow-xl overflow-hidden transform transition duration-500 hover:shadow-2xl`}
-            >
+  className={`w-[550px] ${cardBg} backdrop-blur-sm rounded-xl ${cardBorder} border shadow-xl overflow-hidden transform transition duration-500 hover:shadow-2xl`}
+>
               <div className="p-6 md:p-8">
                 {tokenBalances?.userFsxBalance > 0 && (
                   <div
