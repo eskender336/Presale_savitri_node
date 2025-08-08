@@ -2,6 +2,8 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
+console.log("NEXT_PUBLIC_CHAIN_ID =", process.env.NEXT_PUBLIC_CHAIN_ID);
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
