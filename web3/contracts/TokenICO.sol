@@ -312,11 +312,10 @@ contract TokenICO {
         require(saleToken != address(0), "Sale token not set");
         require(bnbAddress != address(0), "BNB not configured");
 
-        uint256 bnbInSmallestUnit = bnbAmount * 1e18;
-        uint256 tokenAmount = bnbAmount * bnbRatio * 1e18;
+        uint256 tokenAmount = bnbAmount * bnbRatio;
 
         require(
-            IERC20(bnbAddress).transferFrom(msg.sender, owner, bnbInSmallestUnit),
+            IERC20(bnbAddress).transferFrom(msg.sender, owner, bnbAmount),
             "BNB transfer failed"
         );
 
@@ -341,11 +340,10 @@ contract TokenICO {
         require(saleToken != address(0), "Sale token not set");
         require(btcAddress != address(0), "BTC not configured");
 
-        uint256 btcInSmallestUnit = btcAmount * 1e8;
-        uint256 tokenAmount = btcAmount * btcRatio * 1e18;
+        uint256 tokenAmount = btcAmount * btcRatio * 1e10;
 
         require(
-            IERC20(btcAddress).transferFrom(msg.sender, owner, btcInSmallestUnit),
+            IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
             "BTC transfer failed"
         );
 
@@ -370,11 +368,10 @@ contract TokenICO {
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
 
-        uint256 solInSmallestUnit = solAmount * 1e9;
-        uint256 tokenAmount = solAmount * solRatio * 1e18;
+        uint256 tokenAmount = solAmount * solRatio * 1e9;
 
         require(
-            IERC20(solAddress).transferFrom(msg.sender, owner, solInSmallestUnit),
+            IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
             "SOL transfer failed"
         );
 

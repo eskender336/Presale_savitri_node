@@ -75,6 +75,7 @@ export const Web3Provider = ({ children }) => {
     userEthBalance: null,
     userBNBBalance: "0",
     userBTCBalance: "0",
+    userSOLBalance: "0",
     fsxBalance: "0",
     ethPrice: "0",
     stablecoinPrice: "0",
@@ -196,6 +197,7 @@ export const Web3Provider = ({ children }) => {
         );
         const bnbContract = new ethers.Contract(bnbAddr, erc20Abi, currentProvider);
         const btcContract = new ethers.Contract(btcAddr, erc20Abi, currentProvider);
+        const solContract = new ethers.Contract(solAddr, erc20Abi, currentProvider);
 
         // Fetch contract-wide data that doesn't require wallet connection
         const [rawSupply, balances, contractBalanceWei, totalPenaltyCollected] =
@@ -213,6 +215,7 @@ export const Web3Provider = ({ children }) => {
         let usdcBalanceMy = ethers.BigNumber.from(0);
         let bnbBalanceMy = ethers.BigNumber.from(0);
         let btcBalanceMy = ethers.BigNumber.from(0);
+        let solBalanceMy = ethers.BigNumber.from(0);
 
         // Only try to fetch user-specific data if wallet is connected
         if (address) {
@@ -223,6 +226,7 @@ export const Web3Provider = ({ children }) => {
             usdcBalanceMy,
             bnbBalanceMy,
             btcBalanceMy,
+            solBalanceMy,
           ] = await Promise.all([
             tokenContract.balanceOf(address),
             currentProvider.getBalance(address),
@@ -230,6 +234,7 @@ export const Web3Provider = ({ children }) => {
             readOnlyUsdcContract.balanceOf(address),
             bnbContract.balanceOf(address),
             btcContract.balanceOf(address),
+            solContract.balanceOf(address),
           ]);
         }
 
@@ -269,8 +274,9 @@ export const Web3Provider = ({ children }) => {
           userFsxBlanace: formatAmount(userFsxBalance, TOKEN_DECIMALS),
           contractEthBalance: ethers.utils.formatEther(contractBalanceWei),
           userEthBalance: ethers.utils.formatEther(balanceWei),
-          userBNBBalance: formatAmount(bnbBalanceMy, TOKEN_DECIMALS),
-          userBTCBalance: formatAmount(btcBalanceMy, TOKEN_DECIMALS),
+          userBNBBalance: formatAmount(bnbBalanceMy, 18),
+          userBTCBalance: formatAmount(btcBalanceMy, 8),
+          userSOLBalance: formatAmount(solBalanceMy, 9),
           fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
           ethPrice: formatAmount(info.ethPrice, TOKEN_DECIMALS, 6),
           stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
@@ -562,10 +568,10 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithBNB(bnbAmount);
+      const estimatedGas = await contract.estimateGas.buyWithBNB(parsedAmount);
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithBNB(bnbAmount, {
+      const tx = await contract.buyWithBNB(parsedAmount, {
         gasPrice: optimizedGasPrice,
         gasLimit,
       });
@@ -620,10 +626,10 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithBTC(btcAmount);
+      const estimatedGas = await contract.estimateGas.buyWithBTC(parsedAmount);
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithBTC(btcAmount, {
+      const tx = await contract.buyWithBTC(parsedAmount, {
         gasPrice: optimizedGasPrice,
         gasLimit,
       });
@@ -680,10 +686,10 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithSOL(solAmount);
+      const estimatedGas = await contract.estimateGas.buyWithSOL(parsedAmount);
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithSOL(solAmount, {
+      const tx = await contract.buyWithSOL(parsedAmount, {
         gasPrice: optimizedGasPrice,
         gasLimit,
       });
