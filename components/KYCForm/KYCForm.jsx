@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const KYCForm = ({ isDarkMode }) => {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -22,11 +23,27 @@ const KYCForm = ({ isDarkMode }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Normally you would send the data to a backend service here.
-    console.log("KYC Submission", formData);
-    setSubmitted(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/kyc", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit KYC information");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error("KYC submission failed", err);
+      setError("Failed to submit KYC information");
+    }
   };
 
   return (
@@ -45,6 +62,15 @@ const KYCForm = ({ isDarkMode }) => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div
+                  className={`p-4 rounded-lg mb-4 ${
+                    isDarkMode ? "bg-red-900/20" : "bg-red-100"
+                  } ${theme.text}`}
+                >
+                  {error}
+                </div>
+              )}
               <div>
                 <label htmlFor="fullName" className={`${theme.textSecondary} block mb-1`}>
                   Full Name
