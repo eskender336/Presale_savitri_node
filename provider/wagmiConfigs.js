@@ -9,6 +9,8 @@ import {
   localhost,
   sepolia,
   baseSepolia,
+  bsc,
+  bscTestnet,
 } from "wagmi/chains";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { injected, metaMask, safe, walletConnect } from "wagmi/connectors";
@@ -28,6 +30,8 @@ const chainMap = {
   1337: localhost,
   11155111: sepolia,
   84532: baseSepolia,
+  56: bsc,
+  97: bscTestnet,
 };
 const selectedChain = chainMap[envChainId] || localhost;
 
