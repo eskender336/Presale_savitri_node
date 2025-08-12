@@ -25,7 +25,8 @@ export function clientToProvider(client) {
 }
 
 export function useEthersProvider({ chainId } = {}) {
-  const client = useClient({ chainId });
+  const envChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
+  const client = useClient({ chainId: chainId ?? envChainId });
 
   return useMemo(
     () => (client ? clientToProvider(client) : undefined),
@@ -46,6 +47,7 @@ export function clientToSigner(client) {
 }
 
 export function useEthersSigner({ chainId } = {}) {
-  const { data: client } = useConnectorClient({ chainId });
+  const envChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
+  const { data: client } = useConnectorClient({ chainId: chainId ?? envChainId });
   return useMemo(() => (client ? clientToSigner(client) : undefined), [client]);
 }
