@@ -31,6 +31,7 @@ yarn-error.log*
 web3/.env*
 !.env.local.example
 !web3/.env.example
+!.env.example
 
 
 # vercel

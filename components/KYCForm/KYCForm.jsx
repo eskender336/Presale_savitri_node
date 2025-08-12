@@ -22,11 +22,19 @@ const KYCForm = ({ isDarkMode }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Normally you would send the data to a backend service here.
-    console.log("KYC Submission", formData);
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/kyc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error("Failed to submit KYC");
+      setSubmitted(true);
+    } catch (error) {
+      console.error("KYC submission failed", error);
+    }
   };
 
   return (
