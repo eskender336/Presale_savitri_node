@@ -4,6 +4,8 @@ import { useEthersSigner } from "../../provider/hooks";
 const KYCForm = ({ isDarkMode }) => {
   const [submitted, setSubmitted] = useState(false);
   const [editingField, setEditingField] = useState(null);
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -28,31 +30,50 @@ const KYCForm = ({ isDarkMode }) => {
     textSecondary: isDarkMode ? "text-gray-400" : "text-gray-600",
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   const signer = useEthersSigner();
+
+  const handleChange = (e) => {
+    setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signer) {
-      console.error("Wallet not connected");
-      return;
-    }
+    setError(null);
+
     try {
-      const message = JSON.stringify(formData);
-      const signature = await signer.signMessage(message);
-      const publicKey = await signer.getAddress();
+      let body;
+
+      // If a wallet is connected, sign the submission for server-side verification
+      if (signer) {
+        const message = JSON.stringify(formData);
+        const signature = await signer.signMessage(message);
+        const publicKey = await signer.getAddress();
+        body = JSON.stringify({ formData, publicKey, signature });
+      } else {
+        // Fallback: submit without signature (API supports both)
+        body = JSON.stringify(formData);
+      }
+
       const res = await fetch("/api/kyc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData, publicKey, signature }),
+        body,
       });
-      if (!res.ok) throw new Error("KYC submission failed");
+
+      if (!res.ok) {
+        // Try to surface API error details
+        let msg = "Failed to submit KYC information";
+        try {
+          const data = await res.json();
+          if (data?.error || data?.message) msg = data.error || data.message;
+        } catch {}
+        throw new Error(msg);
+      }
+
       setSubmitted(true);
     } catch (err) {
       console.error("KYC submission error", err);
+      setError(err.message || "Failed to submit KYC information");
     }
   };
 
@@ -125,6 +146,15 @@ const KYCForm = ({ isDarkMode }) => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div
+                  className={`p-4 rounded-lg mb-4 ${
+                    isDarkMode ? "bg-red-900/20" : "bg-red-100"
+                  } ${theme.text}`}
+                >
+                  {error}
+                </div>
+              )}
               <div>
                 <label htmlFor="fullName" className={`${theme.textSecondary} block mb-1`}>
                   Full Name

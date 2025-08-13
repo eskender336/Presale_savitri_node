@@ -30,6 +30,7 @@ yarn-error.log*
 .env*
 web3/.env*
 !.env.local.example
+!.env.example
 !web3/.env.example
 
 
