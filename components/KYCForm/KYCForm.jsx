@@ -1,7 +1,11 @@
 import React, { useState } from "react";
+import { useEthersSigner } from "../../provider/hooks";
 
 const KYCForm = ({ isDarkMode }) => {
   const [submitted, setSubmitted] = useState(false);
+  const [editingField, setEditingField] = useState(null);
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -9,6 +13,14 @@ const KYCForm = ({ isDarkMode }) => {
     documentType: "passport",
     documentNumber: "",
   });
+
+  const fieldLabels = {
+    fullName: "Full Name",
+    email: "Email",
+    country: "Country",
+    documentType: "Document Type",
+    documentNumber: "Document Number",
+  };
 
   const theme = {
     mainBg: isDarkMode ? "bg-[#0D0B12]" : "bg-gray-100",
@@ -18,15 +30,51 @@ const KYCForm = ({ isDarkMode }) => {
     textSecondary: isDarkMode ? "text-gray-400" : "text-gray-600",
   };
 
+  const signer = useEthersSigner();
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Normally you would send the data to a backend service here.
-    console.log("KYC Submission", formData);
-    setSubmitted(true);
+    setError(null);
+
+    try {
+      let body;
+
+      // If a wallet is connected, sign the submission for server-side verification
+      if (signer) {
+        const message = JSON.stringify(formData);
+        const signature = await signer.signMessage(message);
+        const publicKey = await signer.getAddress();
+        body = JSON.stringify({ formData, publicKey, signature });
+      } else {
+        // Fallback: submit without signature (API supports both)
+        body = JSON.stringify(formData);
+      }
+
+      const res = await fetch("/api/kyc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+
+      if (!res.ok) {
+        // Try to surface API error details
+        let msg = "Failed to submit KYC information";
+        try {
+          const data = await res.json();
+          if (data?.error || data?.message) msg = data.error || data.message;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error("KYC submission error", err);
+      setError(err.message || "Failed to submit KYC information");
+    }
   };
 
   return (
@@ -36,15 +84,77 @@ const KYCForm = ({ isDarkMode }) => {
         <div className={`${theme.cardBg} rounded-xl p-6 shadow-lg`}>
           <h2 className={`text-xl font-bold mb-4 ${theme.text}`}>KYC Form</h2>
           {submitted ? (
-            <div
-              className={`p-4 rounded-lg ${
-                isDarkMode ? "bg-green-900/20" : "bg-green-100"
-              } ${theme.text}`}
-            >
-              Thank you! Your information has been submitted.
+            <div>
+              <div
+                className={`p-4 rounded-lg ${
+                  isDarkMode ? "bg-green-900/20" : "bg-green-100"
+                } ${theme.text}`}
+              >
+                Thank you! Your information has been submitted.
+              </div>
+              <div className="mt-4 space-y-4">
+                {Object.keys(fieldLabels).map((field) => (
+                  <div key={field}>
+                    <label className={`${theme.textSecondary} block mb-1`}>
+                      {fieldLabels[field]}
+                    </label>
+                    {editingField === field ? (
+                      <div className="flex items-center space-x-2">
+                        {field === "documentType" ? (
+                          <select
+                            name="documentType"
+                            value={formData.documentType}
+                            onChange={handleChange}
+                            className={`flex-1 p-2 rounded-lg ${theme.inputBg} ${theme.text}`}
+                          >
+                            <option value="passport">Passport</option>
+                            <option value="driver_license">Driver&apos;s License</option>
+                            <option value="id_card">National ID</option>
+                          </select>
+                        ) : (
+                          <input
+                            type={field === "email" ? "email" : "text"}
+                            name={field}
+                            value={formData[field]}
+                            onChange={handleChange}
+                            className={`flex-1 p-2 rounded-lg ${theme.inputBg} ${theme.text}`}
+                          />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditingField(null)}
+                          className="text-sm text-green-500"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <p className={theme.text}>{formData[field]}</p>
+                        <button
+                          type="button"
+                          onClick={() => setEditingField(field)}
+                          className="text-sm text-blue-500"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div
+                  className={`p-4 rounded-lg mb-4 ${
+                    isDarkMode ? "bg-red-900/20" : "bg-red-100"
+                  } ${theme.text}`}
+                >
+                  {error}
+                </div>
+              )}
               <div>
                 <label htmlFor="fullName" className={`${theme.textSecondary} block mb-1`}>
                   Full Name
