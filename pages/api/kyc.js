@@ -27,6 +27,9 @@ export default async function handler(req, res) {
     return res.status(201).json({ insertedId: result.insertedId });
   } catch (error) {
     console.error("Error inserting KYC data", error);
-    return res.status(500).json({ message: "Failed to save KYC data" });
+    const message = error.message?.includes("MONGO_URI")
+      ? "Database connection not configured"
+      : "Failed to save KYC data";
+    return res.status(500).json({ message });
   }
 }
