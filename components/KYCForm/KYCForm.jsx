@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEthersSigner } from "../../provider/hooks";
 
 const KYCForm = ({ isDarkMode }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -31,11 +32,28 @@ const KYCForm = ({ isDarkMode }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const signer = useEthersSigner();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Normally you would send the data to a backend service here.
-    console.log("KYC Submission", formData);
-    setSubmitted(true);
+    if (!signer) {
+      console.error("Wallet not connected");
+      return;
+    }
+    try {
+      const message = JSON.stringify(formData);
+      const signature = await signer.signMessage(message);
+      const publicKey = await signer.getAddress();
+      const res = await fetch("/api/kyc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData, publicKey, signature }),
+      });
+      if (!res.ok) throw new Error("KYC submission failed");
+      setSubmitted(true);
+    } catch (err) {
+      console.error("KYC submission error", err);
+    }
   };
 
   return (
