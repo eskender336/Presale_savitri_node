@@ -2,7 +2,15 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-console.log("NEXT_PUBLIC_CHAIN_ID =", process.env.NEXT_PUBLIC_CHAIN_ID);
+// Provide sensible defaults so the config works without environment variables
+const {
+  NEXT_PUBLIC_CHAIN_ID = "31337",
+  NETWORK_RPC_URL = "http://localhost:8545",
+  PRIVATE_KEY,
+  ETHERSCAN_API_KEY,
+} = process.env;
+
+console.log("NEXT_PUBLIC_CHAIN_ID =", NEXT_PUBLIC_CHAIN_ID);
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -18,32 +26,28 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID),
+      chainId: parseInt(NEXT_PUBLIC_CHAIN_ID),
       host: "0.0.0.0", // 👈 This makes it listen on all interfaces
-      port: 8545       // 👈 Optional: explicitly set port
+      port: 8545, // 👈 Optional: explicitly set port
     },
     holesky: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: NETWORK_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 17000,
     },
     sepolia: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: NETWORK_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 11155111,
     },
     baseSepolia: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: NETWORK_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 84532,
     },
     ethereum: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: NETWORK_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 1,
     },
   },
@@ -55,7 +59,7 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      holesky: process.env.ETHERSCAN_API_KEY,
+      holesky: ETHERSCAN_API_KEY,
     },
     customChains: [
       {
