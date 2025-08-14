@@ -38,6 +38,7 @@ const TokenSale = ({ isDarkMode }) => {
     buyWithETH,
     buyWithBTC,
     buyWithSOL,
+    boundReferrer,
     reCall,
     updateTokenPrice,
     updateUSDT,
@@ -242,6 +243,11 @@ const TokenSale = ({ isDarkMode }) => {
   return (
     <>
       <Header theme={theme} title="Token Sale" />
+      {boundReferrer && (
+        <div className={`mb-4 px-4 ${theme.text}`}>
+          Referrer: {formatAddress(boundReferrer)}
+        </div>
+      )}
       <div className="">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Token Stats Card */}
