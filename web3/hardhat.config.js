@@ -19,27 +19,29 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID),
+      host: "0.0.0.0", // 👈 This makes it listen on all interfaces
+      port: 8545       // 👈 Optional: explicitly set port
     },
     holesky: {
-      url: process.env.NETWORK_RPC_URL || process.env.NETWORK_RPC_URL,
+      url: process.env.NETWORK_RPC_URL,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
       chainId: 17000,
     },
     sepolia: {
-      url: process.env.NETWORK_RPC_URL || process.env.NETWORK_RPC_URL,
+      url: process.env.NETWORK_RPC_URL,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
       chainId: 11155111,
     },
     baseSepolia: {
-      url: process.env.NETWORK_RPC_URL || process.env.NETWORK_RPC_URL,
+      url: process.env.NETWORK_RPC_URL,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
       chainId: 84532,
     },
     ethereum: {
-      url: process.env.NETWORK_RPC_URL || process.env.NETWORK_RPC_URL,
+      url: process.env.NETWORK_RPC_URL,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
       chainId: 1,
