@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { getReferrer } from "../../lib/waitlist";
 
 export const config = {
   api: {
@@ -13,9 +14,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { user, referrer = ethers.constants.AddressZero } = req.body || {};
+    const { user } = req.body || {};
     if (!user) {
       return res.status(400).json({ error: "Missing user" });
+    }
+
+    const referrer = getReferrer(user);
+    if (!referrer) {
+      return res.status(403).json({ error: "Not whitelisted" });
     }
 
     const signerKey =
@@ -58,7 +64,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Database error" });
     }
 
-    const deadline = Math.floor(Date.now() / 1000) + 3600;
+    const deadline = Math.floor(Date.now() / 1000) + 600;
     const voucher = { user, referrer, nonce, deadline };
 
     const domain = {
