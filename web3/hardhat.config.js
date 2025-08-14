@@ -18,7 +18,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID),
+      chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "31337"),
     },
     holesky: {
       url: process.env.NETWORK_RPC_URL || process.env.NETWORK_RPC_URL,
