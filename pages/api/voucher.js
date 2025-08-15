@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { getReferrer } from "../../lib/waitlist";
+import TokenICO from "../../web3/artifacts/contracts/TokenICO.sol/TokenICO.json";
 
 export const config = {
   api: {
@@ -40,6 +41,34 @@ export default async function handler(req, res) {
       process.env.TOKEN_ICO_ADDRESS;
     if (!chainId || !verifyingContract) {
       return res.status(500).json({ error: "Missing domain parameters" });
+    }
+
+    // Check if user already has an on-chain referrer
+    try {
+      const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || process.env.RPC_URL;
+      if (rpcUrl) {
+        const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+        const contract = new ethers.Contract(
+          verifyingContract,
+          TokenICO.abi,
+          provider
+        );
+        const onchainReferrer = await contract.referrers(user);
+        console.log(
+          `[api/voucher] on-chain referrer for ${user} = ${onchainReferrer}`
+        );
+        if (onchainReferrer && onchainReferrer !== ethers.constants.AddressZero) {
+          return res.status(200).json({
+            voucher: null,
+            signature: null,
+            boundReferrer: onchainReferrer,
+          });
+        }
+      } else {
+        console.warn("[api/voucher] RPC URL not configured, skipping on-chain check");
+      }
+    } catch (err) {
+      console.error("[api/voucher] on-chain referrer check failed", err);
     }
 
     if (!process.env.MONGODB_URI) {

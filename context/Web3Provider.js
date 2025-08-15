@@ -133,6 +133,9 @@ export const Web3Provider = ({ children }) => {
     }
     const data = await response.json();
     console.log("[web3] received voucher", data);
+    if (data?.boundReferrer && !boundReferrer) {
+      setBoundReferrer(data.boundReferrer);
+    }
     return data;
   };
 
@@ -338,9 +341,19 @@ export const Web3Provider = ({ children }) => {
     );
     try {
       const bnbValue = ethers.utils.parseEther(bnbAmount);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
+
+      let voucher, signature;
+      if (useVoucher) {
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
+      }
 
       // Get current gas price and estimate gas
       const gasPrice = await signer.getGasPrice();
@@ -348,14 +361,11 @@ export const Web3Provider = ({ children }) => {
 
       let tx;
       if (useVoucher) {
-        console.log("BUY WITH VOUCHER HAHAHAHHA")
-        const { voucher, signature } = await getVoucher();
         const estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
           voucher,
           signature,
           { value: bnbValue.toString() }
         );
-        console.log("VOUCHER", voucher)
         const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
         tx = await contract.buyWithBNB_Voucher(voucher, signature, {
           value: bnbValue,
@@ -408,12 +418,17 @@ export const Web3Provider = ({ children }) => {
     try {
       // Parse USDT amount (6 decimals)
       const parsedAmount = ethers.utils.parseUnits(usdtAmount, 6);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
       let voucher, signature;
       if (useVoucher) {
-        ({ voucher, signature } = await getVoucher());
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
       }
 
       // Get USDT contract instance
@@ -537,12 +552,17 @@ export const Web3Provider = ({ children }) => {
     try {
       // Parse USDC amount (6 decimals)
       const parsedAmount = ethers.utils.parseUnits(usdcAmount, 6);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
       let voucher, signature;
       if (useVoucher) {
-        ({ voucher, signature } = await getVoucher());
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
       }
 
       // Get USDC contract instance
@@ -661,12 +681,17 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With ETH transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(ethAmount, 18);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
       let voucher, signature;
       if (useVoucher) {
-        ({ voucher, signature } = await getVoucher());
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
       }
 
       const ethContract = new ethers.Contract(
@@ -751,12 +776,17 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With BTC transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(btcAmount, 8);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
       let voucher, signature;
       if (useVoucher) {
-        ({ voucher, signature } = await getVoucher());
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
       }
 
       const btcContract = new ethers.Contract(
@@ -843,12 +873,17 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With SOL transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(solAmount, 9);
-      const useVoucher =
+      let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
       let voucher, signature;
       if (useVoucher) {
-        ({ voucher, signature } = await getVoucher());
+        const resp = await getVoucher();
+        voucher = resp.voucher;
+        signature = resp.signature;
+        if (!voucher) {
+          useVoucher = false;
+        }
       }
 
       const solContract = new ethers.Contract(
