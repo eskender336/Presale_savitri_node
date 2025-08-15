@@ -57,17 +57,20 @@ export const Web3Provider = ({ children }) => {
     const fetchEligibility = async () => {
       if (!address) {
         setEligibility(null);
+
         return;
       }
       try {
-        console.debug("[web3] fetching eligibility for", address);
+        console.log("[web3] fetching eligibility for", address);
         const res = await fetch(`/api/eligibility?user=${address}`);
+
         if (res.ok) {
+          console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", res)
           const data = await res.json();
-          console.debug("[web3] eligibility result", data);
+          console.log("[web3] eligibility result", data);
           setEligibility(data);
         } else {
-          console.debug("[web3] eligibility request failed", res.status);
+          console.log("[web3] eligibility request failed", res.status);
           setEligibility(null);
         }
       } catch (err) {
@@ -117,7 +120,7 @@ export const Web3Provider = ({ children }) => {
 
   const getVoucher = async () => {
     if (!address) throw new Error("Wallet not connected");
-    console.debug("[web3] requesting voucher for", address);
+    console.log("[web3] requesting voucher for", address);
     const response = await fetch("/api/voucher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -125,11 +128,11 @@ export const Web3Provider = ({ children }) => {
     });
     if (!response.ok) {
       const err = await response.json();
-      console.debug("[web3] voucher request failed", err);
+      console.log("[web3] voucher request failed", err);
       throw new Error(err.error || "Voucher request failed");
     }
     const data = await response.json();
-    console.debug("[web3] received voucher", data);
+    console.log("[web3] received voucher", data);
     return data;
   };
 
@@ -345,6 +348,7 @@ export const Web3Provider = ({ children }) => {
 
       let tx;
       if (useVoucher) {
+        console.log("BUY WITH VOUCHER HAHAHAHHA")
         const { voucher, signature } = await getVoucher();
         const estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
           voucher,

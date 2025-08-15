@@ -15,14 +15,14 @@ export default async function handler(req, res) {
 
   try {
     const { user } = req.body || {};
-    console.debug(`[api/voucher] request user=${user}`);
+    console.log(`[api/voucher] request user=${user}`);
     if (!user) {
       return res.status(400).json({ error: "Missing user" });
     }
 
     const referrer = getReferrer(user);
     if (!referrer) {
-      console.debug(`[api/voucher] ${user} not in waitlist`);
+      console.log(`[api/voucher] ${user} not in waitlist`);
       return res.status(403).json({ error: "Not whitelisted" });
     }
 
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         { upsert: true, returnDocument: "after" }
       );
       nonce = result.value?.nonce || nonce;
-      console.debug(`[api/voucher] nonce for ${user} = ${nonce}`);
+      console.log(`[api/voucher] nonce for ${user} = ${nonce}`);
     } catch (err) {
       console.error("MongoDB error:", err);
       return res.status(500).json({ error: "Database error" });
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
 
     const deadline = Math.floor(Date.now() / 1000) + 600;
     const voucher = { user, referrer, nonce, deadline };
-    console.debug("[api/voucher] voucher payload", voucher);
+    console.log("[api/voucher] voucher payload", voucher);
 
     const domain = {
       name: "TokenICO",
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
 
     const wallet = new ethers.Wallet(signerKey);
     const signature = await wallet._signTypedData(domain, types, voucher);
-    console.debug(`[api/voucher] issued voucher for ${user}`);
+    console.log(`[api/voucher] issued voucher for ${user}`);
 
     return res.status(200).json({ voucher, signature });
   } catch (err) {

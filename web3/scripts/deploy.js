@@ -50,6 +50,13 @@ async function main() {
     await tokenICO.deployed();
     console.log("✅ TokenICO contract deployed to:", tokenICO.address);
 
+    // 🔹 Set the signer for vouchers from ENV
+    const SIGNER_ADDRESS = process.env.NEXT_PUBLIC_SIGNER_ADDRESS;
+    await tokenICO.setSigner(SIGNER_ADDRESS);
+
+    // ✅ read using a collision-safe call
+    const onchainSigner = await tokenICO.callStatic.signer();
+    console.log("✅ signer set:", onchainSigner);
     // Mint large supply to deployer
     const mintStable = hre.ethers.utils.parseUnits("1000000000", 6); // for USDT/USDC
     const mintETH = hre.ethers.utils.parseUnits("1000000000", 18);
