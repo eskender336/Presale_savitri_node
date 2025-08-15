@@ -41,10 +41,8 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
-  console.log("PROVIDER ETHER ", provider)
   const signer = useEthersSigner();
   const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-  console.log("FALLBACK PROVIDER", fallbackProvider)
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -62,11 +60,14 @@ export const Web3Provider = ({ children }) => {
         return;
       }
       try {
+        console.debug("[web3] fetching eligibility for", address);
         const res = await fetch(`/api/eligibility?user=${address}`);
         if (res.ok) {
           const data = await res.json();
+          console.debug("[web3] eligibility result", data);
           setEligibility(data);
         } else {
+          console.debug("[web3] eligibility request failed", res.status);
           setEligibility(null);
         }
       } catch (err) {
@@ -116,15 +117,20 @@ export const Web3Provider = ({ children }) => {
 
   const getVoucher = async () => {
     if (!address) throw new Error("Wallet not connected");
+    console.debug("[web3] requesting voucher for", address);
     const response = await fetch("/api/voucher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user: address }),
     });
     if (!response.ok) {
-      throw new Error("Failed to fetch voucher");
+      const err = await response.json();
+      console.debug("[web3] voucher request failed", err);
+      throw new Error(err.error || "Voucher request failed");
     }
-    return response.json();
+    const data = await response.json();
+    console.debug("[web3] received voucher", data);
+    return data;
   };
 
   // Initialize contract when provider is available
@@ -154,18 +160,6 @@ export const Web3Provider = ({ children }) => {
   // Modified useEffect
   useEffect(() => {
     const fetchContractInfo = async () => {
-      console.log("▶️ NEXT_PUBLIC_RPC_URL:", process.env.NEXT_PUBLIC_RPC_URL);
-      console.log("▶️ fallback RPC_URL:", RPC_URL);
-      console.log("▶️ CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
-
-      // 1) Stand up a brand‐new provider just for debugging
-      const probe = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
-      try {
-        const code = await probe.getCode(CONTRACT_ADDRESS);
-        console.log("▶️ on-chain bytecode (first 100 chars):", code.slice(0,100));
-      } catch (e) {
-        console.error("‼️ error fetching bytecode:", e);
-      }
       setGlobalLoad(true);
       
         // Constants
@@ -174,7 +168,6 @@ export const Web3Provider = ({ children }) => {
 
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
-        console.log("CURRENT PROVIDER", currentProvider)
         const currentSigner = signer || fallbackProvider;
 
         // Ensure the provider is connected to a network
@@ -187,7 +180,6 @@ export const Web3Provider = ({ children }) => {
           return;
         }
         
-        console.log('⛓ CONTRACT_ADDRESS:', CONTRACT_ADDRESS)
         // Verify the contract exists on the current network
         const code = await currentProvider.getCode(CONTRACT_ADDRESS);
         if (code === "0x") {
@@ -204,7 +196,6 @@ export const Web3Provider = ({ children }) => {
           currentProvider
         );
 
-        console.log("READ ONLY CONTRACT", readOnlyContract)
 
         const readOnlyUsdtContract = new ethers.Contract(
           USDT_ADDRESS,
@@ -228,7 +219,6 @@ export const Web3Provider = ({ children }) => {
         const btcRatio = await readOnlyContract.btcRatio();
         const solRatio = await readOnlyContract.solRatio();
 
-        console.log("ETH ADDDRESs", ethAddr)
 
         // Create token contract after we have the address from info
         const tokenContract = new ethers.Contract(
