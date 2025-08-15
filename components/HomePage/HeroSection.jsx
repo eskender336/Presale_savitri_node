@@ -12,9 +12,6 @@ import { ethers } from "ethers";
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
-const NEXT_PER_TOKEN_USD_PRICE =
-  process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
@@ -22,6 +19,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
     account,
     isConnected,
+    contract,
     contractInfo,
     tokenBalances,
     buyWithETH,
@@ -46,6 +44,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const [hasAttemptedRegistration, setHasAttemptedRegistration] =
     useState(false);
   const registrationRef = useRef(false);
+
+  const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
+  const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
@@ -282,6 +284,60 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
     return calculatedAmount.toFixed(6);
   };
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(seconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  useEffect(() => {
+    if (!contract) return;
+
+    let intervalId;
+    const load = async () => {
+      try {
+        const [priceBNB, step, bnbPerStable, start, wlInterval, pubInterval, isWl] =
+          await Promise.all([
+            contract.getCurrentPrice(account || ethers.constants.AddressZero),
+            contract.stablecoinPriceIncrement(),
+            contract.bnbPriceForStablecoin(),
+            contract.saleStartTime(),
+            contract.waitlistInterval(),
+            contract.publicInterval(),
+            account ? contract.waitlisted(account) : false,
+          ]);
+
+        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
+        const nextUsdBN = usdPriceBN.add(step);
+        setCurrentUsdPrice(
+          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+        );
+        setNextUsdPrice(
+          parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
+        );
+
+        const now = Math.floor(Date.now() / 1000);
+        if (start.gt(0)) {
+          const interval = (isWl ? wlInterval : pubInterval).toNumber();
+          if (interval > 0) {
+            const increments = Math.floor((now - start.toNumber()) / interval);
+            const nextTime = start.toNumber() + (increments + 1) * interval;
+            setTimeRemaining(Math.max(0, nextTime - now));
+          }
+        }
+      } catch (err) {
+        console.error("price update error", err);
+      }
+    };
+    load();
+    intervalId = setInterval(load, 1000);
+    return () => clearInterval(intervalId);
+  }, [contract, account]);
 
   // Handle input amount changes
   const handleAmountChange = (value) => {
@@ -632,11 +688,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     Stage 1 - Buy {TOKEN_SYMBOL} Now
                   </h3>
 
-                  <div
-                    className={`text-center text-sm ${secondaryTextColor} mb-4`}
-                  >
-                    Until price increase
-                  </div>
+                <div
+                  className={`text-center text-sm ${secondaryTextColor} mb-4`}
+                >
+                    {timeRemaining > 0
+                      ? `Next price in ${formatTime(timeRemaining)}`
+                      : "Until price increase"}
+                </div>
                 </div>
 
                 {/* Price information */}
@@ -644,7 +702,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   <div className={`${secondaryTextColor} flex flex-col`}>
                     <span className="text-xs mb-1">Current Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {PER_TOKEN_USD_PRICE}
+                      $ {currentUsdPrice}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-500/20 to-transparent"></div>
@@ -653,7 +711,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   >
                     <span className="text-xs mb-1">Next Stage Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {NEXT_PER_TOKEN_USD_PRICE}
+                      $ {nextUsdPrice}
                     </span>
                   </div>
                 </div>
@@ -681,11 +739,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     <span className={`${textColor} font-medium`}>
                       ${" "}
                       {parseFloat(contractInfo?.totalSold || 0) *
-                        parseFloat(PER_TOKEN_USD_PRICE || 0) >
+                        parseFloat(currentUsdPrice || 0) >
                       0
                         ? (
                             parseFloat(contractInfo?.totalSold || 0) *
-                            parseFloat(PER_TOKEN_USD_PRICE || 0)
+                            parseFloat(currentUsdPrice || 0)
                           ).toFixed(2)
                         : "0"}
                     </span>
@@ -717,7 +775,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   </span>
                   <div className="px-3 py-1 rounded-lg text-light-gradient">
                     <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
-                      ${PER_TOKEN_USD_PRICE}
+                      ${currentUsdPrice}
                     </span>
                   </div>
                 </div>
