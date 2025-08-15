@@ -2,51 +2,53 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-console.log("NEXT_PUBLIC_CHAIN_ID =", process.env.NEXT_PUBLIC_CHAIN_ID);
+const {
+  NEXT_PUBLIC_CHAIN_ID,
+  NETWORK_RPC_URL,      // one RPC URL you reuse, or swap to SEPOLIA_RPC_URL, etc.
+  PRIVATE_KEY,
+  ETHERSCAN_API_KEY,
+} = process.env;
 
-/** @type import('hardhat/config').HardhatUserConfig */
+const CHAIN_ID = parseInt(NEXT_PUBLIC_CHAIN_ID || "1337", 10);
+
+const networks = {
+  hardhat: {
+    chainId: CHAIN_ID,
+    host: "0.0.0.0",
+    port: 8545,
+  },
+};
+
+// Only register these if an RPC URL exists
+if (NETWORK_RPC_URL) {
+  networks.holesky = {
+    url: NETWORK_RPC_URL,
+    accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+    chainId: 17000,
+  };
+  networks.sepolia = {
+    url: NETWORK_RPC_URL,
+    accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+    chainId: 11155111,
+  };
+  networks.baseSepolia = {
+    url: NETWORK_RPC_URL,
+    accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+    chainId: 84532,
+  };
+  networks.ethereum = {
+    url: NETWORK_RPC_URL,
+    accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+    chainId: 1,
+  };
+}
+
 module.exports = {
   solidity: {
     version: "0.8.19",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-      viaIR: true,
-    },
+    settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
   },
-  networks: {
-    hardhat: {
-      chainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID),
-      host: "0.0.0.0", // 👈 This makes it listen on all interfaces
-      port: 8545       // 👈 Optional: explicitly set port
-    },
-    holesky: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-      chainId: 17000,
-    },
-    sepolia: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-      chainId: 11155111,
-    },
-    baseSepolia: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-      chainId: 84532,
-    },
-    ethereum: {
-      url: process.env.NETWORK_RPC_URL,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1,
-    },
-  },
+  networks,
   paths: {
     artifacts: "./artifacts",
     sources: "./contracts",
@@ -54,9 +56,7 @@ module.exports = {
     tests: "./test",
   },
   etherscan: {
-    apiKey: {
-      holesky: process.env.ETHERSCAN_API_KEY,
-    },
+    apiKey: { holesky: ETHERSCAN_API_KEY },
     customChains: [
       {
         network: "holesky",
@@ -68,7 +68,5 @@ module.exports = {
       },
     ],
   },
-  sourcify: {
-    enabled: true,
-  },
+  sourcify: { enabled: true },
 };

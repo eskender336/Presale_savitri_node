@@ -41,33 +41,44 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
-  console.log("PROVIDER ETHER ", provider)
   const signer = useEthersSigner();
   const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-  console.log("FALLBACK PROVIDER", fallbackProvider)
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Referral state
-  const [storedReferrer, setStoredReferrer] = useState(null);
   const [boundReferrer, setBoundReferrer] = useState(null);
+  const [eligibility, setEligibility] = useState(null);
 
-  // Parse referral from URL or local storage on app load
+  // Fetch eligibility for connected wallet
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const ref = params.get("ref");
-      if (ref) {
-        localStorage.setItem("referrer", ref);
-        setStoredReferrer(ref);
-      } else {
-        const saved = localStorage.getItem("referrer");
-        if (saved) setStoredReferrer(saved);
+    const fetchEligibility = async () => {
+      if (!address) {
+        setEligibility(null);
+
+        return;
       }
-    }
-  }, []);
+      try {
+        console.log("[web3] fetching eligibility for", address);
+        const res = await fetch(`/api/eligibility?user=${address}`);
+
+        if (res.ok) {
+          console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", res)
+          const data = await res.json();
+          console.log("[web3] eligibility result", data);
+          setEligibility(data);
+        } else {
+          console.log("[web3] eligibility request failed", res.status);
+          setEligibility(null);
+        }
+      } catch (err) {
+        console.error("Eligibility fetch error:", err);
+      }
+    };
+    fetchEligibility();
+  }, [address]);
 
   const [contractInfo, setContractInfo] = useState({
     fsxAddress: null,
@@ -109,15 +120,20 @@ export const Web3Provider = ({ children }) => {
 
   const getVoucher = async () => {
     if (!address) throw new Error("Wallet not connected");
+    console.log("[web3] requesting voucher for", address);
     const response = await fetch("/api/voucher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address, referrer: storedReferrer }),
+      body: JSON.stringify({ user: address }),
     });
     if (!response.ok) {
-      throw new Error("Failed to fetch voucher");
+      const err = await response.json();
+      console.log("[web3] voucher request failed", err);
+      throw new Error(err.error || "Voucher request failed");
     }
-    return response.json();
+    const data = await response.json();
+    console.log("[web3] received voucher", data);
+    return data;
   };
 
   // Initialize contract when provider is available
@@ -147,18 +163,6 @@ export const Web3Provider = ({ children }) => {
   // Modified useEffect
   useEffect(() => {
     const fetchContractInfo = async () => {
-      console.log("▶️ NEXT_PUBLIC_RPC_URL:", process.env.NEXT_PUBLIC_RPC_URL);
-      console.log("▶️ fallback RPC_URL:", RPC_URL);
-      console.log("▶️ CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
-
-      // 1) Stand up a brand‐new provider just for debugging
-      const probe = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
-      try {
-        const code = await probe.getCode(CONTRACT_ADDRESS);
-        console.log("▶️ on-chain bytecode (first 100 chars):", code.slice(0,100));
-      } catch (e) {
-        console.error("‼️ error fetching bytecode:", e);
-      }
       setGlobalLoad(true);
       
         // Constants
@@ -167,7 +171,6 @@ export const Web3Provider = ({ children }) => {
 
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
-        console.log("CURRENT PROVIDER", currentProvider)
         const currentSigner = signer || fallbackProvider;
 
         // Ensure the provider is connected to a network
@@ -180,7 +183,6 @@ export const Web3Provider = ({ children }) => {
           return;
         }
         
-        console.log('⛓ CONTRACT_ADDRESS:', CONTRACT_ADDRESS)
         // Verify the contract exists on the current network
         const code = await currentProvider.getCode(CONTRACT_ADDRESS);
         if (code === "0x") {
@@ -197,7 +199,6 @@ export const Web3Provider = ({ children }) => {
           currentProvider
         );
 
-        console.log("READ ONLY CONTRACT", readOnlyContract)
 
         const readOnlyUsdtContract = new ethers.Contract(
           USDT_ADDRESS,
@@ -221,7 +222,6 @@ export const Web3Provider = ({ children }) => {
         const btcRatio = await readOnlyContract.btcRatio();
         const solRatio = await readOnlyContract.solRatio();
 
-        console.log("ETH ADDDRESs", ethAddr)
 
         // Create token contract after we have the address from info
         const tokenContract = new ethers.Contract(
@@ -338,30 +338,46 @@ export const Web3Provider = ({ children }) => {
     );
     try {
       const bnbValue = ethers.utils.parseEther(bnbAmount);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
 
       // Get current gas price and estimate gas
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
 
-      const estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
-        voucher,
-        signature,
-        { value: bnbValue.toString() }
-      );
-
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      const tx = await contract.buyWithBNB_Voucher(voucher, signature, {
-        value: bnbValue,
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      });
+      let tx;
+      if (useVoucher) {
+        console.log("BUY WITH VOUCHER HAHAHAHHA")
+        const { voucher, signature } = await getVoucher();
+        const estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
+          voucher,
+          signature,
+          { value: bnbValue.toString() }
+        );
+        console.log("VOUCHER", voucher)
+        const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+        tx = await contract.buyWithBNB_Voucher(voucher, signature, {
+          value: bnbValue,
+          gasPrice: optimizedGasPrice,
+          gasLimit,
+        });
+        if (!boundReferrer && voucher?.referrer) {
+          setBoundReferrer(voucher.referrer);
+        }
+      } else {
+        const estimatedGas = await contract.estimateGas.buyWithBNB({
+          value: bnbValue.toString(),
+        });
+        const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+        tx = await contract.buyWithBNB({
+          value: bnbValue,
+          gasPrice: optimizedGasPrice,
+          gasLimit,
+        });
+      }
       const returnTransaction = await tx.wait();
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
-        setBoundReferrer(voucher.referrer);
-      }
       // Update notification for completed transaction
       notify.complete(
         toastId,
@@ -392,7 +408,13 @@ export const Web3Provider = ({ children }) => {
     try {
       // Parse USDT amount (6 decimals)
       const parsedAmount = ethers.utils.parseUnits(usdtAmount, 6);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
+      let voucher, signature;
+      if (useVoucher) {
+        ({ voucher, signature } = await getVoucher());
+      }
 
       // Get USDT contract instance
       const usdtContract = new ethers.Contract(
@@ -447,23 +469,36 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithUSDT_Voucher(
-        voucher,
-        signature,
-        parsedAmount
-      );
+      let estimatedGas;
+      if (useVoucher) {
+        estimatedGas = await contract.estimateGas.buyWithUSDT_Voucher(
+          voucher,
+          signature,
+          parsedAmount
+        );
+      } else {
+        estimatedGas = await contract.estimateGas.buyWithUSDT(parsedAmount);
+      }
       const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
 
       // Execute the purchase with optimized gas
-      const tx = await contract.buyWithUSDT_Voucher(
-        voucher,
-        signature,
-        parsedAmount,
-        {
+      let tx;
+      if (useVoucher) {
+        tx = await contract.buyWithUSDT_Voucher(
+          voucher,
+          signature,
+          parsedAmount,
+          {
+            gasPrice: optimizedGasPrice,
+            gasLimit: gasLimit,
+          }
+        );
+      } else {
+        tx = await contract.buyWithUSDT(parsedAmount, {
           gasPrice: optimizedGasPrice,
           gasLimit: gasLimit,
-        }
-      );
+        });
+      }
 
       const returnTransaction = await tx.wait();
 
@@ -473,7 +508,7 @@ export const Web3Provider = ({ children }) => {
         `Successfully purchased with ${usdtAmount} USDT!`
       );
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
+      if (useVoucher && !boundReferrer && voucher?.referrer) {
         setBoundReferrer(voucher.referrer);
       }
       return returnTransaction;
@@ -502,7 +537,13 @@ export const Web3Provider = ({ children }) => {
     try {
       // Parse USDC amount (6 decimals)
       const parsedAmount = ethers.utils.parseUnits(usdcAmount, 6);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
+      let voucher, signature;
+      if (useVoucher) {
+        ({ voucher, signature } = await getVoucher());
+      }
 
       // Get USDC contract instance
       const usdcContract = new ethers.Contract(
@@ -555,26 +596,39 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithUSDC_Voucher(
-        voucher,
-        signature,
-        parsedAmount
-      );
+      let estimatedGas;
+      if (useVoucher) {
+        estimatedGas = await contract.estimateGas.buyWithUSDC_Voucher(
+          voucher,
+          signature,
+          parsedAmount
+        );
+      } else {
+        estimatedGas = await contract.estimateGas.buyWithUSDC(parsedAmount);
+      }
       const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
 
       // Execute the purchase with optimized gas
-      const tx = await contract.buyWithUSDC_Voucher(
-        voucher,
-        signature,
-        parsedAmount,
-        {
+      let tx;
+      if (useVoucher) {
+        tx = await contract.buyWithUSDC_Voucher(
+          voucher,
+          signature,
+          parsedAmount,
+          {
+            gasPrice: optimizedGasPrice,
+            gasLimit: gasLimit,
+          }
+        );
+      } else {
+        tx = await contract.buyWithUSDC(parsedAmount, {
           gasPrice: optimizedGasPrice,
           gasLimit: gasLimit,
-        }
-      );
+        });
+      }
       const returnTransaction = await tx.wait();
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
+      if (useVoucher && !boundReferrer && voucher?.referrer) {
         setBoundReferrer(voucher.referrer);
       }
       // Update notification for completed transaction
@@ -607,7 +661,13 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With ETH transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(ethAmount, 18);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
+      let voucher, signature;
+      if (useVoucher) {
+        ({ voucher, signature } = await getVoucher());
+      }
 
       const ethContract = new ethers.Contract(
         contractInfo.ethAddress,
@@ -636,25 +696,38 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithETH_Voucher(
-        voucher,
-        signature,
-        parsedAmount
-      );
+      let estimatedGas;
+      if (useVoucher) {
+        estimatedGas = await contract.estimateGas.buyWithETH_Voucher(
+          voucher,
+          signature,
+          parsedAmount
+        );
+      } else {
+        estimatedGas = await contract.estimateGas.buyWithETH(parsedAmount);
+      }
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithETH_Voucher(
-        voucher,
-        signature,
-        parsedAmount,
-        {
+      let tx;
+      if (useVoucher) {
+        tx = await contract.buyWithETH_Voucher(
+          voucher,
+          signature,
+          parsedAmount,
+          {
+            gasPrice: optimizedGasPrice,
+            gasLimit,
+          }
+        );
+      } else {
+        tx = await contract.buyWithETH(parsedAmount, {
           gasPrice: optimizedGasPrice,
           gasLimit,
-        }
-      );
+        });
+      }
       const returnTransaction = await tx.wait();
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
+      if (useVoucher && !boundReferrer && voucher?.referrer) {
         setBoundReferrer(voucher.referrer);
       }
       notify.complete(toastId, `Successfully purchased with ${ethAmount} ETH!`);
@@ -678,7 +751,13 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With BTC transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(btcAmount, 8);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
+      let voucher, signature;
+      if (useVoucher) {
+        ({ voucher, signature } = await getVoucher());
+      }
 
       const btcContract = new ethers.Contract(
         contractInfo.btcAddress,
@@ -707,25 +786,38 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithBTC_Voucher(
-        voucher,
-        signature,
-        parsedAmount
-      );
+      let estimatedGas;
+      if (useVoucher) {
+        estimatedGas = await contract.estimateGas.buyWithBTC_Voucher(
+          voucher,
+          signature,
+          parsedAmount
+        );
+      } else {
+        estimatedGas = await contract.estimateGas.buyWithBTC(parsedAmount);
+      }
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithBTC_Voucher(
-        voucher,
-        signature,
-        parsedAmount,
-        {
+      let tx;
+      if (useVoucher) {
+        tx = await contract.buyWithBTC_Voucher(
+          voucher,
+          signature,
+          parsedAmount,
+          {
+            gasPrice: optimizedGasPrice,
+            gasLimit,
+          }
+        );
+      } else {
+        tx = await contract.buyWithBTC(parsedAmount, {
           gasPrice: optimizedGasPrice,
           gasLimit,
-        }
-      );
+        });
+      }
       const returnTransaction = await tx.wait();
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
+      if (useVoucher && !boundReferrer && voucher?.referrer) {
         setBoundReferrer(voucher.referrer);
       }
       notify.complete(toastId, `Successfully purchased with ${btcAmount} BTC!`);
@@ -751,7 +843,13 @@ export const Web3Provider = ({ children }) => {
     const toastId = notify.start(`Initializing buy With SOL transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(solAmount, 9);
-      const { voucher, signature } = await getVoucher();
+      const useVoucher =
+        eligibility?.whitelisted &&
+        (!boundReferrer || eligibility?.needsVoucherEachBuy);
+      let voucher, signature;
+      if (useVoucher) {
+        ({ voucher, signature } = await getVoucher());
+      }
 
       const solContract = new ethers.Contract(
         contractInfo.solAddress,
@@ -780,25 +878,38 @@ export const Web3Provider = ({ children }) => {
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      const estimatedGas = await contract.estimateGas.buyWithSOL_Voucher(
-        voucher,
-        signature,
-        parsedAmount
-      );
+      let estimatedGas;
+      if (useVoucher) {
+        estimatedGas = await contract.estimateGas.buyWithSOL_Voucher(
+          voucher,
+          signature,
+          parsedAmount
+        );
+      } else {
+        estimatedGas = await contract.estimateGas.buyWithSOL(parsedAmount);
+      }
       const gasLimit = estimatedGas.mul(120).div(100);
 
-      const tx = await contract.buyWithSOL_Voucher(
-        voucher,
-        signature,
-        parsedAmount,
-        {
+      let tx;
+      if (useVoucher) {
+        tx = await contract.buyWithSOL_Voucher(
+          voucher,
+          signature,
+          parsedAmount,
+          {
+            gasPrice: optimizedGasPrice,
+            gasLimit,
+          }
+        );
+      } else {
+        tx = await contract.buyWithSOL(parsedAmount, {
           gasPrice: optimizedGasPrice,
           gasLimit,
-        }
-      );
+        });
+      }
       const returnTransaction = await tx.wait();
       setReCall(reCall + 1);
-      if (!boundReferrer && voucher?.referrer) {
+      if (useVoucher && !boundReferrer && voucher?.referrer) {
         setBoundReferrer(voucher.referrer);
       }
       notify.complete(toastId, `Successfully purchased with ${solAmount} SOL!`);
@@ -2309,6 +2420,7 @@ export const Web3Provider = ({ children }) => {
     reCall,
     globalLoad,
     boundReferrer,
+    eligibility,
     buyWithBNB,
     buyWithUSDT,
     buyWithUSDC,

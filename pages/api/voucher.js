@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { getReferrer } from "../../lib/waitlist";
 
 export const config = {
   api: {
@@ -13,9 +14,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { user, referrer = ethers.constants.AddressZero } = req.body || {};
+    const { user } = req.body || {};
+    console.log(`[api/voucher] request user=${user}`);
     if (!user) {
       return res.status(400).json({ error: "Missing user" });
+    }
+
+    const referrer = getReferrer(user);
+    if (!referrer) {
+      console.log(`[api/voucher] ${user} not in waitlist`);
+      return res.status(403).json({ error: "Not whitelisted" });
     }
 
     const signerKey =
@@ -53,13 +61,15 @@ export default async function handler(req, res) {
         { upsert: true, returnDocument: "after" }
       );
       nonce = result.value?.nonce || nonce;
+      console.log(`[api/voucher] nonce for ${user} = ${nonce}`);
     } catch (err) {
       console.error("MongoDB error:", err);
       return res.status(500).json({ error: "Database error" });
     }
 
-    const deadline = Math.floor(Date.now() / 1000) + 3600;
+    const deadline = Math.floor(Date.now() / 1000) + 600;
     const voucher = { user, referrer, nonce, deadline };
+    console.log("[api/voucher] voucher payload", voucher);
 
     const domain = {
       name: "TokenICO",
@@ -79,6 +89,7 @@ export default async function handler(req, res) {
 
     const wallet = new ethers.Wallet(signerKey);
     const signature = await wallet._signTypedData(domain, types, voucher);
+    console.log(`[api/voucher] issued voucher for ${user}`);
 
     return res.status(200).json({ voucher, signature });
   } catch (err) {
