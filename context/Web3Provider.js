@@ -361,6 +361,7 @@ export const Web3Provider = ({ children }) => {
           signature,
           { value: bnbValue.toString() }
         );
+        console.log("VOUCHER", voucher)
         const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
         tx = await contract.buyWithBNB_Voucher(voucher, signature, {
           value: bnbValue,

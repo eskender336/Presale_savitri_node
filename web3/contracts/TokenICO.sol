@@ -1,15 +1,18 @@
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+
 interface IERC20 {
-    function transfer(address recipient, uint256 amount) external returns(bool);
-    function balanceOf(address account) external view returns(uint256);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns(bool);
-    function symbol() external view returns(string memory);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
 }
 
 contract TokenICO {
+    using ECDSA for bytes32;
     address public immutable owner;
     address public saleToken;
     
@@ -84,6 +87,21 @@ contract TokenICO {
     mapping(address => address) public referrers; // user address => referrer address
     mapping(address => address[]) public referrals; // referrer address => array of referred users
     mapping(address => uint256) public referralRewards; // referrer address => total rewards earned
+
+    // EIP-712 voucher signer and nonce tracking
+    address public signer;
+    bytes32 public DOMAIN_SEPARATOR;
+    mapping(address => uint256) public usedNonce;
+
+    bytes32 public constant WL_REF_TYPEHASH =
+        keccak256("WhitelistRef(address user,address referrer,uint256 nonce,uint256 deadline)");
+
+    struct WhitelistRef {
+        address user;
+        address referrer;
+        uint256 nonce;
+        uint256 deadline;
+    }
     
     // Events
     event TokensPurchased(
@@ -101,9 +119,12 @@ contract TokenICO {
         uint256 bnbPaid,
         uint256 timestamp
     );
-    
+
     event AddressBlocked(address indexed user, bool blocked);
     event PriceUpdated(string priceType, uint256 oldPrice, uint256 newPrice);
+
+    event SignerUpdated(address indexed oldSigner, address indexed newSigner);
+    event VoucherConsumed(address indexed user, uint256 nonce);
     
     // Staking events
     event Staked(address indexed user, uint256 indexed stakeId, uint256 amount, uint256 lockPeriod);
@@ -132,11 +153,21 @@ contract TokenICO {
     
     constructor() {
         owner = msg.sender;
+        signer = msg.sender;
         usdtRatio = 20;
         usdcRatio = 20;
         bnbRatio = 20;
         ethRatio = 20;
         solRatio = 20;
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("TokenICO")),
+                keccak256(bytes("1")),
+                block.chainid,
+                address(this)
+            )
+        );
     }
     
     // Admin Functions
@@ -193,6 +224,11 @@ contract TokenICO {
         require(_token != address(0), "Invalid address");
         saleToken = _token;
     }
+
+    function setSigner(address _signer) external onlyOwner {
+        emit SignerUpdated(signer, _signer);
+        signer = _signer;
+    }
     
     function setBlockStatus(address user, bool blocked) external onlyOwner {
         blockedAddresses[user] = blocked;
@@ -214,15 +250,54 @@ contract TokenICO {
         require(referrer != address(0), "Invalid referrer address");
         require(referrer != msg.sender, "Cannot refer yourself");
         require(referrers[msg.sender] == address(0), "Already registered with a referrer");
-        
+
         referrers[msg.sender] = referrer;
         referrals[referrer].push(msg.sender);
-        
+
         emit ReferralRegistered(referrer, msg.sender);
     }
-    
+
+    function _hashWhitelistRef(WhitelistRef calldata v) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(
+                    abi.encode(
+                        WL_REF_TYPEHASH,
+                        v.user,
+                        v.referrer,
+                        v.nonce,
+                        v.deadline
+                    )
+                )
+            )
+        );
+    }
+
+    function _validateVoucherAndBind(WhitelistRef calldata v, bytes calldata sig) internal {
+        require(block.timestamp <= v.deadline, "Voucher expired");
+        require(v.user == msg.sender, "Not your voucher");
+        require(v.nonce > usedNonce[msg.sender], "Nonce used");
+        bytes32 digest = _hashWhitelistRef(v);
+        require(ECDSA.recover(digest, sig) == signer, "Bad signature");
+        usedNonce[msg.sender] = v.nonce;
+        emit VoucherConsumed(msg.sender, v.nonce);
+
+        if (
+            v.referrer != address(0) &&
+            v.referrer != msg.sender &&
+            referrers[msg.sender] == address(0) &&
+            !blockedAddresses[v.referrer]
+        ) {
+            referrers[msg.sender] = v.referrer;
+            referrals[v.referrer].push(msg.sender);
+            emit ReferralRegistered(v.referrer, msg.sender);
+        }
+    }
+
     // User Functions - Buying Tokens
-    
+
     function buyWithBNB() external payable notBlocked {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
@@ -365,6 +440,178 @@ contract TokenICO {
     }
 
     function buyWithSOL(uint256 solAmount) external notBlocked {
+        require(solAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(solAddress != address(0), "SOL not configured");
+
+        uint256 tokenAmount = solAmount * solRatio * 1e9;
+
+        require(
+            IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
+            "SOL transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            solAddress,
+            saleToken,
+            solAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable notBlocked {
+        _validateVoucherAndBind(v, sig);
+        require(msg.value > 0, "Must send BNB");
+        require(saleToken != address(0), "Sale token not set");
+
+        uint256 tokenAmount = (msg.value * 1e18) / bnbPriceForToken;
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+        (bool success, ) = payable(owner).call{value: msg.value}("");
+        require(success, "BNB transfer failed");
+
+        _recordTransaction(
+            msg.sender,
+            address(0),
+            saleToken,
+            msg.value,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
+    }
+
+    function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external notBlocked {
+        _validateVoucherAndBind(v, sig);
+        require(usdtAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(usdtAddress != address(0), "USDT not configured");
+
+        uint256 usdtInSmallestUnit = usdtAmount * 1e6;
+        uint256 tokenAmount = usdtAmount * usdtRatio * 1e18;
+
+        require(
+            IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
+            "USDT transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            usdtAddress,
+            saleToken,
+            usdtAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external notBlocked {
+        _validateVoucherAndBind(v, sig);
+        require(usdcAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(usdcAddress != address(0), "USDC not configured");
+
+        uint256 usdcInSmallestUnit = usdcAmount * 1e6;
+        uint256 tokenAmount = usdcAmount * usdcRatio * 1e18;
+
+        require(
+            IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
+            "USDC transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            usdcAddress,
+            saleToken,
+            usdcAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external notBlocked {
+        _validateVoucherAndBind(v, sig);
+        require(ethAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(ethAddress != address(0), "ETH not configured");
+
+        uint256 tokenAmount = ethAmount * ethRatio;
+
+        require(
+            IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount),
+            "ETH transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            ethAddress,
+            saleToken,
+            ethAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external notBlocked {
+        _validateVoucherAndBind(v, sig);
+        require(btcAmount > 0, "Amount must be greater than 0");
+        require(saleToken != address(0), "Sale token not set");
+        require(btcAddress != address(0), "BTC not configured");
+
+        uint256 tokenAmount = btcAmount * btcRatio * 1e10;
+
+        require(
+            IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
+            "BTC transfer failed"
+        );
+
+        tokenAmount = _processReferralReward(tokenAmount);
+
+        _processPurchase(tokenAmount);
+
+        _recordTransaction(
+            msg.sender,
+            btcAddress,
+            saleToken,
+            btcAmount,
+            tokenAmount,
+            "BUY"
+        );
+
+        emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
+    }
+
+    function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external notBlocked {
+        _validateVoucherAndBind(v, sig);
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
