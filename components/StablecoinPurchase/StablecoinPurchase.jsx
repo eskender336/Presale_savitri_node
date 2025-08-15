@@ -54,6 +54,7 @@ const StablecoinPurchase = ({ isDarkMode }) => {
     isOwner,
     setReCall,
     reCall,
+    boundReferrer,
   } = useWeb3();
   const [selectedStablecoin, setSelectedStablecoin] = useState("USDT");
   const [ethAmount, setEthAmount] = useState("");
@@ -221,6 +222,11 @@ const StablecoinPurchase = ({ isDarkMode }) => {
   return (
     <>
       <Header theme={theme} title="Purchase Stablecoins" />
+      {boundReferrer && (
+        <div className={`mb-4 ${theme.text}`}>
+          Referrer: {formatAddress(boundReferrer)}
+        </div>
+      )}
       <div className={`${theme.mainBg} min-h-screen `}>
         <div className=" mx-auto">
           {/* Header */}

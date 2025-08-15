@@ -34,6 +34,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     getReferralInfo,
     checkReferralCode,
     registerReferrer,
+    boundReferrer,
+    formatAddress,
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
@@ -485,6 +487,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
       {/* Main content */}
       <div className="container mx-auto px-4 py-28 md:py-32 relative z-10">
+        {boundReferrer && (
+          <div className={`mb-4 ${textColor}`}>
+            Referrer: {formatAddress(boundReferrer)}
+          </div>
+        )}
         <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16">
           {/* Left side content - Text and graphics */}
           <div className="w-full md:w-1/2 flex flex-col items-center text-left">

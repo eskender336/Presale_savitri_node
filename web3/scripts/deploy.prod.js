@@ -18,6 +18,10 @@ async function main() {
   await tokenICO.deployed();
   console.log("✅ TokenICO contract deployed to:", tokenICO.address);
 
+  // 🔹 Set the signer for vouchers
+  await tokenICO.setSigner("0xDca5AF91A9d0665e96a65712bF38382044edec54");
+  console.log("✅ signer set:", await tokenICO.signer());
+
   // Configure sale token
   await tokenICO.setSaleToken(savitriToken.address);
   console.log("✅ saleToken set:", savitriToken.address);
