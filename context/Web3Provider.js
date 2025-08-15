@@ -25,7 +25,7 @@ const Web3Context = createContext(null);
 // Constants
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
-
+console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
 const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
 
 export const Web3Provider = ({ children }) => {
@@ -41,6 +41,7 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
+  
   const signer = useEthersSigner();
   const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const [contract, setContract] = useState(null);
@@ -65,7 +66,6 @@ export const Web3Provider = ({ children }) => {
         const res = await fetch(`/api/eligibility?user=${address}`);
 
         if (res.ok) {
-          console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", res)
           const data = await res.json();
           console.log("[web3] eligibility result", data);
           setEligibility(data);
@@ -174,11 +174,14 @@ export const Web3Provider = ({ children }) => {
 
         // Use connected wallet or fallback provider
         const currentProvider = provider || fallbackProvider;
+
+        console.log("CURRENT PROVIDER", currentProvider)
         const currentSigner = signer || fallbackProvider;
 
         // Ensure the provider is connected to a network
         try {
           await currentProvider.getNetwork();
+          console.log("CURRENT PROVIDER", currentProvider)
         } catch (networkError) {
           console.error("could not detect network", networkError);
           setError("Could not detect network");
