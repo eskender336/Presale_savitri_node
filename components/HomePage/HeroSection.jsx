@@ -55,7 +55,9 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
-  const [currentBnbPrice, setCurrentBnbPrice] = useState("0");
+  const [livePriceBNB, setLivePriceBNB] = useState(
+    ethers.BigNumber.from(0)
+  );
   const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Calculate progress percentage based on sold tokens vs total supply
@@ -76,31 +78,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // Properly handle the price calculations with useMemo to avoid recalculations
   const prices = useMemo(() => {
-    // Default fallback values
-    const defaultBnbPrice = contractInfo?.bnbPrice ?? "0";
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
     const defaultEthRatio = contractInfo?.ethTokenRatio;
     const defaultBtcRatio = contractInfo?.btcTokenRatio;
     const defaultSolRatio = contractInfo?.solTokenRatio;
 
-    let bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
+    let usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
 
     try {
-      // Handle BNB price
-      if (contractInfo?.bnbPrice) {
-        if (
-          typeof contractInfo.bnbPrice === "object" &&
-          contractInfo.bnbPrice._isBigNumber
-        ) {
-          bnbPrice = contractInfo.bnbPrice;
-        } else {
-          bnbPrice = ethers.utils.parseEther(contractInfo.bnbPrice.toString());
-        }
-      } else {
-        bnbPrice = ethers.utils.parseEther(defaultBnbPrice.toString());
-      }
-
       // Handle USDT ratio
       usdtRatio = contractInfo?.usdtTokenRatio
         ? parseFloat(contractInfo.usdtTokenRatio)
@@ -127,7 +113,6 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         : defaultSolRatio;
     } catch (error) {
       console.error("Error parsing prices:", error);
-      bnbPrice = ethers.utils.parseEther(defaultBnbPrice);
       usdtRatio = defaultUsdtRatio;
       usdcRatio = defaultUsdcRatio;
       ethRatio = defaultEthRatio;
@@ -135,7 +120,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       solRatio = defaultSolRatio;
     }
 
-    return { bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
+    return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
   }, [contractInfo]);
 
   // Start loading effect when component mounts
@@ -264,11 +249,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const pricePerToken = parseFloat(
-            currentBnbPrice || ethers.utils.formatEther(prices.bnbPrice)
+          const tokensPerBnb = Number(
+            ethers.utils.formatEther(livePriceBNB)
           );
           calculatedAmount =
-            pricePerToken > 0 ? parseFloat(amount) / pricePerToken : 0;
+            tokensPerBnb > 0 ? parseFloat(amount) / tokensPerBnb : 0;
           break;
         }
         case "ETH":
@@ -329,7 +314,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         setNextUsdPrice(
           parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
         );
-        setCurrentBnbPrice(ethers.utils.formatEther(priceBNB));
+        setLivePriceBNB(priceBNB);
 
         const now = Math.floor(Date.now() / 1000);
         if (start.gt(0)) {
@@ -361,7 +346,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   useEffect(() => {
     setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
-  }, [inputAmount, selectedToken, currentBnbPrice, prices]);
+  }, [inputAmount, selectedToken, livePriceBNB, prices]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {
