@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract SavitriCoin is ERC20, Ownable {
     uint256 private constant INITIAL_SUPPLY = 600_000_000;
 
-    // Addresses explicitly blocked from sending
+    // Addresses explicitly blocked from sending; blocked users can still receive tokens
     mapping(address => bool) public blockedAddresses;
 
     // Addresses allowed to transfer while global transfers are disabled
