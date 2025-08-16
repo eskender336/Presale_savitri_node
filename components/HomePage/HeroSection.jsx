@@ -45,7 +45,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
-  const [inputAmount, setInputAmount] = useState("0");
+  const [inputAmount, setInputAmount] = useState("1");
   const [tokenAmount, setTokenAmount] = useState("0");
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +55,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [currentBnbPrice, setCurrentBnbPrice] = useState("0");
   const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Calculate progress percentage based on sold tokens vs total supply
@@ -263,8 +264,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const tokensPerBnb = ethers.utils.formatEther(prices.bnbPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerBnb);
+          const pricePerToken = parseFloat(
+            currentBnbPrice || ethers.utils.formatEther(prices.bnbPrice)
+          );
+          calculatedAmount =
+            pricePerToken > 0 ? parseFloat(amount) / pricePerToken : 0;
           break;
         }
         case "ETH":
@@ -325,6 +329,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         setNextUsdPrice(
           parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
         );
+        setCurrentBnbPrice(ethers.utils.formatEther(priceBNB));
 
         const now = Math.floor(Date.now() / 1000);
         if (start.gt(0)) {
@@ -347,14 +352,16 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   // Handle input amount changes
   const handleAmountChange = (value) => {
     setInputAmount(value);
-    setTokenAmount(calculateTokenAmount(value, selectedToken));
   };
 
   // Handle token selection change
   const handleTokenSelection = (token) => {
     setSelectedToken(token);
-    setTokenAmount(calculateTokenAmount(inputAmount, token));
   };
+
+  useEffect(() => {
+    setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
+  }, [inputAmount, selectedToken, currentBnbPrice, prices]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {
