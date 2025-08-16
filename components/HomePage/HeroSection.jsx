@@ -34,6 +34,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     registerReferrer,
     boundReferrer,
     formatAddress,
+    eligibility,
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
@@ -51,6 +52,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     ethers.BigNumber.from(0)
   );
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isWaitlisted, setIsWaitlisted] = useState(false);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
 
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
@@ -293,6 +296,7 @@ useEffect(() => {
   let cancelled = false;
   const provider = contract.provider;
 
+<<<<<<< HEAD
   const load = async () => {
     try {
       const [
@@ -312,6 +316,19 @@ useEffect(() => {
         contract.waitlistInterval(),
         contract.publicInterval(),
       ]);
+=======
+        setIsWaitlisted(isWl);
+
+        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
+        const nextUsdBN = usdPriceBN.add(step);
+        setCurrentUsdPrice(
+          ethers.utils.formatUnits(usdPriceBN, 6)
+        );
+        setNextUsdPrice(
+          ethers.utils.formatUnits(nextUsdBN, 6)
+        );
+        setLivePriceBNB(priceBNB);
+>>>>>>> refs/remotes/origin/codex/update-buy-form-for-sav-calculation
 
       const net = await contract.provider.getNetwork();
       console.log('ICO DEBUG', {
@@ -484,6 +501,21 @@ useEffect(() => {
     return hasSufficientBalance
       ? `BUY WITH ${selectedToken}`
       : `INSUFFICIENT ${selectedToken} BALANCE`;
+  };
+
+  const handleWaitlistRegister = async () => {
+    if (!eligibility?.referrer) {
+      alert("No referrer found for this wallet");
+      return;
+    }
+    try {
+      await registerReferrer(eligibility.referrer);
+      setIsWaitlisted(true);
+      setShowWaitlistModal(false);
+    } catch (err) {
+      console.error("waitlist registration error", err);
+      alert("Registration failed. Please try again.");
+    }
   };
 
   // Get token icon/logo based on selected token
@@ -989,6 +1021,48 @@ useEffect(() => {
                   </button>
                 ) : (
                   <CustomConnectButton childStyle="w-full mb-4 py-4 rounded-lg flex items-center justify-center gap-2 font-medium" />
+                )}
+
+                {isConnected && eligibility?.whitelisted && !isWaitlisted && (
+                  <>
+                    <button
+                      onClick={() => setShowWaitlistModal(true)}
+                      className={`w-full bg-transparent ${
+                        isDarkMode
+                          ? "border-teal-500/50 hover:bg-teal-500/10 text-teal-400"
+                          : "border-teal-500/70 hover:bg-teal-500/5 text-teal-600"
+                      } border-2 rounded-lg py-3.5 mb-4 font-medium transition-all duration-300`}
+                    >
+                      REGISTER AS WAITLIST USER
+                    </button>
+                    {showWaitlistModal && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div className={`${cardBg} p-6 rounded-lg max-w-sm w-full`}>
+                          <p className={`${textColor} mb-4 text-center`}>
+                            Register this wallet for waitlist access?
+                          </p>
+                          <div className="flex justify-center gap-3">
+                            <button
+                              onClick={() => setShowWaitlistModal(false)}
+                              className={`px-4 py-2 rounded-lg border ${
+                                isDarkMode
+                                  ? "border-gray-700 text-gray-300"
+                                  : "border-gray-300 text-gray-700"
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleWaitlistRegister}
+                              className={`px-4 py-2 rounded-lg bg-gradient-to-r ${primaryGradient} hover:${primaryGradientHover} text-white`}
+                            >
+                              Confirm
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Refer a friend button */}
