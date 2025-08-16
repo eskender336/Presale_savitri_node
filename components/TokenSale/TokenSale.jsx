@@ -11,13 +11,11 @@ import { SiTether, SiBinance, SiSolana } from "react-icons/si";
 import { TokenCalculator, CustomConnectButton } from "../index";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
+import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
-const NEXT_PER_TOKEN_USD_PRICE =
-  process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 //
@@ -66,6 +64,10 @@ const TokenSale = ({ isDarkMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [percentage, setPercentage] = useState(0);
+  const [priceBNB, setPriceBNB] = useState(null);
+  const [bnbPerStable, setBnbPerStable] = useState(null);
+  const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
+  const [nextUsdPrice, setNextUsdPrice] = useState("0");
 
   // Theme configuration
   const theme = {
@@ -122,19 +124,53 @@ const TokenSale = ({ isDarkMode }) => {
     fetchUserData();
   }, [account, reCall]);
 
+  // Load current price data
+  useEffect(() => {
+    if (!contract) return;
+
+    let intervalId;
+    const load = async () => {
+      try {
+        const [price, step, stable] = await Promise.all([
+          contract.getCurrentPrice(account || ethers.constants.AddressZero),
+          contract.stablecoinPriceIncrement(),
+          contract.bnbPriceForStablecoin(),
+        ]);
+        setPriceBNB(parseFloat(ethers.utils.formatEther(price)));
+        const bnbStable = parseFloat(ethers.utils.formatEther(stable));
+        setBnbPerStable(bnbStable);
+        const usdPriceBN = price.mul(1_000_000).div(stable);
+        const nextUsdBN = usdPriceBN.add(step);
+        setCurrentUsdPrice(
+          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+        );
+        setNextUsdPrice(
+          parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
+        );
+      } catch (err) {
+        console.error("price fetch failed", err);
+      }
+    };
+    load();
+    intervalId = setInterval(load, 5000);
+    return () => clearInterval(intervalId);
+  }, [contract, account]);
+
   // Calculate tokens based on input and payment method
   useEffect(() => {
+    if (!priceBNB) {
+      setCalculatedTokens("0");
+      return;
+    }
+
     if (activeTab === "buyWithBNB" && bnbAmount) {
-      const tokens =
-        parseFloat(bnbAmount) / parseFloat(contractInfo.bnbPrice);
+      const tokens = parseFloat(bnbAmount) / priceBNB;
       setCalculatedTokens(tokens.toLocaleString());
-    } else if (activeTab === "buyWithUSDT" && usdtAmount) {
-      const tokens =
-        parseFloat(usdtAmount) * parseFloat(contractInfo.usdtTokenRatio);
+    } else if (activeTab === "buyWithUSDT" && usdtAmount && bnbPerStable) {
+      const tokens = parseFloat(usdtAmount) * (bnbPerStable / priceBNB);
       setCalculatedTokens(tokens.toLocaleString());
-    } else if (activeTab === "buyWithUSDC" && usdcAmount) {
-      const tokens =
-        parseFloat(usdcAmount) * parseFloat(contractInfo.usdcTokenRatio);
+    } else if (activeTab === "buyWithUSDC" && usdcAmount && bnbPerStable) {
+      const tokens = parseFloat(usdcAmount) * (bnbPerStable / priceBNB);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithETH" && ethAmount) {
       const tokens =
@@ -159,6 +195,11 @@ const TokenSale = ({ isDarkMode }) => {
     ethAmount,
     btcAmount,
     solAmount,
+    priceBNB,
+    bnbPerStable,
+    contractInfo.ethTokenRatio,
+    contractInfo.btcTokenRatio,
+    contractInfo.solTokenRatio,
   ]);
 
   // Function to handle token purchase
@@ -326,18 +367,22 @@ const TokenSale = ({ isDarkMode }) => {
                       <span className={theme.textSecondary}>
                         Current Price:
                       </span>
-                      <span className={theme.text}>${PER_TOKEN_USD_PRICE}</span>
+                    <span className={theme.text}>${currentUsdPrice}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className={theme.textSecondary}>Next Price:</span>
                       <span className={theme.text}>
-                        ${NEXT_PER_TOKEN_USD_PRICE}
+                        ${nextUsdPrice}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className={theme.textSecondary}>Total Raised:</span>
                       <span className={theme.text}>
-                        ${Number(contractInfo?.totalSold) * PER_TOKEN_USD_PRICE}
+                        $
+                        {
+                          (Number(contractInfo?.totalSold) *
+                            Number(currentUsdPrice)).toFixed(2)
+                        }
                       </span>
                     </div>
                     <div className="flex justify-between">

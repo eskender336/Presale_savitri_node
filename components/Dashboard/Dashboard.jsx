@@ -24,13 +24,12 @@ import { MdDashboard } from "react-icons/md";
 import { BiImport } from "react-icons/bi";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
+import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
-const STABLE_PRICE = process.env.NEXT_PUBLIC_NEXT_STABLE_PRICE;
 
 const Dashboard = ({ isDarkMode, setIsComponen }) => {
   // Theme configuration
@@ -45,9 +44,16 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
     shadow: isDarkMode ? "" : "shadow-lg",
   };
 
-  const { account, tokenBalances, getAllTransactions, reCall, contractInfo } =
-    useWeb3();
+  const {
+    account,
+    tokenBalances,
+    getAllTransactions,
+    reCall,
+    contractInfo,
+    contract,
+  } = useWeb3();
   const [allTransaction, setAllTransaction] = useState([]);
+  const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
 
   useEffect(() => {
     const fetchContractInfo = async () => {
@@ -64,6 +70,28 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
 
     fetchContractInfo();
   }, [account, reCall]);
+
+  useEffect(() => {
+    if (!contract) return;
+    let intervalId;
+    const load = async () => {
+      try {
+        const [price, stable] = await Promise.all([
+          contract.getCurrentPrice(account || ethers.constants.AddressZero),
+          contract.bnbPriceForStablecoin(),
+        ]);
+        const usdPriceBN = price.mul(1_000_000).div(stable);
+        setCurrentUsdPrice(
+          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+        );
+      } catch (err) {
+        console.error("price fetch failed", err);
+      }
+    };
+    load();
+    intervalId = setInterval(load, 5000);
+    return () => clearInterval(intervalId);
+  }, [contract, account]);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "";
@@ -132,9 +160,9 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {tokenBalances?.fsxBalance && PER_TOKEN_USD_PRICE
+            {tokenBalances?.fsxBalance && currentUsdPrice
               ? (
-                  Number(tokenBalances.fsxBalance) * Number(PER_TOKEN_USD_PRICE)
+                  Number(tokenBalances.fsxBalance) * Number(currentUsdPrice)
                 ).toFixed(2)
               : "0.00"}
           </p>
@@ -153,9 +181,9 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {tokenBalances?.fsxSupply && PER_TOKEN_USD_PRICE
+            {tokenBalances?.fsxSupply && currentUsdPrice
               ? (
-                  Number(tokenBalances?.fsxSupply) * Number(PER_TOKEN_USD_PRICE)
+                  Number(tokenBalances?.fsxSupply) * Number(currentUsdPrice)
                 ).toFixed(2)
               : "0.00"}
           </p>
@@ -172,18 +200,18 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
                 {TOKEN_NAME}
               </h2>
               <p className={`text-lg mb-4 ${theme.textSecondary}`}>
-                Current Price: $ {PER_TOKEN_USD_PRICE} per
+                Current Price: $ {currentUsdPrice} per
               </p>
               <div>
                 <p className={`text-lg ${theme.text}`}>Total Raised</p>
                 <p className={theme.textSecondary}>
                   $ &nbsp;
                   {parseFloat(contractInfo?.totalSold || 0) *
-                    parseFloat(PER_TOKEN_USD_PRICE || 0) >
+                    parseFloat(currentUsdPrice || 0) >
                   0
                     ? (
                         parseFloat(contractInfo?.totalSold || 0) *
-                        parseFloat(PER_TOKEN_USD_PRICE || 0)
+                        parseFloat(currentUsdPrice || 0)
                       ).toFixed(2)
                     : "0"}
                 </p>
@@ -212,7 +240,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
                 Buy {TOKEN_SYMBOL}
               </h3>
               <p className={theme.textSecondary}>
-                Only 1 token for $ {PER_TOKEN_USD_PRICE} {CURRENCY}
+                Only 1 token for $ {currentUsdPrice} {CURRENCY}
               </p>
             </div>
           </div>

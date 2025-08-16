@@ -1,41 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaEthereum, FaCalculator } from "react-icons/fa";
 import { SiTether, SiUsdCoin, SiBinance, SiSolana, SiBitcoin } from "react-icons/si";
-import { Header } from "../index";
+import { useWeb3 } from "../../context/Web3Provider";
+import { ethers } from "ethers";
 
-const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
-const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
-const NEXT_PER_TOKEN_USD_PRICE =
-  process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE;
-const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
-const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
 const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
+  const { contract, account, contractInfo } = useWeb3();
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("BNB");
   const [tokensToReceive, setTokensToReceive] = useState(0);
-
-  // Token rates (example values)
-  const rates = {
-    BNB: 1000, // 1000 tokens per BNB
-    ETH: 1000, // 1000 tokens per ETH
-    SOL: 1000, // 1000 tokens per SOL
-    BTC: 1000, // 1000 tokens per BTC
-    USDT: 20, // 1 tokens per USDT
-    USDC: 20, // 1 tokens per USDC
-  };
-
-  // Price per token in different currencies
-  const tokenPrice = {
-    BNB: 0.001, // BNB per token
-    ETH: 0.001, // ETH per token
-    SOL: 0.001, // SOL per token
-    BTC: 0.001, // BTC per token
-    USDT: 1, // USDT per token
-    USDC: 1, // USDC per token
-  };
+  const [bnbPrice, setBnbPrice] = useState(null);
+  const [bnbPerStable, setBnbPerStable] = useState(null);
 
   // Quick calculate options
   const quickOptions = {
@@ -58,16 +34,60 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
   };
 
   useEffect(() => {
+    if (!contract) return;
+    let intervalId;
+    const load = async () => {
+      try {
+        const [price, stable] = await Promise.all([
+          contract.getCurrentPrice(account || ethers.constants.AddressZero),
+          contract.bnbPriceForStablecoin(),
+        ]);
+        setBnbPrice(parseFloat(ethers.utils.formatEther(price)));
+        setBnbPerStable(parseFloat(ethers.utils.formatEther(stable)));
+      } catch (err) {
+        console.error("price fetch failed", err);
+      }
+    };
+    load();
+    intervalId = setInterval(load, 5000);
+    return () => clearInterval(intervalId);
+  }, [contract, account]);
+
+  useEffect(() => {
     calculateTokens();
-  }, [amount, currency]);
+  }, [amount, currency, bnbPrice, bnbPerStable, contractInfo]);
 
   const calculateTokens = () => {
-    if (!amount || isNaN(amount) || amount <= 0) {
+    if (!amount || isNaN(amount) || amount <= 0 || bnbPrice === null) {
       setTokensToReceive(0);
       return;
     }
 
-    const tokens = parseFloat(amount) * rates[currency];
+    let tokens = 0;
+    switch (currency) {
+      case "BNB":
+        tokens = parseFloat(amount) / bnbPrice;
+        break;
+      case "USDT":
+      case "USDC":
+        if (bnbPerStable)
+          tokens = parseFloat(amount) * (bnbPerStable / bnbPrice);
+        break;
+      case "ETH":
+        tokens =
+          parseFloat(amount) * parseFloat(contractInfo.ethTokenRatio || 0);
+        break;
+      case "BTC":
+        tokens =
+          parseFloat(amount) * parseFloat(contractInfo.btcTokenRatio || 0);
+        break;
+      case "SOL":
+        tokens =
+          parseFloat(amount) * parseFloat(contractInfo.solTokenRatio || 0);
+        break;
+      default:
+        tokens = 0;
+    }
     setTokensToReceive(tokens);
   };
 
