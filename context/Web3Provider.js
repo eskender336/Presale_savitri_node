@@ -26,7 +26,6 @@ const Web3Context = createContext(null);
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
 console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
-const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
 
 export const Web3Provider = ({ children }) => {
   // Get toast functions
@@ -139,24 +138,25 @@ export const Web3Provider = ({ children }) => {
     return data;
   };
 
-  // Initialize contract when provider is available
+  // Initialize contract with signer when available, otherwise fall back to RPC
   useEffect(() => {
     const initContract = () => {
-      if (provider && signer) {
-        try {
-          // Create contract instance
+      try {
+        // Prefer signer for write calls but allow a read-only provider when
+        // the user has not connected a wallet yet
+        const library = signer || provider || fallbackProvider;
+        if (!library) return;
 
-          const contractInstance = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            TokenICOAbi,
-            signer
-          );
+        const contractInstance = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          TokenICOAbi,
+          library
+        );
 
-          setContract(contractInstance);
-        } catch (error) {
-          console.error("Error initializing contract:", error);
-          setError("Failed to initialize contract");
-        }
+        setContract(contractInstance);
+      } catch (error) {
+        console.error("Error initializing contract:", error);
+        setError("Failed to initialize contract");
       }
     };
 
