@@ -391,7 +391,7 @@ contract TokenICO {
 
     // User Functions - Buying Tokens
 
-    function buyWithBNB() external payable notBlocked {
+    function buyWithBNB() external payable {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
 
@@ -417,7 +417,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
     
-    function buyWithUSDT(uint256 usdtAmount) external notBlocked {
+    function buyWithUSDT(uint256 usdtAmount) external {
         require(usdtAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdtAddress != address(0), "USDT not configured");
@@ -449,7 +449,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
     }
     
-    function buyWithUSDC(uint256 usdcAmount) external notBlocked {
+    function buyWithUSDC(uint256 usdcAmount) external {
         require(usdcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdcAddress != address(0), "USDC not configured");
@@ -481,7 +481,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithETH(uint256 ethAmount) external notBlocked {
+    function buyWithETH(uint256 ethAmount) external {
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(ethAddress != address(0), "ETH not configured");
@@ -509,7 +509,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBTC(uint256 btcAmount) external notBlocked {
+    function buyWithBTC(uint256 btcAmount) external {
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(btcAddress != address(0), "BTC not configured");
@@ -537,7 +537,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithSOL(uint256 solAmount) external notBlocked {
+    function buyWithSOL(uint256 solAmount) external {
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
@@ -565,7 +565,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable notBlocked {
+    function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable {
         _validateVoucherAndBind(v, sig);
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
@@ -591,7 +591,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
 
-    function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external notBlocked {
+    function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external {
         _validateVoucherAndBind(v, sig);
         require(usdtAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -623,7 +623,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external notBlocked {
+    function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external {
         _validateVoucherAndBind(v, sig);
         require(usdcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -655,7 +655,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external notBlocked {
+    function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external {
         _validateVoucherAndBind(v, sig);
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -684,7 +684,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external notBlocked {
+    function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external {
         _validateVoucherAndBind(v, sig);
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -713,7 +713,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external notBlocked {
+    function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external {
         _validateVoucherAndBind(v, sig);
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -744,7 +744,7 @@ contract TokenICO {
     
     /// User Functions - Buying Stablecoins
     
-    function buyUSDT() external payable notBlocked {
+    function buyUSDT() external payable {
         require(msg.value > 0, "Must send BNB");
         require(usdtAddress != address(0), "USDT not configured");
 
@@ -774,7 +774,7 @@ contract TokenICO {
         emit StablecoinSold(msg.sender, usdtAddress, usdtAmount, msg.value, block.timestamp);
     }
 
-    function buyUSDC() external payable notBlocked {
+    function buyUSDC() external payable {
         require(msg.value > 0, "Must send BNB");
         require(usdcAddress != address(0), "USDC not configured");
 

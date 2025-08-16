@@ -6,19 +6,34 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SavitriCoin is ERC20, Ownable {
     uint256 private constant INITIAL_SUPPLY = 600_000_000;
+
+    // Addresses explicitly blocked from sending; blocked users can still receive tokens
+    mapping(address => bool) public blockedAddresses;
+
+    // Addresses allowed to transfer while global transfers are disabled
+    mapping(address => bool) public allowedSenders;
+
+    // Global transfer flag. When false, only allowedSenders may transfer
     bool public transfersEnabled;
-    address public saleContract;
+
+    event AddressBlocked(address indexed user, bool blocked);
 
     constructor() ERC20("Savitri Coin", "SAV") {
         _mint(msg.sender, INITIAL_SUPPLY * 10 ** decimals());
+        allowedSenders[msg.sender] = true; // Owner can distribute tokens
     }
 
-    function setSaleContract(address _sale) external onlyOwner {
-        saleContract = _sale;
+    function setBlockStatus(address user, bool blocked) external onlyOwner {
+        blockedAddresses[user] = blocked;
+        emit AddressBlocked(user, blocked);
     }
 
-    function enableTransfers() external onlyOwner {
-        transfersEnabled = true;
+    function setAllowedSender(address user, bool allowed) external onlyOwner {
+        allowedSenders[user] = allowed;
+    }
+
+    function setTransfersEnabled(bool enabled) external onlyOwner {
+        transfersEnabled = enabled;
     }
 
     function _beforeTokenTransfer(
@@ -27,13 +42,12 @@ contract SavitriCoin is ERC20, Ownable {
         uint256 amount
     ) internal override {
         super._beforeTokenTransfer(from, to, amount);
-        if (!transfersEnabled) {
-            require(
-                from == address(0) ||
-                from == owner() ||
-                from == saleContract,
-                "Transfers disabled"
-            );
+
+        if (from != address(0)) {
+            require(!blockedAddresses[from], "Sender is blocked");
+            if (!transfersEnabled) {
+                require(allowedSenders[from], "Transfers disabled");
+            }
         }
     }
 }

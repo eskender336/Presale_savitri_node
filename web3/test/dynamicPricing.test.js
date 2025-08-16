@@ -15,7 +15,6 @@ describe("TokenICO dynamic pricing", function () {
 
     await ico.connect(owner).setSaleToken(saleToken.address);
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
-    await saleToken.setSaleContract(ico.address);
 
     const block = await ethers.provider.getBlock("latest");
     await ico.setSaleStartTime(block.timestamp);
@@ -44,7 +43,6 @@ describe("TokenICO dynamic pricing", function () {
 
     await ico.connect(owner).setSaleToken(saleToken.address);
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
-    await saleToken.setSaleContract(ico.address);
 
     const block = await ethers.provider.getBlock("latest");
     await ico.setSaleStartTime(block.timestamp);
@@ -76,7 +74,6 @@ describe("TokenICO dynamic pricing", function () {
 
     await ico.connect(owner).setSaleToken(saleToken.address);
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
-    await saleToken.setSaleContract(ico.address);
 
     const block = await ethers.provider.getBlock("latest");
     await ico.setSaleStartTime(block.timestamp);
@@ -111,7 +108,6 @@ describe("TokenICO dynamic pricing", function () {
 
     await ico.connect(owner).setSaleToken(saleToken.address);
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
-    await saleToken.setSaleContract(ico.address);
 
     await ico.setIntervals(120, 45);
     expect(await ico.waitlistInterval()).to.equal(120);
