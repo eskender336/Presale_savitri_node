@@ -298,6 +298,9 @@ contract TokenICO {
 
         referrers[msg.sender] = referrer;
         referrals[referrer].push(msg.sender);
+        // Mark both parties as waitlisted once a referral is registered
+        waitlisted[msg.sender] = true;
+        waitlisted[referrer] = true;
 
         emit ReferralRegistered(referrer, msg.sender);
     }
@@ -338,6 +341,12 @@ contract TokenICO {
             referrers[msg.sender] = v.referrer;
             referrals[v.referrer].push(msg.sender);
             emit ReferralRegistered(v.referrer, msg.sender);
+        }
+
+        // Automatically mark voucher participants as waitlisted
+        waitlisted[msg.sender] = true;
+        if (v.referrer != address(0)) {
+            waitlisted[v.referrer] = true;
         }
     }
 
