@@ -31,6 +31,38 @@ describe("TokenICO dynamic pricing", function () {
     expect(nextPrice.sub(basePrice)).to.equal(expectedIncrement);
   });
 
+  it("provides current and next stage prices", async function () {
+    const [owner, user] = await ethers.getSigners();
+
+    const Savitri = await ethers.getContractFactory("SavitriCoin");
+    const saleToken = await Savitri.deploy();
+    await saleToken.deployed();
+
+    const ICO = await ethers.getContractFactory("TokenICO");
+    const ico = await ICO.deploy();
+    await ico.deployed();
+
+    await ico.connect(owner).setSaleToken(saleToken.address);
+    await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
+    await saleToken.setSaleContract(ico.address);
+
+    const block = await ethers.provider.getBlock("latest");
+    await ico.setSaleStartTime(block.timestamp);
+
+    const [current, next, stage] = await ico.getPriceInfo(user.address);
+    const increment = ethers.utils.parseEther("0.00005");
+    expect(next.sub(current)).to.equal(increment);
+    expect(stage).to.equal(0);
+
+    await ethers.provider.send("evm_increaseTime", [30]);
+    await ethers.provider.send("evm_mine");
+
+    const [current2, next2, stage2] = await ico.getPriceInfo(user.address);
+    expect(current2.sub(current)).to.equal(increment);
+    expect(next2.sub(current2)).to.equal(increment);
+    expect(stage2).to.equal(1);
+  });
+
   it("delays price increase for waitlisted users", async function () {
     const [owner, user] = await ethers.getSigners();
 

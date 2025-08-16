@@ -267,17 +267,48 @@ contract TokenICO {
         waitlisted[user] = status;
     }
 
-    function getCurrentPrice(address buyer) public view returns (uint256) {
+    function _priceData(address buyer)
+        internal
+        view
+        returns (
+            uint256 price,
+            uint256 incrementBNB,
+            uint256 increments
+        )
+    {
+        incrementBNB = (stablecoinPriceIncrement * bnbPriceForStablecoin) / 1e6;
+
         if (saleStartTime == 0 || block.timestamp < saleStartTime) {
-            return bnbPriceForToken;
+            return (bnbPriceForToken, incrementBNB, 0);
         }
+
         uint256 interval = waitlisted[buyer] ? waitlistInterval : publicInterval;
         if (interval == 0) {
-            return bnbPriceForToken;
+            return (bnbPriceForToken, incrementBNB, 0);
         }
-        uint256 increments = (block.timestamp - saleStartTime) / interval;
-        uint256 incrementBNB = (stablecoinPriceIncrement * bnbPriceForStablecoin) / 1e6;
-        return bnbPriceForToken + (increments * incrementBNB);
+
+        increments = (block.timestamp - saleStartTime) / interval;
+        price = bnbPriceForToken + (increments * incrementBNB);
+    }
+
+    function getCurrentPrice(address buyer) public view returns (uint256) {
+        (uint256 price, , ) = _priceData(buyer);
+        return price;
+    }
+
+    function getPriceInfo(address buyer)
+        external
+        view
+        returns (
+            uint256 currentPrice,
+            uint256 nextPrice,
+            uint256 stage
+        )
+    {
+        (uint256 price, uint256 incrementBNB, uint256 increments) = _priceData(buyer);
+        currentPrice = price;
+        nextPrice = price + incrementBNB;
+        stage = increments;
     }
     
     // Referral Admin Functions
