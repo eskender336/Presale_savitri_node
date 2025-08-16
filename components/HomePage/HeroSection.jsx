@@ -296,7 +296,6 @@ useEffect(() => {
   let cancelled = false;
   const provider = contract.provider;
 
-<<<<<<< HEAD
   const load = async () => {
     try {
       const [
@@ -316,7 +315,6 @@ useEffect(() => {
         contract.waitlistInterval(),
         contract.publicInterval(),
       ]);
-=======
         setIsWaitlisted(isWl);
 
         const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
@@ -328,7 +326,6 @@ useEffect(() => {
           ethers.utils.formatUnits(nextUsdBN, 6)
         );
         setLivePriceBNB(priceBNB);
->>>>>>> refs/remotes/origin/codex/update-buy-form-for-sav-calculation
 
       const net = await contract.provider.getNetwork();
       console.log('ICO DEBUG', {
@@ -342,12 +339,6 @@ useEffect(() => {
       });
       if (cancelled) return;
 
-      // Prices (update on blocks)
-      const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
-      const nextUsdBN = usdPriceBN.add(step);
-      setCurrentUsdPrice(ethers.utils.formatUnits(usdPriceBN, 6));
-      setNextUsdPrice(ethers.utils.formatUnits(nextUsdBN, 6));
-      setLivePriceBNB(priceBNB);
 
       // Timing state for countdown
       setSaleStartTs(startBN.toNumber());
@@ -355,8 +346,6 @@ useEffect(() => {
     } catch (e) {
       console.error("price/timing load error", e);
     }
-
-
   };
 
   // initial + on each block (price can step only on new block)
