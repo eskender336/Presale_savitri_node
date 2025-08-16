@@ -284,78 +284,100 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return `${m}:${s}`;
   };
 
-  useEffect(() => {
-    if (!contract) return;
+  const [saleStartTs, setSaleStartTs] = useState(0);
+const [intervalSec, setIntervalSec] = useState(0);
 
-    let secTimer;
-    const provider = contract.provider;
+useEffect(() => {
+  if (!contract) return;
 
-    const load = async () => {
-      try {
-        const [
-          priceBNB,
-          step,
-          bnbPerStable,
-          start,
-          isWl,
-          wlIntBN,
-          pubIntBN,
-        ] = await Promise.all([
-          contract.getCurrentPrice(account || ethers.constants.AddressZero),
-          contract.stablecoinPriceIncrement(),
-          contract.bnbPriceForStablecoin(),
-          contract.saleStartTime(),
-          account ? contract.waitlisted(account) : false,
-          contract.waitlistInterval(),
-          contract.publicInterval(),
-        ]);
+  let cancelled = false;
+  const provider = contract.provider;
 
-        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
-        const nextUsdBN = usdPriceBN.add(step);
-        setCurrentUsdPrice(
-          ethers.utils.formatUnits(usdPriceBN, 6)
-        );
-        setNextUsdPrice(
-          ethers.utils.formatUnits(nextUsdBN, 6)
-        );
-        setLivePriceBNB(priceBNB);
+  const load = async () => {
+    try {
+      const [
+        priceBNB,
+        step,
+        bnbPerStable,
+        startBN,
+        isWl,
+        wlIntBN,
+        pubIntBN,
+      ] = await Promise.all([
+        contract.getCurrentPrice(account || ethers.constants.AddressZero),
+        contract.stablecoinPriceIncrement(),
+        contract.bnbPriceForStablecoin(),
+        contract.saleStartTime(),
+        account ? contract.waitlisted(account) : false,
+        contract.waitlistInterval(),
+        contract.publicInterval(),
+      ]);
 
-        const latest = await provider.getBlock("latest");
-        if (start.gt(0) && latest) {
-          const interval = (isWl ? wlIntBN : pubIntBN).toNumber();
-          if (interval > 0) {
-            const nowBlockTs = Number(latest.timestamp);
-            const increments = Math.floor(
-              (nowBlockTs - start.toNumber()) / interval
-            );
-            const nextTime = start.toNumber() + (increments + 1) * interval;
-            setTimeRemaining(Math.max(0, nextTime - nowBlockTs));
-          }
-        }
-      } catch (err) {
-        console.error("price update error", err);
-      }
-    };
+      const net = await contract.provider.getNetwork();
+      console.log('ICO DEBUG', {
+        account,
+        contract: contract.address,
+        chainId: net.chainId,
+        isWl,                               // <- это из contract.waitlisted(account)
+        wlInt: wlIntBN.toString(),
+        pubInt: pubIntBN.toString(),
+        saleStart: startBN.toString(),
+      });
+      if (cancelled) return;
 
-    load();
+      // Prices (update on blocks)
+      const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
+      const nextUsdBN = usdPriceBN.add(step);
+      setCurrentUsdPrice(ethers.utils.formatUnits(usdPriceBN, 6));
+      setNextUsdPrice(ethers.utils.formatUnits(nextUsdBN, 6));
+      setLivePriceBNB(priceBNB);
 
-    const onBlock = () => load();
-    provider.on("block", onBlock);
+      // Timing state for countdown
+      setSaleStartTs(startBN.toNumber());
+      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber());
+    } catch (e) {
+      console.error("price/timing load error", e);
+    }
 
-    secTimer = setInterval(async () => {
-      try {
-        await provider.getBlock("latest");
-        setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
-      } catch {
-        // ignore errors while polling for blocks
-      }
-    }, 1000);
 
-    return () => {
-      provider.off("block", onBlock);
-      clearInterval(secTimer);
-    };
-  }, [contract, account]);
+  };
+
+  // initial + on each block (price can step only on new block)
+  load();
+  const onBlock = () => load();
+  provider.on("block", onBlock);
+
+  return () => {
+    cancelled = true;
+    provider.off("block", onBlock);
+  };
+  
+}, [contract, account]);
+
+
+useEffect(() => {
+
+  if (!saleStartTs || !intervalSec) {
+    setTimeRemaining(0);
+    return;
+  }
+
+  const tick = () => {
+    const now = Math.floor(Date.now() / 1000);
+    const steps = Math.floor((now - saleStartTs) / intervalSec);
+    const nextAt = saleStartTs + (steps + 1) * intervalSec;
+    setTimeRemaining(Math.max(0, nextAt - now));
+  };
+
+  tick(); // immediate paint
+  const id = setInterval(tick, 1000);
+
+  console.log('TIMING', {
+    start: saleStartTs,
+    intervalSec,
+  });
+  return () => clearInterval(id);
+}, [saleStartTs, intervalSec]);
 
   // Handle input amount changes
   const handleAmountChange = (value) => {
