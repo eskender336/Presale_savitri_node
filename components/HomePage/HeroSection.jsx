@@ -14,6 +14,14 @@ const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
+const WL_INTERVAL = parseInt(
+  process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "60",
+  10
+);
+const PUBLIC_INTERVAL = parseInt(
+  process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "30",
+  10
+);
 
 const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
@@ -301,16 +309,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     let intervalId;
     const load = async () => {
       try {
-        const [priceBNB, step, bnbPerStable, start, wlInterval, pubInterval, isWl] =
-          await Promise.all([
-            contract.getCurrentPrice(account || ethers.constants.AddressZero),
-            contract.stablecoinPriceIncrement(),
-            contract.bnbPriceForStablecoin(),
-            contract.saleStartTime(),
-            contract.waitlistInterval(),
-            contract.publicInterval(),
-            account ? contract.waitlisted(account) : false,
-          ]);
+        const [priceBNB, step, bnbPerStable, start, isWl] = await Promise.all([
+          contract.getCurrentPrice(account || ethers.constants.AddressZero),
+          contract.stablecoinPriceIncrement(),
+          contract.bnbPriceForStablecoin(),
+          contract.saleStartTime(),
+          account ? contract.waitlisted(account) : false,
+        ]);
 
         const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
         const nextUsdBN = usdPriceBN.add(step);
@@ -323,7 +328,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
         const now = Math.floor(Date.now() / 1000);
         if (start.gt(0)) {
-          const interval = (isWl ? wlInterval : pubInterval).toNumber();
+          const interval = isWl ? WL_INTERVAL : PUBLIC_INTERVAL;
           if (interval > 0) {
             const increments = Math.floor((now - start.toNumber()) / interval);
             const nextTime = start.toNumber() + (increments + 1) * interval;

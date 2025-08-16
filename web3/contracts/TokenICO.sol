@@ -267,6 +267,14 @@ contract TokenICO {
         waitlisted[user] = status;
     }
 
+    function setIntervals(uint256 waitInterval, uint256 publicIntervalSec)
+        external
+        onlyOwner
+    {
+        waitlistInterval = waitInterval;
+        publicInterval = publicIntervalSec;
+    }
+
     function _priceData(address buyer)
         internal
         view

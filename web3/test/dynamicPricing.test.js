@@ -97,4 +97,24 @@ describe("TokenICO dynamic pricing", function () {
     const expectedIncrement = ethers.utils.parseEther("0.00005");
     expect(laterPrice.sub(basePrice)).to.equal(expectedIncrement);
   });
+
+  it("lets the owner adjust pricing intervals", async function () {
+    const [owner, user] = await ethers.getSigners();
+
+    const Savitri = await ethers.getContractFactory("SavitriCoin");
+    const saleToken = await Savitri.deploy();
+    await saleToken.deployed();
+
+    const ICO = await ethers.getContractFactory("TokenICO");
+    const ico = await ICO.deploy();
+    await ico.deployed();
+
+    await ico.connect(owner).setSaleToken(saleToken.address);
+    await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
+    await saleToken.setSaleContract(ico.address);
+
+    await ico.setIntervals(120, 45);
+    expect(await ico.waitlistInterval()).to.equal(120);
+    expect(await ico.publicInterval()).to.equal(45);
+  });
 });
