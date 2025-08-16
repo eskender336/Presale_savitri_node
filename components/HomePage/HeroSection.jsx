@@ -14,14 +14,6 @@ const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
-const WL_INTERVAL = parseInt(
-  process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "60",
-  10
-);
-const PUBLIC_INTERVAL = parseInt(
-  process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "30",
-  10
-);
 
 const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
@@ -295,43 +287,74 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   useEffect(() => {
     if (!contract) return;
 
-    let intervalId;
+    let secTimer;
+    const provider = contract.provider;
+
     const load = async () => {
       try {
-        const [priceBNB, step, bnbPerStable, start, isWl] = await Promise.all([
+        const [
+          priceBNB,
+          step,
+          bnbPerStable,
+          start,
+          isWl,
+          wlIntBN,
+          pubIntBN,
+        ] = await Promise.all([
           contract.getCurrentPrice(account || ethers.constants.AddressZero),
           contract.stablecoinPriceIncrement(),
           contract.bnbPriceForStablecoin(),
           contract.saleStartTime(),
           account ? contract.waitlisted(account) : false,
+          contract.waitlistInterval(),
+          contract.publicInterval(),
         ]);
 
         const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
         const nextUsdBN = usdPriceBN.add(step);
         setCurrentUsdPrice(
-          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+          ethers.utils.formatUnits(usdPriceBN, 6)
         );
         setNextUsdPrice(
-          parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
+          ethers.utils.formatUnits(nextUsdBN, 6)
         );
         setLivePriceBNB(priceBNB);
 
-        const now = Math.floor(Date.now() / 1000);
-        if (start.gt(0)) {
-          const interval = isWl ? WL_INTERVAL : PUBLIC_INTERVAL;
+        const latest = await provider.getBlock("latest");
+        if (start.gt(0) && latest) {
+          const interval = (isWl ? wlIntBN : pubIntBN).toNumber();
           if (interval > 0) {
-            const increments = Math.floor((now - start.toNumber()) / interval);
+            const nowBlockTs = Number(latest.timestamp);
+            const increments = Math.floor(
+              (nowBlockTs - start.toNumber()) / interval
+            );
             const nextTime = start.toNumber() + (increments + 1) * interval;
-            setTimeRemaining(Math.max(0, nextTime - now));
+            setTimeRemaining(Math.max(0, nextTime - nowBlockTs));
           }
         }
       } catch (err) {
         console.error("price update error", err);
       }
     };
+
     load();
-    intervalId = setInterval(load, 1000);
-    return () => clearInterval(intervalId);
+
+    const onBlock = () => load();
+    provider.on("block", onBlock);
+
+    secTimer = setInterval(async () => {
+      try {
+        await provider.getBlock("latest");
+        setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+      } catch {
+        // ignore errors while polling for blocks
+      }
+    }, 1000);
+
+    return () => {
+      provider.off("block", onBlock);
+      clearInterval(secTimer);
+    };
   }, [contract, account]);
 
   // Handle input amount changes
