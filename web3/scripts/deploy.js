@@ -75,8 +75,22 @@ async function main() {
     console.log("✅ saleToken set:", savitriToken.address);
 
     // Transfer SAV to ICO contract
-    await savitriToken.transfer(tokenICO.address, hre.ethers.utils.parseUnits("500000", 18));
+    await savitriToken.transfer(
+      tokenICO.address,
+      hre.ethers.utils.parseUnits("500000", 18)
+    );
     console.log("✅ ICO funded with 500,000 SAV tokens");
+
+    // >>> ADD THIS: allow ICO to send SAV while global transfers are disabled
+    await savitriToken.setAllowedSender(tokenICO.address, true);
+    console.log(
+      "✅ SAV allowedSender[ICO] =",
+      await savitriToken.allowedSenders(tokenICO.address)
+    );
+
+    // (Optional alternative instead of whitelisting ICO):
+    // await savitriToken.setTransfersEnabled(true);
+    // console.log("✅ SAV transfersEnabled = true (global)");
 
     // Set token payment options with ratios
     await tokenICO.updateUSDT(mockUSDT.address, 1000);
