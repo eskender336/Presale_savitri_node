@@ -11,13 +11,14 @@ describe("TokenICOv2 vouchers", function () {
     await saleToken.deployed();
 
     // deploy ICO contract
-    const ICO = await ethers.getContractFactory("TokenICOv2");
+    const ICO = await ethers.getContractFactory("TokenICO");
     const ico = await ICO.deploy();
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
     // transfer tokens to ICO contract for selling and referral rewards
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
+    await saleToken.setSaleContract(ico.address);
 
     await ico.connect(owner).setSigner(signer.address);
 
@@ -54,5 +55,8 @@ describe("TokenICOv2 vouchers", function () {
 
     expect(await ico.usedNonce(user.address)).to.equal(nonce);
     expect(await ico.referrers(user.address)).to.equal(referrer.address);
+    // Both user and referrer should be marked waitlisted
+    expect(await ico.waitlisted(user.address)).to.equal(true);
+    expect(await ico.waitlisted(referrer.address)).to.equal(true);
   });
 });

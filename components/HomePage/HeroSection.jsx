@@ -12,9 +12,6 @@ import { ethers } from "ethers";
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
-const NEXT_PER_TOKEN_USD_PRICE =
-  process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
@@ -22,6 +19,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
     account,
     isConnected,
+    contract,
     contractInfo,
     tokenBalances,
     buyWithETH,
@@ -36,16 +34,26 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     registerReferrer,
     boundReferrer,
     formatAddress,
+    eligibility,
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
-  const [inputAmount, setInputAmount] = useState("0");
+  const [inputAmount, setInputAmount] = useState("1");
   const [tokenAmount, setTokenAmount] = useState("0");
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAttemptedRegistration, setHasAttemptedRegistration] =
     useState(false);
   const registrationRef = useRef(false);
+
+  const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
+  const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [livePriceBNB, setLivePriceBNB] = useState(
+    ethers.BigNumber.from(0)
+  );
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isWaitlisted, setIsWaitlisted] = useState(false);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
 
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
@@ -65,31 +73,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // Properly handle the price calculations with useMemo to avoid recalculations
   const prices = useMemo(() => {
-    // Default fallback values
-    const defaultBnbPrice = contractInfo?.bnbPrice ?? "0";
     const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
     const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
     const defaultEthRatio = contractInfo?.ethTokenRatio;
     const defaultBtcRatio = contractInfo?.btcTokenRatio;
     const defaultSolRatio = contractInfo?.solTokenRatio;
 
-    let bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
+    let usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
 
     try {
-      // Handle BNB price
-      if (contractInfo?.bnbPrice) {
-        if (
-          typeof contractInfo.bnbPrice === "object" &&
-          contractInfo.bnbPrice._isBigNumber
-        ) {
-          bnbPrice = contractInfo.bnbPrice;
-        } else {
-          bnbPrice = ethers.utils.parseEther(contractInfo.bnbPrice.toString());
-        }
-      } else {
-        bnbPrice = ethers.utils.parseEther(defaultBnbPrice.toString());
-      }
-
       // Handle USDT ratio
       usdtRatio = contractInfo?.usdtTokenRatio
         ? parseFloat(contractInfo.usdtTokenRatio)
@@ -116,7 +108,6 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         : defaultSolRatio;
     } catch (error) {
       console.error("Error parsing prices:", error);
-      bnbPrice = ethers.utils.parseEther(defaultBnbPrice);
       usdtRatio = defaultUsdtRatio;
       usdcRatio = defaultUsdcRatio;
       ethRatio = defaultEthRatio;
@@ -124,7 +115,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       solRatio = defaultSolRatio;
     }
 
-    return { bnbPrice, usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
+    return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
   }, [contractInfo]);
 
   // Start loading effect when component mounts
@@ -253,8 +244,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const tokensPerBnb = ethers.utils.formatEther(prices.bnbPrice);
-          calculatedAmount = parseFloat(amount) / parseFloat(tokensPerBnb);
+          const tokensPerBnb = Number(
+            ethers.utils.formatEther(livePriceBNB)
+          );
+          calculatedAmount =
+            tokensPerBnb > 0 ? parseFloat(amount) / tokensPerBnb : 0;
           break;
         }
         case "ETH":
@@ -283,17 +277,127 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return calculatedAmount.toFixed(6);
   };
 
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(seconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const [saleStartTs, setSaleStartTs] = useState(0);
+const [intervalSec, setIntervalSec] = useState(0);
+
+useEffect(() => {
+  if (!contract) return;
+
+  let cancelled = false;
+  const provider = contract.provider;
+
+  const load = async () => {
+    try {
+      const [
+        priceBNB,
+        step,
+        bnbPerStable,
+        startBN,
+        isWl,
+        wlIntBN,
+        pubIntBN,
+      ] = await Promise.all([
+        contract.getCurrentPrice(account || ethers.constants.AddressZero),
+        contract.stablecoinPriceIncrement(),
+        contract.bnbPriceForStablecoin(),
+        contract.saleStartTime(),
+        account ? contract.waitlisted(account) : false,
+        contract.waitlistInterval(),
+        contract.publicInterval(),
+      ]);
+        setIsWaitlisted(isWl);
+
+        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
+        const nextUsdBN = usdPriceBN.add(step);
+        setCurrentUsdPrice(
+          ethers.utils.formatUnits(usdPriceBN, 6)
+        );
+        setNextUsdPrice(
+          ethers.utils.formatUnits(nextUsdBN, 6)
+        );
+        setLivePriceBNB(priceBNB);
+
+      const net = await contract.provider.getNetwork();
+      console.log('ICO DEBUG', {
+        account,
+        contract: contract.address,
+        chainId: net.chainId,
+        isWl,                               // <- это из contract.waitlisted(account)
+        wlInt: wlIntBN.toString(),
+        pubInt: pubIntBN.toString(),
+        saleStart: startBN.toString(),
+      });
+      if (cancelled) return;
+
+
+      // Timing state for countdown
+      setSaleStartTs(startBN.toNumber());
+      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber());
+    } catch (e) {
+      console.error("price/timing load error", e);
+    }
+  };
+
+  // initial + on each block (price can step only on new block)
+  load();
+  const onBlock = () => load();
+  provider.on("block", onBlock);
+
+  return () => {
+    cancelled = true;
+    provider.off("block", onBlock);
+  };
+  
+}, [contract, account]);
+
+
+useEffect(() => {
+
+  if (!saleStartTs || !intervalSec) {
+    setTimeRemaining(0);
+    return;
+  }
+
+  const tick = () => {
+    const now = Math.floor(Date.now() / 1000);
+    const steps = Math.floor((now - saleStartTs) / intervalSec);
+    const nextAt = saleStartTs + (steps + 1) * intervalSec;
+    setTimeRemaining(Math.max(0, nextAt - now));
+  };
+
+  tick(); // immediate paint
+  const id = setInterval(tick, 1000);
+
+  console.log('TIMING', {
+    start: saleStartTs,
+    intervalSec,
+  });
+  return () => clearInterval(id);
+}, [saleStartTs, intervalSec]);
+
   // Handle input amount changes
   const handleAmountChange = (value) => {
     setInputAmount(value);
-    setTokenAmount(calculateTokenAmount(value, selectedToken));
   };
 
   // Handle token selection change
   const handleTokenSelection = (token) => {
     setSelectedToken(token);
-    setTokenAmount(calculateTokenAmount(inputAmount, token));
   };
+
+  useEffect(() => {
+    setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
+  }, [inputAmount, selectedToken, livePriceBNB, prices]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {
@@ -386,6 +490,21 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return hasSufficientBalance
       ? `BUY WITH ${selectedToken}`
       : `INSUFFICIENT ${selectedToken} BALANCE`;
+  };
+
+  const handleWaitlistRegister = async () => {
+    if (!eligibility?.referrer) {
+      alert("No referrer found for this wallet");
+      return;
+    }
+    try {
+      await registerReferrer(eligibility.referrer);
+      setIsWaitlisted(true);
+      setShowWaitlistModal(false);
+    } catch (err) {
+      console.error("waitlist registration error", err);
+      alert("Registration failed. Please try again.");
+    }
   };
 
   // Get token icon/logo based on selected token
@@ -632,11 +751,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     Stage 1 - Buy {TOKEN_SYMBOL} Now
                   </h3>
 
-                  <div
-                    className={`text-center text-sm ${secondaryTextColor} mb-4`}
-                  >
-                    Until price increase
-                  </div>
+                <div
+                  className={`text-center text-sm ${secondaryTextColor} mb-4`}
+                >
+                    {timeRemaining > 0
+                      ? `Next price in ${formatTime(timeRemaining)}`
+                      : "Until price increase"}
+                </div>
                 </div>
 
                 {/* Price information */}
@@ -644,7 +765,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   <div className={`${secondaryTextColor} flex flex-col`}>
                     <span className="text-xs mb-1">Current Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {PER_TOKEN_USD_PRICE}
+                      $ {currentUsdPrice}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-500/20 to-transparent"></div>
@@ -653,7 +774,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   >
                     <span className="text-xs mb-1">Next Stage Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {NEXT_PER_TOKEN_USD_PRICE}
+                      $ {nextUsdPrice}
                     </span>
                   </div>
                 </div>
@@ -681,11 +802,11 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                     <span className={`${textColor} font-medium`}>
                       ${" "}
                       {parseFloat(contractInfo?.totalSold || 0) *
-                        parseFloat(PER_TOKEN_USD_PRICE || 0) >
+                        parseFloat(currentUsdPrice || 0) >
                       0
                         ? (
                             parseFloat(contractInfo?.totalSold || 0) *
-                            parseFloat(PER_TOKEN_USD_PRICE || 0)
+                            parseFloat(currentUsdPrice || 0)
                           ).toFixed(2)
                         : "0"}
                     </span>
@@ -717,7 +838,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   </span>
                   <div className="px-3 py-1 rounded-lg text-light-gradient">
                     <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
-                      ${PER_TOKEN_USD_PRICE}
+                      ${currentUsdPrice}
                     </span>
                   </div>
                 </div>
@@ -889,6 +1010,48 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
                   </button>
                 ) : (
                   <CustomConnectButton childStyle="w-full mb-4 py-4 rounded-lg flex items-center justify-center gap-2 font-medium" />
+                )}
+
+                {isConnected && eligibility?.whitelisted && !isWaitlisted && (
+                  <>
+                    <button
+                      onClick={() => setShowWaitlistModal(true)}
+                      className={`w-full bg-transparent ${
+                        isDarkMode
+                          ? "border-teal-500/50 hover:bg-teal-500/10 text-teal-400"
+                          : "border-teal-500/70 hover:bg-teal-500/5 text-teal-600"
+                      } border-2 rounded-lg py-3.5 mb-4 font-medium transition-all duration-300`}
+                    >
+                      REGISTER AS WAITLIST USER
+                    </button>
+                    {showWaitlistModal && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div className={`${cardBg} p-6 rounded-lg max-w-sm w-full`}>
+                          <p className={`${textColor} mb-4 text-center`}>
+                            Register this wallet for waitlist access?
+                          </p>
+                          <div className="flex justify-center gap-3">
+                            <button
+                              onClick={() => setShowWaitlistModal(false)}
+                              className={`px-4 py-2 rounded-lg border ${
+                                isDarkMode
+                                  ? "border-gray-700 text-gray-300"
+                                  : "border-gray-300 text-gray-700"
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleWaitlistRegister}
+                              className={`px-4 py-2 rounded-lg bg-gradient-to-r ${primaryGradient} hover:${primaryGradientHover} text-white`}
+                            >
+                              Confirm
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Refer a friend button */}

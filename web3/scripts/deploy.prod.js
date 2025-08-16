@@ -65,6 +65,23 @@ async function main() {
     console.log("✅ BTC payment enabled:", BTC_ADDRESS);
   }
 
+  const waitlistInterval = parseInt(
+    process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "60",
+    10
+  );
+  const publicInterval = parseInt(
+    process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "30",
+    10
+  );
+  await tokenICO.setIntervals(waitlistInterval, publicInterval);
+  console.log(
+    `✅ intervals set: waitlist ${waitlistInterval}s, public ${publicInterval}s`
+  );
+
+  const latest = await hre.ethers.provider.getBlock("latest");
+  await tokenICO.setSaleStartTime(latest.timestamp);
+  console.log("✅ sale start time set:", latest.timestamp);
+
   // Output ENV-style addresses
   console.log("------------------------");
   console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS =", tokenICO.address);

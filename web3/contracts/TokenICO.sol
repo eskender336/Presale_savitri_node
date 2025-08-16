@@ -24,7 +24,7 @@ contract TokenICO {
     address public solAddress;
     
     // Price Configuration
-    uint256 public bnbPriceForToken = 0.001 ether;    // 1 token = 0.001 BNB
+    uint256 public bnbPriceForToken = 0.00035 ether;    // 1 token = 0.35 USD (0.00035 BNB @ 1 USDT = 0.001 BNB)
     uint256 public bnbPriceForStablecoin = 0.001 ether; // 1 USDT/USDC = 0.001 BNB
     
     // Token ratios
@@ -36,9 +36,32 @@ contract TokenICO {
     uint256 public solRatio;   // Tokens per 1 SOL
     
     uint256 public tokensSold;
-    
+    uint256 public waitlistSold;
+
+    uint256 public constant TOTAL_TOKENS_FOR_SALE = 600_000_000 * 1e18;
+    uint256 public constant WAITLIST_ALLOCATION = 2_000_000 * 1e18;
+
     // Blocked addresses
     mapping(address => bool) public blockedAddresses;
+
+    // Dynamic pricing
+    uint256 public saleStartTime;
+    uint256 public stablecoinPriceIncrement = 5e4; // 0.05 USD assuming 6 decimals
+    uint256 public waitlistInterval = 60; // seconds for waitlisted wallets
+    uint256 public publicInterval = 30; // seconds for others
+    mapping(address => bool) public waitlisted;
+
+    function _updateSales(address buyer, uint256 tokenAmount) internal {
+        require(tokensSold + tokenAmount <= TOTAL_TOKENS_FOR_SALE, "Exceeds sale supply");
+        if (waitlisted[buyer]) {
+            require(waitlistSold + tokenAmount <= WAITLIST_ALLOCATION, "Exceeds waitlist allocation");
+            waitlistSold += tokenAmount;
+        } else {
+            uint256 publicSold = tokensSold - waitlistSold;
+            require(publicSold + tokenAmount <= TOTAL_TOKENS_FOR_SALE - WAITLIST_ALLOCATION, "Exceeds public allocation");
+        }
+        tokensSold += tokenAmount;
+    }
     
     // Transaction history
     struct Transaction {
@@ -234,6 +257,67 @@ contract TokenICO {
         blockedAddresses[user] = blocked;
         emit AddressBlocked(user, blocked);
     }
+
+    // Dynamic pricing admin functions
+    function setSaleStartTime(uint256 startTime) external onlyOwner {
+        saleStartTime = startTime;
+    }
+
+    function setWaitlisted(address user, bool status) external onlyOwner {
+        waitlisted[user] = status;
+    }
+
+    function setIntervals(uint256 waitInterval, uint256 publicIntervalSec)
+        external
+        onlyOwner
+    {
+        waitlistInterval = waitInterval;
+        publicInterval = publicIntervalSec;
+    }
+
+    function _priceData(address buyer)
+        internal
+        view
+        returns (
+            uint256 price,
+            uint256 incrementBNB,
+            uint256 increments
+        )
+    {
+        incrementBNB = (stablecoinPriceIncrement * bnbPriceForStablecoin) / 1e6;
+
+        if (saleStartTime == 0 || block.timestamp < saleStartTime) {
+            return (bnbPriceForToken, incrementBNB, 0);
+        }
+
+        uint256 interval = waitlisted[buyer] ? waitlistInterval : publicInterval;
+        if (interval == 0) {
+            return (bnbPriceForToken, incrementBNB, 0);
+        }
+
+        increments = (block.timestamp - saleStartTime) / interval;
+        price = bnbPriceForToken + (increments * incrementBNB);
+    }
+
+    function getCurrentPrice(address buyer) public view returns (uint256) {
+        (uint256 price, , ) = _priceData(buyer);
+        return price;
+    }
+
+    function getPriceInfo(address buyer)
+        external
+        view
+        returns (
+            uint256 currentPrice,
+            uint256 nextPrice,
+            uint256 stage
+        )
+    {
+        (uint256 price, uint256 incrementBNB, uint256 increments) = _priceData(buyer);
+        currentPrice = price;
+        nextPrice = price + incrementBNB;
+        stage = increments;
+    }
     
     // Referral Admin Functions
     
@@ -253,6 +337,9 @@ contract TokenICO {
 
         referrers[msg.sender] = referrer;
         referrals[referrer].push(msg.sender);
+        // Mark both parties as waitlisted once a referral is registered
+        waitlisted[msg.sender] = true;
+        waitlisted[referrer] = true;
 
         emit ReferralRegistered(referrer, msg.sender);
     }
@@ -294,6 +381,12 @@ contract TokenICO {
             referrals[v.referrer].push(msg.sender);
             emit ReferralRegistered(v.referrer, msg.sender);
         }
+
+        // Automatically mark voucher participants as waitlisted
+        waitlisted[msg.sender] = true;
+        if (v.referrer != address(0)) {
+            waitlisted[v.referrer] = true;
+        }
     }
 
     // User Functions - Buying Tokens
@@ -302,7 +395,8 @@ contract TokenICO {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
 
-        uint256 tokenAmount = (msg.value * 1e18) / bnbPriceForToken;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (msg.value * 1e18) / price;
 
         // Process referral if applicable
         tokenAmount = _processReferralReward(tokenAmount);
@@ -329,7 +423,9 @@ contract TokenICO {
         require(usdtAddress != address(0), "USDT not configured");
         
         uint256 usdtInSmallestUnit = usdtAmount * 1e6;
-        uint256 tokenAmount = usdtAmount * usdtRatio * 1e18;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 bnbEquivalent = usdtAmount * bnbPriceForStablecoin;
+        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
         
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
@@ -359,7 +455,9 @@ contract TokenICO {
         require(usdcAddress != address(0), "USDC not configured");
         
         uint256 usdcInSmallestUnit = usdcAmount * 1e6;
-        uint256 tokenAmount = usdcAmount * usdcRatio * 1e18;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 bnbEquivalent = usdcAmount * bnbPriceForStablecoin;
+        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
         
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
@@ -472,7 +570,8 @@ contract TokenICO {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
 
-        uint256 tokenAmount = (msg.value * 1e18) / bnbPriceForToken;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (msg.value * 1e18) / price;
 
         tokenAmount = _processReferralReward(tokenAmount);
 
@@ -499,7 +598,9 @@ contract TokenICO {
         require(usdtAddress != address(0), "USDT not configured");
 
         uint256 usdtInSmallestUnit = usdtAmount * 1e6;
-        uint256 tokenAmount = usdtAmount * usdtRatio * 1e18;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 bnbEquivalent = usdtAmount * bnbPriceForStablecoin;
+        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
 
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
@@ -529,7 +630,9 @@ contract TokenICO {
         require(usdcAddress != address(0), "USDC not configured");
 
         uint256 usdcInSmallestUnit = usdcAmount * 1e6;
-        uint256 tokenAmount = usdcAmount * usdcRatio * 1e18;
+        uint256 price = getCurrentPrice(msg.sender);
+        uint256 bnbEquivalent = usdcAmount * bnbPriceForStablecoin;
+        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
 
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
@@ -1026,13 +1129,13 @@ contract TokenICO {
             token.balanceOf(address(this)) >= tokenAmount,
             "Insufficient token balance"
         );
-        
+
+        _updateSales(msg.sender, tokenAmount);
+
         require(
             token.transfer(msg.sender, tokenAmount),
             "Token transfer failed"
         );
-        
-        tokensSold += tokenAmount;
     }
     
     function _recordTransaction(
