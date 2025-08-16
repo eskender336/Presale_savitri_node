@@ -18,7 +18,6 @@ describe("TokenICOv2 vouchers", function () {
     await ico.connect(owner).setSaleToken(saleToken.address);
     // transfer tokens to ICO contract for selling and referral rewards
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
-    await saleToken.setSaleContract(ico.address);
 
     await ico.connect(owner).setSigner(signer.address);
 
