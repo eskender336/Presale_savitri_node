@@ -23,7 +23,7 @@ describe("TokenICOv2 vouchers", function () {
     await ico.connect(owner).setSigner(signer.address);
 
     const nonce = 1;
-    const deadline = Math.floor(Date.now() / 1000) + 3600;
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365;
     const voucher = {
       user: user.address,
       referrer: referrer.address,

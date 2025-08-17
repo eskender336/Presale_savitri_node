@@ -47,8 +47,8 @@ contract TokenICO {
     // Dynamic pricing
     uint256 public saleStartTime;
     uint256 public stablecoinPriceIncrement = 5e4; // 0.05 USD assuming 6 decimals
-    uint256 public waitlistInterval = 60; // seconds for waitlisted wallets
-    uint256 public publicInterval = 30; // seconds for others
+    uint256 public waitlistInterval = 14 days; // seconds for waitlisted wallets (2 weeks)
+    uint256 public publicInterval = 7 days; // seconds for others (1 week)
     mapping(address => bool) public waitlisted;
 
     function _updateSales(address buyer, uint256 tokenAmount) internal {

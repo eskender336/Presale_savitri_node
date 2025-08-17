@@ -21,7 +21,7 @@ describe("TokenICO dynamic pricing", function () {
 
     const basePrice = await ico.getCurrentPrice(user.address);
 
-    await ethers.provider.send("evm_increaseTime", [30]);
+    await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
 
     const nextPrice = await ico.getCurrentPrice(user.address);
@@ -52,7 +52,7 @@ describe("TokenICO dynamic pricing", function () {
     expect(next.sub(current)).to.equal(increment);
     expect(stage).to.equal(0);
 
-    await ethers.provider.send("evm_increaseTime", [30]);
+    await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
 
     const [current2, next2, stage2] = await ico.getPriceInfo(user.address);
@@ -81,14 +81,14 @@ describe("TokenICO dynamic pricing", function () {
 
     const basePrice = await ico.getCurrentPrice(user.address);
 
-    // 30 seconds should not change the price for waitlisted user
-    await ethers.provider.send("evm_increaseTime", [30]);
+    // 1 week should not change the price for waitlisted user
+    await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
     const midPrice = await ico.getCurrentPrice(user.address);
     expect(midPrice).to.equal(basePrice);
 
-    // After full minute, price should increase
-    await ethers.provider.send("evm_increaseTime", [30]);
+    // After second week, price should increase
+    await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
     const laterPrice = await ico.getCurrentPrice(user.address);
     const expectedIncrement = ethers.utils.parseEther("0.00005");

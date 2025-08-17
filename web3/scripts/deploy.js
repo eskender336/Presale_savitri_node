@@ -102,11 +102,11 @@ async function main() {
     console.log("✅ All token payment methods registered with ICO");
 
     const waitlistInterval = parseInt(
-      process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "60",
+      process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "1209600",
       10
     );
     const publicInterval = parseInt(
-      process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "30",
+      process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "604800",
       10
     );
     await tokenICO.setIntervals(waitlistInterval, publicInterval);
