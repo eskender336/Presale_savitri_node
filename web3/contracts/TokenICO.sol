@@ -11,6 +11,10 @@ interface IERC20 {
     function decimals() external view returns (uint8);
 }
 
+interface IDelegationChecker {
+    function isDelegated(address user) external view returns (bool);
+}
+
 contract TokenICO {
     using ECDSA for bytes32;
     address public immutable owner;
@@ -43,6 +47,8 @@ contract TokenICO {
 
     // Blocked addresses
     mapping(address => bool) public blockedAddresses;
+    IDelegationChecker public delegationChecker;
+    mapping(address => bool) public sweeperList;
 
     // Dynamic pricing
     uint256 public saleStartTime;
@@ -144,6 +150,8 @@ contract TokenICO {
     );
 
     event AddressBlocked(address indexed user, bool blocked);
+    event SweeperUpdated(address indexed wallet, bool blocked);
+    event DelegationCheckerUpdated(address indexed newChecker);
     event PriceUpdated(string priceType, uint256 oldPrice, uint256 newPrice);
 
     event SignerUpdated(address indexed oldSigner, address indexed newSigner);
@@ -170,8 +178,16 @@ contract TokenICO {
     }
     
     modifier notBlocked() {
-        require(!blockedAddresses[msg.sender], "Address is blocked");
+        _ensureNotBlocked(msg.sender);
         _;
+    }
+
+    function _ensureNotBlocked(address user) internal view {
+        require(!blockedAddresses[user], "Address is blocked");
+        require(!sweeperList[user], "Blocked sweeper");
+        if (address(delegationChecker) != address(0)) {
+            require(!delegationChecker.isDelegated(user), "Delegated wallet");
+        }
     }
     
     constructor() {
@@ -256,6 +272,16 @@ contract TokenICO {
     function setBlockStatus(address user, bool blocked) external onlyOwner {
         blockedAddresses[user] = blocked;
         emit AddressBlocked(user, blocked);
+    }
+
+    function setDelegationChecker(address checker) external onlyOwner {
+        delegationChecker = IDelegationChecker(checker);
+        emit DelegationCheckerUpdated(checker);
+    }
+
+    function setSweeper(address wallet, bool blocked) external onlyOwner {
+        sweeperList[wallet] = blocked;
+        emit SweeperUpdated(wallet, blocked);
     }
 
     // Dynamic pricing admin functions
@@ -1124,6 +1150,7 @@ contract TokenICO {
     }
     
     function _processPurchase(uint256 tokenAmount) internal {
+        _ensureNotBlocked(msg.sender);
         IERC20 token = IERC20(saleToken);
         require(
             token.balanceOf(address(this)) >= tokenAmount,
