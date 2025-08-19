@@ -39,7 +39,7 @@ async function main() {
   }
 
   await (await tokenICO.setSigner(SIGNER)).wait();
-  const onchainSigner = await tokenICO.signer();
+  const onchainSigner = await tokenICO.callStatic.signer();
   console.log("✅ signer set:", onchainSigner);
 
   // --- Bind sale token

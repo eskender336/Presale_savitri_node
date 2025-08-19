@@ -10,7 +10,13 @@
     "deploy-baseSepolia": "hardhat run scripts/deploy.js --network baseSepolia",
     "deploy-ethereum": "hardhat run scripts/deploy.js --network ethereum",
     "clear": "rm -rf node_modules package-lock.json cache artifacts",
-    "node": "hardhat node"
+    "node": "hardhat node",
+    "deploy-prod-local": "hardhat run scripts/deploy.prod.js --network localhost",
+    "deploy-prod-sepolia": "hardhat run scripts/deploy.prod.js --network sepolia",
+    "deploy-prod-baseSepolia": "hardhat run scripts/deploy.prod.js --network baseSepolia",
+    "deploy-prod-bscTestnet": "hardhat run scripts/deploy.prod.js --network bscTestnet",
+    "deploy-prod-holesky": "hardhat run scripts/deploy.prod.js --network holesky",
+    "deploy-prod-ethereum": "hardhat run scripts/deploy.prod.js --network ethereum"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
