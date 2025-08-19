@@ -15,6 +15,39 @@ const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
+const toPosSec = (bn, fallback) => {
+  try {
+    if (bn && typeof bn.toNumber === "function") {
+      const v = bn.toNumber();
+      return v > 0 ? v : fallback;
+    }
+  } catch (_) {}
+  return fallback;
+};
+
+const computeRemaining = (start, interval) => {
+  const now = Math.floor(Date.now() / 1000);
+  console.log(`START ${start} ${interval}`);
+  if (!start || interval <= 0) return 0;
+  console.log("START", start - now)
+  if (now < start) return start - now; // before sale starts
+  const steps = Math.floor((now - start) / interval);
+  const nextAt = start + (steps + 1) * interval;
+  console.log("MAX", Math.max(0, nextAt - now))
+  return Math.max(0, nextAt - now);
+};
+
+
+const WAITLIST_INTERVAL_SEC =
+  parseInt(process.env.NEXT_PUBLIC_WAITLIST_INTERVAL, 10) ||
+  14 * 24 * 60 * 60;
+const PUBLIC_INTERVAL_SEC =
+  parseInt(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL, 10) ||
+  7 * 24 * 60 * 60;
+
+  console.log("WAITLIST_INTERVAL_SEC", WAITLIST_INTERVAL_SEC)
+  console.log("PUBLIC_INTERVAL_SEC", PUBLIC_INTERVAL_SEC)
+
 const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
     account,
@@ -278,13 +311,19 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   };
 
   const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60)
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60)
       .toString()
       .padStart(2, "0");
-    const s = Math.floor(seconds % 60)
+    const secs = Math.floor(seconds % 60)
       .toString()
       .padStart(2, "0");
-    return `${m}:${s}`;
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours || days) parts.push(`${hours}h`);
+    parts.push(`${minutes}:${secs}`);
+    return parts.join(" ");
   };
 
   const [saleStartTs, setSaleStartTs] = useState(0);
@@ -315,6 +354,9 @@ useEffect(() => {
         contract.waitlistInterval(),
         contract.publicInterval(),
       ]);
+
+      
+      
         setIsWaitlisted(isWl);
 
         const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
@@ -326,7 +368,7 @@ useEffect(() => {
           ethers.utils.formatUnits(nextUsdBN, 6)
         );
         setLivePriceBNB(priceBNB);
-
+        
       const net = await contract.provider.getNetwork();
       console.log('ICO DEBUG', {
         account,
@@ -339,10 +381,22 @@ useEffect(() => {
       });
       if (cancelled) return;
 
+      console.log("CONTRACT", contract.address)
+      console.log("wlIntBN", wlIntBN)
 
-      // Timing state for countdown
-      setSaleStartTs(startBN.toNumber());
-      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber());
+
+      // derive values from chain (with safe fallbacks)
+      const saleStart = startBN?.toNumber?.() ?? 0;
+      const wlInt     = toPosSec(wlIntBN, WAITLIST_INTERVAL_SEC);   // expect 1209600 (14d) if WL
+      const pubInt    = toPosSec(pubIntBN, PUBLIC_INTERVAL_SEC);     // expect 604800  (7d)  if public
+      const chosenInt = isWl ? wlInt : pubInt;
+      console.log("CHOSEINT", pubInt)
+      // immediately sync UI state to match what you logged
+      setSaleStartTs(saleStart);
+      setIsWaitlisted(Boolean(isWl));
+      setIntervalSec(chosenInt);
+      setTimeRemaining(computeRemaining(saleStart, chosenInt));
+
     } catch (e) {
       console.error("price/timing load error", e);
     }
@@ -362,28 +416,20 @@ useEffect(() => {
 
 
 useEffect(() => {
-
-  if (!saleStartTs || !intervalSec) {
+  if (!saleStartTs || intervalSec <= 0) {
     setTimeRemaining(0);
     return;
   }
 
   const tick = () => {
-    const now = Math.floor(Date.now() / 1000);
-    const steps = Math.floor((now - saleStartTs) / intervalSec);
-    const nextAt = saleStartTs + (steps + 1) * intervalSec;
-    setTimeRemaining(Math.max(0, nextAt - now));
+    setTimeRemaining(computeRemaining(saleStartTs, intervalSec));
   };
 
   tick(); // immediate paint
   const id = setInterval(tick, 1000);
-
-  console.log('TIMING', {
-    start: saleStartTs,
-    intervalSec,
-  });
   return () => clearInterval(id);
 }, [saleStartTs, intervalSec]);
+
 
   // Handle input amount changes
   const handleAmountChange = (value) => {
