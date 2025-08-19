@@ -15,6 +15,13 @@ const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
+const WAITLIST_INTERVAL_SEC =
+  parseInt(process.env.NEXT_PUBLIC_WAITLIST_INTERVAL, 10) ||
+  14 * 24 * 60 * 60;
+const PUBLIC_INTERVAL_SEC =
+  parseInt(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL, 10) ||
+  7 * 24 * 60 * 60;
+
 const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
     account,
@@ -278,13 +285,19 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   };
 
   const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60)
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60)
       .toString()
       .padStart(2, "0");
-    const s = Math.floor(seconds % 60)
+    const secs = Math.floor(seconds % 60)
       .toString()
       .padStart(2, "0");
-    return `${m}:${s}`;
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours || days) parts.push(`${hours}h`);
+    parts.push(`${minutes}:${secs}`);
+    return parts.join(" ");
   };
 
   const [saleStartTs, setSaleStartTs] = useState(0);
@@ -342,8 +355,9 @@ useEffect(() => {
 
       // Timing state for countdown
       setSaleStartTs(startBN.toNumber());
-      // Contract provides intervals in seconds, so use the value directly
-      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber());
+      const wlInt = wlIntBN ? wlIntBN.toNumber() : WAITLIST_INTERVAL_SEC;
+      const pubInt = pubIntBN ? pubIntBN.toNumber() : PUBLIC_INTERVAL_SEC;
+      setIntervalSec(isWl ? wlInt : pubInt);
     } catch (e) {
       console.error("price/timing load error", e);
     }
