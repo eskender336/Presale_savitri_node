@@ -71,6 +71,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
+  const displayToken = selectedToken === "BNB" ? CURRENCY : selectedToken;
   const [inputAmount, setInputAmount] = useState("1");
   const [tokenAmount, setTokenAmount] = useState("0");
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
@@ -461,14 +462,14 @@ useEffect(() => {
       if (parseFloat(tokenBalances?.fsxBalance || "0") < 20) {
         alert("Insufficient token supply. Please try again later.");
       } else {
-        alert(`Insufficient ${selectedToken} balance`);
+        alert(`Insufficient ${displayToken} balance`);
       }
       return;
     }
 
     try {
       let tx;
-      console.log(`Buying with ${inputAmount} ${selectedToken}`);
+      console.log(`Buying with ${inputAmount} ${displayToken}`);
 
       switch (selectedToken) {
         case "ETH":
@@ -501,7 +502,7 @@ useEffect(() => {
       setInputAmount("0");
       setTokenAmount("0");
     } catch (error) {
-      console.error(`Error buying with ${selectedToken}:`, error);
+      console.error(`Error buying with ${displayToken}:`, error);
       alert("Transaction failed. Please try again.");
     }
   };
@@ -534,8 +535,8 @@ useEffect(() => {
       return "INSUFFICIENT TOKEN SUPPLY";
     }
     return hasSufficientBalance
-      ? `BUY WITH ${selectedToken}`
-      : `INSUFFICIENT ${selectedToken} BALANCE`;
+      ? `BUY WITH ${displayToken}`
+      : `INSUFFICIENT ${displayToken} BALANCE`;
   };
 
   const handleWaitlistRegister = async () => {
@@ -901,7 +902,7 @@ useEffect(() => {
                       }`}
                       size={18}
                     />
-                    BNB
+                    {CURRENCY}
                   </button>
                   <button
                     onClick={() => handleTokenSelection("ETH")}
@@ -972,11 +973,11 @@ useEffect(() => {
                     isDarkMode ? "bg-gray-800/30" : "bg-gray-100/70"
                   }`}
                 >
-                  <span className="mr-2">{selectedToken} Balance:</span>
+                  <span className="mr-2">{displayToken} Balance:</span>
                   <span className={`${textColor} font-medium`}>
                     {getCurrentBalance()}
                   </span>
-                  <span className="ml-1">{selectedToken}</span>
+                  <span className="ml-1">{displayToken}</span>
                 </div>
 
                 {/* Amount inputs */}
@@ -985,7 +986,7 @@ useEffect(() => {
                     <label
                       className={`block ${secondaryTextColor} text-xs mb-1 font-medium`}
                     >
-                      Pay with {selectedToken}
+                      Pay with {displayToken}
                     </label>
                     <div className="relative">
                       <input
@@ -998,7 +999,7 @@ useEffect(() => {
                         className={`absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2`}
                       >
                         <span className={`text-xs ${secondaryTextColor}`}>
-                          {selectedToken}
+                          {displayToken}
                         </span>
                         <div className="w-6 h-6 rounded-full flex items-center justify-center">
                           {getTokenIcon(selectedToken)}
