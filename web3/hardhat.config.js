@@ -9,7 +9,7 @@ const {
   ETHERSCAN_API_KEY,
 } = process.env;
 
-const CHAIN_ID = parseInt(NEXT_PUBLIC_CHAIN_ID || "1337", 10);
+const CHAIN_ID = parseInt(NEXT_PUBLIC_CHAIN_ID || "97", 10);
 
 const networks = {
   hardhat: {
@@ -40,6 +40,11 @@ if (NETWORK_RPC_URL) {
     url: NETWORK_RPC_URL,
     accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     chainId: 1,
+  };
+  networks.bscTestnet = {
+    url: NETWORK_RPC_URL,
+    accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+    chainId: 97,
   };
 }
 
