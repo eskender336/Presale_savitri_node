@@ -342,7 +342,8 @@ useEffect(() => {
 
       // Timing state for countdown
       setSaleStartTs(startBN.toNumber());
-      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber());
+      // Contract returns interval lengths in minutes – convert to seconds for the countdown
+      setIntervalSec((isWl ? wlIntBN : pubIntBN).toNumber() * 60);
     } catch (e) {
       console.error("price/timing load error", e);
     }
