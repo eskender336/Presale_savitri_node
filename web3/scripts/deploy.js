@@ -14,27 +14,23 @@ async function main() {
     // Mock Stablecoins Contract Factory
     const MockStableCoins = await hre.ethers.getContractFactory("StableCoins");
 
-    // Deploy mock USDT (6 decimals)
+    // Deploy mock tokens (no minting)
     const mockUSDT = await MockStableCoins.deploy("USDT", "USDT", 6);
     await mockUSDT.deployed();
     console.log("✅ Mock USDT deployed to:", mockUSDT.address);
 
-    // Deploy mock USDC (6 decimals)
     const mockUSDC = await MockStableCoins.deploy("USDC", "USDC", 6);
     await mockUSDC.deployed();
     console.log("✅ Mock USDC deployed to:", mockUSDC.address);
 
-    // Deploy mock ETH token (18 decimals)
     const mockETH = await MockStableCoins.deploy("ETH", "ETH", 18);
     await mockETH.deployed();
     console.log("✅ Mock ETH deployed to:", mockETH.address);
 
-    // Deploy mock SOL (9 decimals)
     const mockSOL = await MockStableCoins.deploy("SOL", "SOL", 9);
     await mockSOL.deployed();
     console.log("✅ Mock SOL deployed to:", mockSOL.address);
 
-    // Deploy mock BTC (8 decimals)
     const mockBTC = await MockStableCoins.deploy("BTC", "BTC", 8);
     await mockBTC.deployed();
     console.log("✅ Mock BTC deployed to:", mockBTC.address);
@@ -51,56 +47,39 @@ async function main() {
     await tokenICO.deployed();
     console.log("✅ TokenICO contract deployed to:", tokenICO.address);
 
-    // 🔹 Set the signer for vouchers from ENV
+    // Set the signer for vouchers
     const SIGNER_ADDRESS = process.env.NEXT_PUBLIC_SIGNER_ADDRESS;
     await tokenICO.setSigner(SIGNER_ADDRESS);
-
-    // ✅ read using a collision-safe call
     const onchainSigner = await tokenICO.callStatic.signer();
     console.log("✅ signer set:", onchainSigner);
-    // Mint large supply to deployer
-    const mintStable = hre.ethers.utils.parseUnits("1000000000", 6); // for USDT/USDC
-    const mintETH = hre.ethers.utils.parseUnits("1000000000", 18);
-    const mintSOL = hre.ethers.utils.parseUnits("1000000000", 9);
-    const mintBTC = hre.ethers.utils.parseUnits("1000000000", 8);
-
-    await mockUSDT.mint(deployer.address, mintStable);
-    await mockUSDC.mint(deployer.address, mintStable);
-    await mockETH.mint(deployer.address, mintETH);
-    await mockSOL.mint(deployer.address, mintSOL);
-    await mockBTC.mint(deployer.address, mintBTC);
 
     // Set sale token
     await tokenICO.setSaleToken(savitriToken.address);
     console.log("✅ saleToken set:", savitriToken.address);
 
-    // Transfer SAV to ICO contract
+    // Fund ICO with SAV (required so ICO can distribute SAV to buyers)
     await savitriToken.transfer(
       tokenICO.address,
       hre.ethers.utils.parseUnits("500000", 18)
     );
     console.log("✅ ICO funded with 500,000 SAV tokens");
 
-    // >>> ADD THIS: allow ICO to send SAV while global transfers are disabled
+    // Allow ICO to transfer SAV even if global transfers disabled
     await savitriToken.setAllowedSender(tokenICO.address, true);
     console.log(
       "✅ SAV allowedSender[ICO] =",
       await savitriToken.allowedSenders(tokenICO.address)
     );
 
-    // (Optional alternative instead of whitelisting ICO):
-    // await savitriToken.setTransfersEnabled(true);
-    // console.log("✅ SAV transfersEnabled = true (global)");
-
-    // Set token payment options with ratios
+    // Register payment tokens + ratios (no balances minted)
     await tokenICO.updateUSDT(mockUSDT.address, 1000);
     await tokenICO.updateUSDC(mockUSDC.address, 1000);
     await tokenICO.updateETH(mockETH.address, 1000);
     await tokenICO.updateSOL(mockSOL.address, 1000);
-    await tokenICO.updateBTC(mockBTC.address, 1000); // requires function in your contract
-
+    await tokenICO.updateBTC(mockBTC.address, 1000);
     console.log("✅ All token payment methods registered with ICO");
 
+    // Intervals
     const waitlistInterval = parseInt(
       process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "1209600",
       10
@@ -114,6 +93,7 @@ async function main() {
       `✅ intervals set: waitlist ${waitlistInterval}s, public ${publicInterval}s`
     );
 
+    // Start time
     const latest = await hre.ethers.provider.getBlock("latest");
     await tokenICO.setSaleStartTime(latest.timestamp);
     console.log("✅ sale start time set:", latest.timestamp);
@@ -131,9 +111,7 @@ async function main() {
   }
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().then(() => process.exit(0)).catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

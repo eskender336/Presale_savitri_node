@@ -1,102 +1,125 @@
+// scripts/deploy.prod.js
 const hre = require("hardhat");
 require("dotenv").config();
 
+function u(v, d = 0) {
+  const n = parseInt(v ?? "", 10);
+  return Number.isFinite(n) ? n : d;
+}
+
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  const net = await hre.ethers.provider.getNetwork();
 
-  // Deploy SAV token
+  console.log("== Deploying ==");
+  console.log("Network:", net.chainId);
+  console.log("Deployer:", deployer.address);
+  console.log("Balance:", (await deployer.getBalance()).toString());
+
+  // --- Deploy SAV token (sale token)
   const SavitriCoin = await hre.ethers.getContractFactory("SavitriCoin");
   const savitriToken = await SavitriCoin.deploy();
   await savitriToken.deployed();
-  console.log("✅ SAV token deployed to:", savitriToken.address);
+  console.log("✅ SAV deployed:", savitriToken.address);
 
-  // Deploy TokenICO contract
+  // --- Deploy ICO
   const TokenICO = await hre.ethers.getContractFactory("TokenICO");
   const tokenICO = await TokenICO.deploy();
   await tokenICO.deployed();
-  console.log("✅ TokenICO contract deployed to:", tokenICO.address);
+  console.log("✅ TokenICO deployed:", tokenICO.address);
 
-  // 🔹 Set the signer for vouchers
-  await tokenICO.setSigner("0xDca5AF91A9d0665e96a65712bF38382044edec54");
-  console.log("✅ signer set:", await tokenICO.signer());
+  // --- Set voucher signer (from env)
+  const SIGNER =
+    process.env.SIGNER_ADDRESS ||
+    process.env.NEXT_PUBLIC_SIGNER_ADDRESS ||
+    "0x0000000000000000000000000000000000000000";
 
-  // Configure sale token
-  await tokenICO.setSaleToken(savitriToken.address);
-  console.log("✅ saleToken set:", savitriToken.address);
-
-  // Fund ICO with sale tokens
-  await savitriToken.transfer(tokenICO.address, hre.ethers.utils.parseUnits("500000", 18));
-  console.log("✅ ICO funded with 500,000 SAV tokens");
-
-  // Register real token payment options if provided
-  const {
-    USDT_ADDRESS,
-    USDT_RATIO,
-    USDC_ADDRESS,
-    USDC_RATIO,
-    ETH_ADDRESS,
-    ETH_RATIO,
-    SOL_ADDRESS,
-    SOL_RATIO,
-    BTC_ADDRESS,
-    BTC_RATIO,
-  } = process.env;
-
-  if (USDT_ADDRESS) {
-    await tokenICO.updateUSDT(USDT_ADDRESS, USDT_RATIO || 1000);
-    console.log("✅ USDT payment enabled:", USDT_ADDRESS);
-  }
-  if (USDC_ADDRESS) {
-    await tokenICO.updateUSDC(USDC_ADDRESS, USDC_RATIO || 1000);
-    console.log("✅ USDC payment enabled:", USDC_ADDRESS);
-  }
-  if (ETH_ADDRESS) {
-    await tokenICO.updateETH(ETH_ADDRESS, ETH_RATIO || 1000);
-    console.log("✅ ETH payment enabled:", ETH_ADDRESS);
-  }
-  if (SOL_ADDRESS) {
-    await tokenICO.updateSOL(SOL_ADDRESS, SOL_RATIO || 1000);
-    console.log("✅ SOL payment enabled:", SOL_ADDRESS);
-  }
-  if (BTC_ADDRESS) {
-    await tokenICO.updateBTC(BTC_ADDRESS, BTC_RATIO || 1000);
-    console.log("✅ BTC payment enabled:", BTC_ADDRESS);
+  if (!hre.ethers.utils.isAddress(SIGNER) || SIGNER === hre.ethers.constants.AddressZero) {
+    throw new Error("Missing/invalid SIGNER_ADDRESS (or NEXT_PUBLIC_SIGNER_ADDRESS).");
   }
 
-  const waitlistInterval = parseInt(
-    process.env.NEXT_PUBLIC_WAITLIST_INTERVAL || "1209600",
-    10
-  );
-  const publicInterval = parseInt(
-    process.env.NEXT_PUBLIC_PUBLIC_INTERVAL || "604800",
-    10
-  );
-  await tokenICO.setIntervals(waitlistInterval, publicInterval);
-  console.log(
-    `✅ intervals set: waitlist ${waitlistInterval}s, public ${publicInterval}s`
-  );
+  await (await tokenICO.setSigner(SIGNER)).wait();
+  const onchainSigner = await tokenICO.signer();
+  console.log("✅ signer set:", onchainSigner);
 
+  // --- Bind sale token
+  await (await tokenICO.setSaleToken(savitriToken.address)).wait();
+  const onchainSaleToken = await tokenICO.saleToken?.();
+  console.log("✅ saleToken set:", onchainSaleToken || savitriToken.address);
+
+  // --- Allow ICO to transfer SAV if your token gates transfers
+  try {
+    if (typeof savitriToken.setAllowedSender === "function") {
+      await (await savitriToken.setAllowedSender(tokenICO.address, true)).wait();
+      const allowed = await savitriToken.allowedSenders(tokenICO.address);
+      console.log("✅ SAV allowedSender[ICO] =", allowed);
+    } else {
+      console.log("ℹ️  SAV has no setAllowedSender (skipping)");
+    }
+  } catch (e) {
+    console.log("⚠️  setAllowedSender not available or failed (continuing):", e?.message);
+  }
+
+  // --- Fund ICO with SAV inventory to sell
+  const SALE_INVENTORY = process.env.SALE_INVENTORY || "500000";
+  await (await savitriToken.transfer(
+    tokenICO.address,
+    hre.ethers.utils.parseUnits(SALE_INVENTORY, 18)
+  )).wait();
+  console.log(`✅ ICO funded with ${SALE_INVENTORY} SAV`);
+
+  // --- Configure payment tokens (REAL addresses only; no mocks here)
+  const cfg = {
+    USDT: { addr: process.env.USDT_ADDRESS, ratio: u(process.env.USDT_RATIO, 1000), fn: "updateUSDT" },
+    USDC: { addr: process.env.USDC_ADDRESS, ratio: u(process.env.USDC_RATIO, 1000), fn: "updateUSDC" },
+    ETH:  { addr: process.env.ETH_ADDRESS,  ratio: u(process.env.ETH_RATIO,  1000), fn: "updateETH"  }, // Use WETH or ERC20 wrapper if needed
+    SOL:  { addr: process.env.SOL_ADDRESS,  ratio: u(process.env.SOL_RATIO,  1000), fn: "updateSOL"  }, // ERC20 wrapper on EVM
+    BTC:  { addr: process.env.BTC_ADDRESS,  ratio: u(process.env.BTC_RATIO,  1000), fn: "updateBTC"  }, // e.g., WBTC
+  };
+
+  for (const [sym, { addr, ratio, fn }] of Object.entries(cfg)) {
+    if (!addr) continue;
+    if (!hre.ethers.utils.isAddress(addr)) throw new Error(`${sym}_ADDRESS is invalid`);
+    if (typeof tokenICO[fn] !== "function") {
+      console.log(`ℹ️  ${fn} not found on ICO; skipping ${sym}`);
+      continue;
+    }
+    await (await tokenICO[fn](addr, ratio)).wait();
+    console.log(`✅ ${sym} payment enabled @ ${addr} (ratio=${ratio})`);
+  }
+
+  // --- Intervals (seconds)
+  const WAITLIST_INTERVAL = u(process.env.NEXT_PUBLIC_WAITLIST_INTERVAL, 14 * 24 * 60 * 60); // default 14d
+  const PUBLIC_INTERVAL   = u(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL,   7 * 24 * 60 * 60);  // default 7d
+  await (await tokenICO.setIntervals(WAITLIST_INTERVAL, PUBLIC_INTERVAL)).wait();
+
+  const wlInt = (await tokenICO.waitlistInterval()).toString();
+  const pbInt = (await tokenICO.publicInterval()).toString();
+  console.log(`✅ intervals set: WL=${wlInt}s, PUBLIC=${pbInt}s`);
+
+  // --- Sale start time
+  // If SALE_START_AT (unix seconds) is provided, use it; otherwise start now.
+  // For real prod, you usually want a FUTURE timestamp here.
   const latest = await hre.ethers.provider.getBlock("latest");
-  await tokenICO.setSaleStartTime(latest.timestamp);
-  console.log("✅ sale start time set:", latest.timestamp);
+  const startAtEnv = u(process.env.SALE_START_AT, 0);
+  const startTs = startAtEnv > 0 ? startAtEnv : latest.timestamp;
+  await (await tokenICO.setSaleStartTime(startTs)).wait();
+  const onchainStart = (await tokenICO.saleStartTime()).toString();
+  console.log("✅ sale start time set:", onchainStart);
 
-  // Output ENV-style addresses
-  console.log("------------------------");
+  // --- Output addresses for frontend/env
+  console.log("-------- EXPORT --------");
   console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS =", tokenICO.address);
-  console.log("NEXT_PUBLIC_OWNER_ADDRESS =", deployer.address);
-  console.log("NEXT_PUBLIC_SAV_ADDRESS =", savitriToken.address);
-  if (USDT_ADDRESS) console.log("NEXT_PUBLIC_USDT_ADDRESS =", USDT_ADDRESS);
-  if (USDC_ADDRESS) console.log("NEXT_PUBLIC_USDC_ADDRESS =", USDC_ADDRESS);
-  if (ETH_ADDRESS) console.log("NEXT_PUBLIC_ETH_ADDRESS =", ETH_ADDRESS);
-  if (SOL_ADDRESS) console.log("NEXT_PUBLIC_SOL_ADDRESS =", SOL_ADDRESS);
-  if (BTC_ADDRESS) console.log("NEXT_PUBLIC_BTC_ADDRESS =", BTC_ADDRESS);
+  console.log("NEXT_PUBLIC_OWNER_ADDRESS     =", deployer.address);
+  console.log("NEXT_PUBLIC_SAV_ADDRESS       =", savitriToken.address);
+  if (cfg.USDT.addr) console.log("NEXT_PUBLIC_USDT_ADDRESS      =", cfg.USDT.addr);
+  if (cfg.USDC.addr) console.log("NEXT_PUBLIC_USDC_ADDRESS      =", cfg.USDC.addr);
+  if (cfg.ETH.addr)  console.log("NEXT_PUBLIC_ETH_ADDRESS       =", cfg.ETH.addr);
+  if (cfg.SOL.addr)  console.log("NEXT_PUBLIC_SOL_ADDRESS       =", cfg.SOL.addr);
+  if (cfg.BTC.addr)  console.log("NEXT_PUBLIC_BTC_ADDRESS       =", cfg.BTC.addr);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().then(() => process.exit(0)).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
