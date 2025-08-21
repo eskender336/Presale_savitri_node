@@ -27,13 +27,10 @@ const toPosSec = (bn, fallback) => {
 
 const computeRemaining = (start, interval) => {
   const now = Math.floor(Date.now() / 1000);
-  console.log(`START ${start} ${interval}`);
   if (!start || interval <= 0) return 0;
-  console.log("START", start - now)
   if (now < start) return start - now; // before sale starts
   const steps = Math.floor((now - start) / interval);
   const nextAt = start + (steps + 1) * interval;
-  console.log("MAX", Math.max(0, nextAt - now))
   return Math.max(0, nextAt - now);
 };
 
@@ -45,8 +42,6 @@ const PUBLIC_INTERVAL_SEC =
   parseInt(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL, 10) ||
   7 * 24 * 60 * 60;
 
-  console.log("WAITLIST_INTERVAL_SEC", WAITLIST_INTERVAL_SEC)
-  console.log("PUBLIC_INTERVAL_SEC", PUBLIC_INTERVAL_SEC)
 
 const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const {
@@ -216,6 +211,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   }, [isConnected, inputAmount, selectedToken, tokenBalances]);
 
   useEffect(() => {
+    console.log("my tBNB balance:", tokenBalances?.userBNBBalance);
+  }, [tokenBalances?.userBNBBalance]);
+
+  useEffect(() => {
     const initReferral = async () => {
       // Only proceed if we haven't already attempted registration in this component instance
       if (isConnected && account && !hasAttemptedRegistration) {
@@ -381,11 +380,6 @@ useEffect(() => {
         saleStart: startBN.toString(),
       });
       if (cancelled) return;
-
-      console.log("CONTRACT", contract.address)
-      console.log("wlIntBN", wlIntBN)
-
-
       // derive values from chain (with safe fallbacks)
       const saleStart = startBN?.toNumber?.() ?? 0;
       const wlInt     = toPosSec(wlIntBN, WAITLIST_INTERVAL_SEC);   // expect 1209600 (14d) if WL

@@ -24,6 +24,7 @@ const TokenSale = ({ isDarkMode }) => {
     account,
     isConnected,
     isConnecting,
+    contract,
     contractInfo,
     tokenBalances,
     error,
