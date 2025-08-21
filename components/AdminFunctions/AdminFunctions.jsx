@@ -430,7 +430,6 @@ const AdminFunctions = ({ isDarkMode }) => {
                     />
                   </div>
                 </div>
-              </div>
               <button
                 type="submit"
                 disabled={isProcessing || !usdtAddress}
@@ -462,7 +461,6 @@ const AdminFunctions = ({ isDarkMode }) => {
                     />
                   </div>
                 </div>
-              </div>
               <button
                 type="submit"
                 disabled={isProcessing || !usdcAddress}
