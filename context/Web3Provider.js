@@ -14,7 +14,7 @@ const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
 const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL;
+const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL || 18;
 const TOKEN_LOGO = process.env.NEXT_PUBLIC_TOKEN_LOGO;
 const DOMAIN_URL = process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL;
 const TokenICOAbi = TOKEN_ICO_ABI.abi;
@@ -202,10 +202,10 @@ export const Web3Provider = ({ children }) => {
         // Set contract info with new USDT-based structure
         setContractInfo({
           fsxAddress: info.tokenAddress,
-          fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMALS),
+          fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMAL),
           currentUsdtPrice: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
           initialUsdtPrice: formatAmount(info.initialUsdtPrice, 6, 6),
-          totalSold: formatAmount(info.totalSold, TOKEN_DECIMALS),
+          totalSold: formatAmount(info.totalSold, TOKEN_DECIMAL),
           usdtAddress: info.usdtAddr,
           usdcAddress: info.usdcAddr,
           usdtPriceIncrement: formatAmount(info.usdtPriceIncrementValue, 6, 6),
@@ -2166,47 +2166,60 @@ const updateSOLRatio = async (solUsdtPrice) => {
     if (!contract || !FSX_ADDRESS) return null;
   
     try {
-      // Get token balances as you already do
       const balances = await contract.getTokenBalances();
   
-      // Get user token balance
       const tokenContract = new ethers.Contract(
-        FSX_ADDRESS,
+        FSX_ADDRESS, // SAV/FSX токен
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
   
-      let userBalance = "0";
-      let userStaked = "0";
-      let pendingRewards = "0";
+      let userBalance = ethers.constants.Zero;
+      let userStaked = ethers.constants.Zero;
+      let pendingRewards = ethers.constants.Zero;
   
       if (address) {
         userBalance = await tokenContract.balanceOf(address);
   
-        // Get staking specific information if user is connected
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
         pendingRewards = userStakingInfo.totalPendingRewards;
       }
   
-      return {
-        // Existing balances
-        fsxBalance: ethers.utils.formatUnits(balances.tokenBalance, 18),
-        
-        // ✅ FIXED: USDT/USDC now use 6 decimal formatting
-        usdtBalance: ethers.utils.formatUnits(balances.usdtBalance, 6), // USDT has 6 decimals
-        usdcBalance: ethers.utils.formatUnits(balances.usdcBalance, 6), // USDC has 6 decimals
+      // ---- ЧЕЛОВЕКО-ЧИТАЕМОЕ ----
+      const result = {
+        fsxBalance:       ethers.utils.formatUnits(balances.tokenBalance, 18),
   
-        // User balances
-        userBalance: ethers.utils.formatUnits(userBalance, 18),
-        userStaked: ethers.utils.formatUnits(userStaked, 18),
-        pendingRewards: ethers.utils.formatUnits(pendingRewards, 18),
+        // Stablecoins = 6 decimals
+        usdtBalance:      ethers.utils.formatUnits(balances.usdtBalance, 6),
+        usdcBalance:      ethers.utils.formatUnits(balances.usdcBalance, 6),
+  
+        // User-specific
+        userBalance:      ethers.utils.formatUnits(userBalance, 18),
+        userStaked:       ethers.utils.formatUnits(userStaked, 18),
+        pendingRewards:   ethers.utils.formatUnits(pendingRewards, 18),
       };
+  
+      // ---- ЛОГИ В КОНСОЛЬ ----
+      console.log("=== Token balances (formatted) ===");
+      console.table(result);
+  
+      console.log("=== Raw balances (wei) ===", {
+        tokenBalance:   balances.tokenBalance?.toString?.(),
+        usdtBalance:    balances.usdtBalance?.toString?.(),
+        usdcBalance:    balances.usdcBalance?.toString?.(),
+        userBalance:    userBalance?.toString?.(),
+        userStaked:     userStaked?.toString?.(),
+        pendingRewards: pendingRewards?.toString?.(),
+      });
+  
+      return result;
     } catch (error) {
       console.error("Error getting token balances:", error);
       return null;
     }
   };
+  
 
   // Helper: get current USDT price per token
   const getCurrentPrice = async (buyerAddress) => {

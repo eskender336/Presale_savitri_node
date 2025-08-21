@@ -321,22 +321,13 @@ useEffect(() => {
       setNextUsdPrice(ethers.utils.formatUnits(next, decimals));
 
       const net = await contract.provider.getNetwork();
-      console.log('ICO DEBUG', {
-        account,
-        contract: contract.address,
-        chainId: net.chainId,
-        isWl,                               // <- это из contract.waitlisted(account)
-        wlInt: wlIntBN.toString(),
-        pubInt: pubIntBN.toString(),
-        saleStart: startBN.toString(),
-      });
+      
       if (cancelled) return;
       // derive values from chain (with safe fallbacks)
       const saleStart = startBN?.toNumber?.() ?? 0;
       const wlInt     = toPosSec(wlIntBN, WAITLIST_INTERVAL_SEC);   // expect 1209600 (14d) if WL
       const pubInt    = toPosSec(pubIntBN, PUBLIC_INTERVAL_SEC);     // expect 604800  (7d)  if public
       const chosenInt = isWl ? wlInt : pubInt;
-      console.log("CHOSEINT", pubInt)
       // immediately sync UI state to match what you logged
       setSaleStartTs(saleStart);
       setIsWaitlisted(Boolean(isWl));
@@ -449,6 +440,25 @@ useEffect(() => {
       console.error(`Error buying with ${displayToken}:`, error);
       alert("Transaction failed. Please try again.");
     }
+  };
+
+  const logAllBalances = (tb = tokenBalances) => {
+    if (!tb) return console.log("No balances yet (tokenBalances is undefined)");
+  
+    const val = (v) => (v ?? "0");
+    const balances = {
+      ETH:  val(tb?.userEthBalance),
+      BNB:  val(tb?.userBNBBalance),
+      BTC:  val(tb?.userBTCBalance),
+      SOL:  val(tb?.userSOLBalance),
+      USDT: val(tb?.userUSDTBalance),
+      USDC: val(tb?.userUSDCBalance),
+      SAV:  val(tb?.userSAVBalance), // if you track it
+    };
+  
+    console.log("User balances:", balances);
+    console.table(balances);
+    return balances;
   };
 
   // Get current balance based on selected token
