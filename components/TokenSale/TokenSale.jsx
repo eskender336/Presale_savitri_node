@@ -124,6 +124,13 @@ const TokenSale = ({ isDarkMode }) => {
     fetchUserData();
   }, [account, reCall]);
 
+  // Ensure on-chain balances and info stay current
+  useEffect(() => {
+    if (account) {
+      refreshContractData();
+    }
+  }, [account, refreshContractData]);
+
   // Load current price data
   useEffect(() => {
     if (!contract) return;
