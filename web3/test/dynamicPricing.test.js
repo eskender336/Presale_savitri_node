@@ -20,6 +20,7 @@ describe("TokenICO dynamic pricing", function () {
     await ico.setSaleStartTime(block.timestamp);
 
     const basePrice = await ico.getCurrentPrice(user.address);
+    expect(basePrice).to.equal(ethers.utils.parseUnits("0.35", 6));
 
     await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
@@ -49,6 +50,7 @@ describe("TokenICO dynamic pricing", function () {
 
     const [current, next, stage] = await ico.getPriceInfo(user.address);
     const increment = ethers.utils.parseUnits("0.05", 6);
+    expect(current).to.equal(ethers.utils.parseUnits("0.35", 6));
     expect(next.sub(current)).to.equal(increment);
     expect(stage).to.equal(0);
 
