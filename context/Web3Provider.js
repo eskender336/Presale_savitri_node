@@ -175,6 +175,14 @@ export const Web3Provider = ({ children }) => {
     const fetchContractInfo = async () => {
       setGlobalLoad(true);
       
+      console.log("readProvider:", readProvider.connection);
+      try {
+        console.log("network:", await readProvider.getNetwork());
+      } catch (e) {
+        console.error("getNetwork failed", e);
+      }
+      console.log("CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
+
       try {
         const readOnlyContract = readContract;
     
