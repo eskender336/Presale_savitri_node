@@ -136,7 +136,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       return;
     }
 
-    // Check if FSX balance is below threshold
+    // Check if SAV balance is below threshold
     const lowTokenSupply = parseFloat(tokenBalances?.fsxBalance || "0") < 20;
 
     if (lowTokenSupply) {

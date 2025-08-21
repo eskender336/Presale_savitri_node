@@ -1,7 +1,7 @@
 // import React from "react";
 // import Image from "next/image";
 
-// const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+// const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 // const EXPLORER_TOKEN_URL = process.env.NEXT_PUBLIC_EXPLORER_TOKEN_URL;
 
 // const TokenomicsComponent = ({ isDarkMode }) => {
@@ -44,10 +44,10 @@
 //         <div className="flex justify-center mb-10">
 //           <div className="flex items-center space-x-2 px-4 py-2 rounded-md">
 //             <span className="text-blue-400 text-sm md:text-base font-mono">
-//               {formatAddress(FSX_ADDRESS)}
+//               {formatAddress(SAV_ADDRESS)}
 //             </span>
 //             <button
-//               onClick={() => navigator.clipboard.writeText(FSX_ADDRESS)}
+//               onClick={() => navigator.clipboard.writeText(SAV_ADDRESS)}
 //               className="text-purple-400 hover:text-purple-300"
 //             >
 //               <svg
@@ -66,7 +66,7 @@
 //         {/* View Contract Button */}
 //         <div className="flex justify-center">
 //           <a
-//             href={`${EXPLORER_TOKEN_URL}${FSX_ADDRESS}`}
+//             href={`${EXPLORER_TOKEN_URL}${SAV_ADDRESS}`}
 //             target="_blank"
 //             className="bg-gradient-to-r px-8 py-3 rounded-md text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white  transition-all duration-300"
 //           >
@@ -83,7 +83,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const EXPLORER_TOKEN_URL = process.env.NEXT_PUBLIC_EXPLORER_TOKEN_URL;
 
 const TokenomicsComponent = ({ isDarkMode }) => {
@@ -98,10 +98,10 @@ const TokenomicsComponent = ({ isDarkMode }) => {
 
   const copyToClipboard = () => {
     if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(FSX_ADDRESS);
+      navigator.clipboard.writeText(SAV_ADDRESS);
     } else {
       const textarea = document.createElement("textarea");
-      textarea.value = FSX_ADDRESS;
+      textarea.value = SAV_ADDRESS;
       textarea.style.position = "fixed";
       textarea.style.left = "-9999px";
       document.body.appendChild(textarea);
@@ -188,7 +188,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
                 <span
                   className={`${addressTextColor} text-sm md:text-base font-mono`}
                 >
-                  {formatAddress(FSX_ADDRESS)}
+                  {formatAddress(SAV_ADDRESS)}
                 </span>
                 <button
                   onClick={copyToClipboard}
@@ -238,7 +238,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
 
             {/* View Contract Button */}
             <a
-              href={`${EXPLORER_TOKEN_URL}${FSX_ADDRESS}`}
+              href={`${EXPLORER_TOKEN_URL}${SAV_ADDRESS}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-8 py-3 rounded-full text-light-gradient text-white font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30"

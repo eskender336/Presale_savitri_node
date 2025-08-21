@@ -11,7 +11,7 @@ import { handleTransactionError, erc20Abi, generateId } from "./Utility";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL;
@@ -1502,8 +1502,8 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
         // Format output amount
         let amountOut;
-        if (tokenOutName === "FSX") {
-          // Handle FSX token with appropriate decimals
+        if (tokenOutName === TOKEN_SYMBOL) {
+          // Handle SAV token with appropriate decimals
           amountOut = parseFloat(
             ethers.utils.formatUnits(tx.amountOut.toString(), 18)
           ).toFixed(2);
@@ -1582,8 +1582,8 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
         // Format output amount
         let amountOut;
-        if (tokenOutName === "FSX") {
-          // Handle FSX token with appropriate decimals
+        if (tokenOutName === TOKEN_SYMBOL) {
+          // Handle SAV token with appropriate decimals
           amountOut = parseFloat(
             ethers.utils.formatUnits(tx.amountOut.toString(), 18)
           ).toFixed(2);
@@ -1662,7 +1662,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
         params: {
           type: "ERC20",
           options: {
-            address: FSX_ADDRESS,
+            address: SAV_ADDRESS,
             symbol: TOKEN_SYMBOL,
             decimals: TOKEN_DECIMAL,
             image: TOKEN_LOGO,
@@ -1708,7 +1708,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
       // First need to approve the contract to spend tokens
       const tokenContract = new ethers.Contract(
-        FSX_ADDRESS,
+        SAV_ADDRESS,
         [
           "function approve(address spender, uint256 amount) public returns (bool)",
         ],
@@ -2163,7 +2163,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
-    if (!contract || !FSX_ADDRESS) return null;
+    if (!contract || !SAV_ADDRESS) return null;
   
     try {
       // Get token balances as you already do
@@ -2171,7 +2171,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
   
       // Get user token balance
       const tokenContract = new ethers.Contract(
-        FSX_ADDRESS,
+        SAV_ADDRESS,
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
