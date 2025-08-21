@@ -8,6 +8,7 @@ import TOKEN_ICO_ABI from "../web3/artifacts/contracts/TokenICO.sol/TokenICO.jso
 import { useEthersProvider, useEthersSigner } from "../provider/hooks";
 import { config } from "../provider/wagmiConfigs";
 import { handleTransactionError, erc20Abi, generateId } from "./Utility";
+import readProvider, { rpcProviders } from "../provider/readProvider";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
@@ -26,6 +27,15 @@ const Web3Context = createContext(null);
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
 console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
+const READ_RPCS = process.env.NEXT_PUBLIC_READ_RPCS;
+const ENV_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
+
+if (!READ_RPCS) {
+  console.error("[Web3Provider] NEXT_PUBLIC_READ_RPCS is not set");
+}
+if (!ENV_CHAIN_ID) {
+  console.error("[Web3Provider] NEXT_PUBLIC_CHAIN_ID is not set or invalid");
+}
 
 export const Web3Provider = ({ children }) => {
   // Get toast functions
@@ -42,7 +52,7 @@ export const Web3Provider = ({ children }) => {
   const provider = useEthersProvider();
   
   const signer = useEthersSigner();
-  const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const fallbackProvider = readProvider || new ethers.providers.JsonRpcProvider(RPC_URL);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -167,15 +177,43 @@ export const Web3Provider = ({ children }) => {
   useEffect(() => {
     const fetchContractInfo = async () => {
       setGlobalLoad(true);
-      
+
+      let currentProvider = provider || readProvider || fallbackProvider;
+
+      if (readProvider) {
+        try {
+          const net = await readProvider.getNetwork();
+          console.log(`[fetchContractInfo] readProvider chain ${net.chainId}`);
+        } catch (err) {
+          console.error("[fetchContractInfo] readProvider.getNetwork failed", err);
+          await Promise.allSettled(
+            (rpcProviders || []).map((p) =>
+              p
+                .getNetwork()
+                .then((net) =>
+                  console.log(
+                    `[fetchContractInfo] RPC OK ${p.connection.url} chain ${net.chainId}`
+                  )
+                )
+                .catch((e) =>
+                  console.error(
+                    `[fetchContractInfo] RPC FAIL ${p.connection.url}`,
+                    e
+                  )
+                )
+            )
+          );
+          currentProvider = provider || fallbackProvider;
+        }
+      }
+
       try {
-        const currentProvider = provider || fallbackProvider;
         const readOnlyContract = new ethers.Contract(
           CONTRACT_ADDRESS,
           TokenICOAbi,
           currentProvider
         );
-    
+
         // Fetch updated contract info with new structure
         const info = await readOnlyContract.getContractInfo();
         
