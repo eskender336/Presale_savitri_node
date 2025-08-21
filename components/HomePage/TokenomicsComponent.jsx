@@ -1,7 +1,7 @@
 // import React from "react";
 // import Image from "next/image";
 
-// const FSX_ADDRESS = process.env.NEXT_PUBLIC_FSX_ADDRESS;
+// const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 // const EXPLORER_TOKEN_URL = process.env.NEXT_PUBLIC_EXPLORER_TOKEN_URL;
 
 // const TokenomicsComponent = ({ isDarkMode }) => {
@@ -83,7 +83,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_FSX_ADDRESS;
+const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const EXPLORER_TOKEN_URL = process.env.NEXT_PUBLIC_EXPLORER_TOKEN_URL;
 
 const TokenomicsComponent = ({ isDarkMode }) => {

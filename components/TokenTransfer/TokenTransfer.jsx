@@ -16,7 +16,7 @@ import { Header } from "../index";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_FSX_ADDRESS;
+const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const EXPLORER_TX = process.env.NEXT_PUBLIC_EXPLORER_TX;
 
 /// Minimal ERC20 ABI

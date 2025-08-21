@@ -4,6 +4,7 @@ import { useEthersSigner } from "../../provider/hooks";
 const KYCForm = ({ isDarkMode }) => {
   const [submitted, setSubmitted] = useState(false);
   const [editingField, setEditingField] = useState(null);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -36,12 +37,12 @@ const KYCForm = ({ isDarkMode }) => {
 
   const submitForm = async (data) => {
     if (!signer) {
-      console.error("Wallet not connected");
-      return;
+      throw new Error("Wallet not connected");
     }
     const message = JSON.stringify(data);
     const signature = await signer.signMessage(message);
     const publicKey = await signer.getAddress();
+
     const res = await fetch("/api/kyc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,16 +56,20 @@ const KYCForm = ({ isDarkMode }) => {
     try {
       await submitForm(formData);
       setSubmitted(true);
+      setError(null);
     } catch (err) {
       console.error("KYC submission error", err);
+      setError("KYC submission failed. Please try again.");
     }
   };
 
   const handleFieldSave = async () => {
     try {
       await submitForm(formData);
+      setError(null);
     } catch (err) {
       console.error("KYC update error", err);
+      setError("Failed to update field.");
     }
     setEditingField(null);
   };
@@ -92,9 +97,12 @@ const KYCForm = ({ isDarkMode }) => {
   return (
     <div className={`${theme.mainBg} min-h-screen pb-8`}>
       <div className="max-w-xl mx-auto pt-6">
-        <h1 className={`text-2xl font-bold mb-4 ${theme.text}`}>KYC Verification</h1>
+        <h1 className={`text-2xl font-bold mb-4 ${theme.text}`}>
+          KYC Verification
+        </h1>
         <div className={`${theme.cardBg} rounded-xl p-6 shadow-lg`}>
           <h2 className={`text-xl font-bold mb-4 ${theme.text}`}>KYC Form</h2>
+
           {submitted ? (
             <div>
               <div
@@ -120,7 +128,9 @@ const KYCForm = ({ isDarkMode }) => {
                             className={`flex-1 p-2 rounded-lg ${theme.inputBg} ${theme.text}`}
                           >
                             <option value="passport">Passport</option>
-                            <option value="driver_license">Driver&apos;s License</option>
+                            <option value="driver_license">
+                              Driver&apos;s License
+                            </option>
                             <option value="id_card">National ID</option>
                           </select>
                         ) : (
@@ -167,8 +177,13 @@ const KYCForm = ({ isDarkMode }) => {
                   {error}
                 </div>
               )}
+
+              {/* Form fields */}
               <div>
-                <label htmlFor="fullName" className={`${theme.textSecondary} block mb-1`}>
+                <label
+                  htmlFor="fullName"
+                  className={`${theme.textSecondary} block mb-1`}
+                >
                   Full Name
                 </label>
                 <input
@@ -182,7 +197,10 @@ const KYCForm = ({ isDarkMode }) => {
                 />
               </div>
               <div>
-                <label htmlFor="email" className={`${theme.textSecondary} block mb-1`}>
+                <label
+                  htmlFor="email"
+                  className={`${theme.textSecondary} block mb-1`}
+                >
                   Email
                 </label>
                 <input
@@ -196,7 +214,10 @@ const KYCForm = ({ isDarkMode }) => {
                 />
               </div>
               <div>
-                <label htmlFor="country" className={`${theme.textSecondary} block mb-1`}>
+                <label
+                  htmlFor="country"
+                  className={`${theme.textSecondary} block mb-1`}
+                >
                   Country
                 </label>
                 <input
@@ -210,7 +231,10 @@ const KYCForm = ({ isDarkMode }) => {
                 />
               </div>
               <div>
-                <label htmlFor="documentType" className={`${theme.textSecondary} block mb-1`}>
+                <label
+                  htmlFor="documentType"
+                  className={`${theme.textSecondary} block mb-1`}
+                >
                   Document Type
                 </label>
                 <select
@@ -226,7 +250,10 @@ const KYCForm = ({ isDarkMode }) => {
                 </select>
               </div>
               <div>
-                <label htmlFor="documentNumber" className={`${theme.textSecondary} block mb-1`}>
+                <label
+                  htmlFor="documentNumber"
+                  className={`${theme.textSecondary} block mb-1`}
+                >
                   Document Number
                 </label>
                 <input

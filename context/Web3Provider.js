@@ -11,7 +11,7 @@ import { handleTransactionError, erc20Abi, generateId } from "./Utility";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_FSX_ADDRESS;
+const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL;
@@ -82,20 +82,20 @@ export const Web3Provider = ({ children }) => {
   const [contractInfo, setContractInfo] = useState({
     fsxAddress: null,
     fsxBalance: "0",
-    bnbPrice: "0",
-    stablecoinPrice: "0",
+    currentUsdtPrice: "0",        // Changed from bnbPrice
+    initialUsdtPrice: "0",        // Added initial USDT price
     totalSold: "0",
     usdtAddress: null,
     usdcAddress: null,
-    usdtTokenRatio: "0",
-    usdcTokenRatio: "0",
+    usdtPriceIncrement: "0",      // Changed from usdtTokenRatio
+    stablecoinDecimals: "6",      // Added stablecoin decimals
     ethAddress: null,
     btcAddress: null,
     solAddress: null,
-    bnbTokenRatio: "0",
-    ethTokenRatio: "0",
-    btcTokenRatio: "0",
-    solTokenRatio: "0",
+    bnbRatio: "0",
+    ethRatio: "0",
+    btcRatio: "0",
+    solRatio: "0",
   });
 
   const [tokenBalances, setTokenBalances] = useState({
@@ -168,168 +168,56 @@ export const Web3Provider = ({ children }) => {
     const fetchContractInfo = async () => {
       setGlobalLoad(true);
       
-        // Constants
-        const TOKEN_DECIMALS = 18;
-        const STABLE_DECIMALS = 6; // Both USDT and USDC use 6 decimals
-
-        // Use connected wallet or fallback provider
+      try {
         const currentProvider = provider || fallbackProvider;
-
-        console.log("CURRENT PROVIDER", currentProvider)
-        const currentSigner = signer || fallbackProvider;
-
-        // Ensure the provider is connected to a network
-        try {
-          await currentProvider.getNetwork();
-          console.log("CURRENT PROVIDER", currentProvider)
-        } catch (networkError) {
-          console.error("could not detect network", networkError);
-          setError("Could not detect network");
-          setGlobalLoad(false);
-          return;
-        }
-        
-        // Verify the contract exists on the current network
-        const code = await currentProvider.getCode(CONTRACT_ADDRESS);
-        if (code === "0x") {
-          console.error("No contract deployed at", CONTRACT_ADDRESS);
-          setError("Contract not found on current network");
-          setGlobalLoad(false);
-          return;
-        }
-
-        // Create read-only contract instances
         const readOnlyContract = new ethers.Contract(
           CONTRACT_ADDRESS,
-          TokenICOAbi, // Make sure you have your contract ABI defined
+          TokenICOAbi,
           currentProvider
         );
-
-
-        const readOnlyUsdtContract = new ethers.Contract(
-          USDT_ADDRESS,
-          erc20Abi,
-          currentProvider
-        );
-
-        const readOnlyUsdcContract = new ethers.Contract(
-          USDC_ADDRESS,
-          erc20Abi,
-          currentProvider
-        );
-
-        // Fetch basic contract info
+    
+        // Fetch updated contract info with new structure
         const info = await readOnlyContract.getContractInfo();
-        const ethAddr = await readOnlyContract.ethAddress();
-        const btcAddr = await readOnlyContract.btcAddress();
-        const solAddr = await readOnlyContract.solAddress();
-        const bnbRatio = await readOnlyContract.bnbRatio();
-        const ethRatio = await readOnlyContract.ethRatio();
-        const btcRatio = await readOnlyContract.btcRatio();
-        const solRatio = await readOnlyContract.solRatio();
-
-
-        // Create token contract after we have the address from info
-        const tokenContract = new ethers.Contract(
-          info.tokenAddress,
-          erc20Abi,
-          currentProvider
-        );
-        const ethContract = new ethers.Contract(ethAddr, erc20Abi, currentProvider);
-        const btcContract = new ethers.Contract(btcAddr, erc20Abi, currentProvider);
-        const solContract = new ethers.Contract(solAddr, erc20Abi, currentProvider);
-
-        // Fetch contract-wide data that doesn't require wallet connection
-        const [rawSupply, balances, contractBalanceWei, totalPenaltyCollected] =
-          await Promise.all([
-            tokenContract.totalSupply(),
-            readOnlyContract.getTokenBalances(),
-            currentProvider.getBalance(CONTRACT_ADDRESS),
-            readOnlyContract.getTotalPenaltyCollected(),
-          ]);
-
-        // Data that requires a wallet connection
-        let userFsxBalance = ethers.BigNumber.from(0);
-        let balanceWei = ethers.BigNumber.from(0);
-        let usdtBalanceMy = ethers.BigNumber.from(0);
-        let usdcBalanceMy = ethers.BigNumber.from(0);
-        let ethBalanceMy = ethers.BigNumber.from(0);
-        let btcBalanceMy = ethers.BigNumber.from(0);
-        let solBalanceMy = ethers.BigNumber.from(0);
-
-        // Only try to fetch user-specific data if wallet is connected
-        if (address) {
-          [
-            userFsxBalance,
-            balanceWei,
-            usdtBalanceMy,
-            usdcBalanceMy,
-            ethBalanceMy,
-            btcBalanceMy,
-            solBalanceMy,
-          ] = await Promise.all([
-            tokenContract.balanceOf(address),
-            currentProvider.getBalance(address),
-            readOnlyUsdtContract.balanceOf(address),
-            readOnlyUsdcContract.balanceOf(address),
-            ethContract.balanceOf(address),
-            btcContract.balanceOf(address),
-            solContract.balanceOf(address),
-          ]);
-        }
-
         
-        // Helper function to format units and fix decimals
-        const formatAmount = (amount, decimals, fixedDigits = 2) =>
-          parseFloat(
-            ethers.utils.formatUnits(amount.toString(), decimals)
-          ).toFixed(fixedDigits);
-
-        // Set contract info
+        // Get individual token addresses and ratios
+        const [
+          ethAddr, btcAddr, solAddr, 
+          bnbRatio, ethRatio, btcRatio, solRatio
+        ] = await Promise.all([
+          readOnlyContract.ethAddress(),
+          readOnlyContract.btcAddress(),
+          readOnlyContract.solAddress(),
+          readOnlyContract.bnbRatio(),
+          readOnlyContract.ethRatio(),
+          readOnlyContract.btcRatio(),
+          readOnlyContract.solRatio(),
+        ]);
+    
+        // Set contract info with new USDT-based structure
         setContractInfo({
           fsxAddress: info.tokenAddress,
           fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMALS),
-          bnbPrice: formatAmount(info.bnbPrice, TOKEN_DECIMALS, 6),
-          stablecoinPrice: formatAmount(
-            info.stablecoinPrice,
-            TOKEN_DECIMALS,
-            6
-          ),
+          currentUsdtPrice: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
+          initialUsdtPrice: formatAmount(info.initialUsdtPrice, 6, 6),
           totalSold: formatAmount(info.totalSold, TOKEN_DECIMALS),
           usdtAddress: info.usdtAddr,
           usdcAddress: info.usdcAddr,
-          usdtTokenRatio: info.usdtTokenRatio.toString(),
-          usdcTokenRatio: info.usdcTokenRatio.toString(),
+          usdtPriceIncrement: formatAmount(info.usdtPriceIncrementValue, 6, 6),
+          stablecoinDecimals: info.stablecoinDecimalsValue.toString(),
           ethAddress: ethAddr,
           btcAddress: btcAddr,
           solAddress: solAddr,
-          bnbTokenRatio: bnbRatio.toString(),
-          ethTokenRatio: ethRatio.toString(),
-          btcTokenRatio: btcRatio.toString(),
-          solTokenRatio: solRatio.toString(),
+          bnbRatio: formatAmount(bnbRatio, 18, 2),
+          ethRatio: formatAmount(ethRatio, 18, 2),
+          btcRatio: formatAmount(btcRatio, 18, 2),
+          solRatio: formatAmount(solRatio, 18, 2),
         });
-
-        // Set token balances
-        setTokenBalances({
-          fsxSupply: formatAmount(rawSupply, TOKEN_DECIMALS),
-          userFsxBlanace: formatAmount(userFsxBalance, TOKEN_DECIMALS),
-          contractBnbBalance: ethers.utils.formatEther(contractBalanceWei),
-          userBNBBalance: ethers.utils.formatEther(balanceWei),
-          userEthBalance: formatAmount(ethBalanceMy, 18),
-          userBTCBalance: formatAmount(btcBalanceMy, 8),
-          userSOLBalance: formatAmount(solBalanceMy, 9),
-          fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
-          bnbPrice: formatAmount(info.bnbPrice, TOKEN_DECIMALS, 6),
-          stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
-          usdtBalance: formatAmount(balances.usdtBalance, STABLE_DECIMALS),
-          usdcBalance: formatAmount(balances.usdcBalance, STABLE_DECIMALS),
-          userUSDCBalance: formatAmount(usdcBalanceMy, STABLE_DECIMALS),
-          userUSDTBalance: formatAmount(usdtBalanceMy, STABLE_DECIMALS),
-          totalPenalty: formatAmount(totalPenaltyCollected, TOKEN_DECIMALS),
-        });
-
+    
         setGlobalLoad(false);
-      
+      } catch (error) {
+        console.error("Error fetching contract info:", error);
+        setGlobalLoad(false);
+      }
     };
 
     fetchContractInfo();
@@ -337,216 +225,311 @@ export const Web3Provider = ({ children }) => {
 
   /// Contract interaction functions
   const buyWithBNB = async (bnbAmount) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(
-      `Initializing buy With ${CURRENCY} transaction...`
-    );
+    if (!contract || !address) {
+      console.warn("[buyWithBNB] Missing contract or address", { contract: !!contract, address });
+      return null;
+    }
+  
+    // Start toast
+    const toastId = notify.start(`Initializing buy With ${CURRENCY} transaction...`);
+  
+    // Basic metadata
+    console.log("[buyWithBNB:init]", {
+      chainId: (await signer.provider.getNetwork()).chainId,
+      contract: contract.address,
+      buyer: address,
+      bnbAmount,
+      whitelisted: !!eligibility?.whitelisted,
+      boundReferrer,
+      needsVoucherEachBuy: !!eligibility?.needsVoucherEachBuy,
+    });
+  
+    // Parse amount
+    let bnbValue;
     try {
-      const bnbValue = ethers.utils.parseEther(bnbAmount);
+      bnbValue = ethers.utils.parseEther(String(bnbAmount));
+      console.log("[buyWithBNB] parsed bnbValue:", bnbValue.toString());
+    } catch (e) {
+      console.error("[buyWithBNB] parseEther failed:", e);
+      notify.fail(toastId, "Invalid amount");
+      return null;
+    }
+  
+    try {
+      // Voucher?
       let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
-
+  
       let voucher, signature;
       if (useVoucher) {
-        const resp = await getVoucher();
-        voucher = resp.voucher;
-        signature = resp.signature;
-        if (!voucher) {
+        console.log("[buyWithBNB] voucher requested…");
+        try {
+          const resp = await getVoucher();
+          voucher = resp?.voucher;
+          signature = resp?.signature;
+          console.log("[buyWithBNB] voucher received:", {
+            hasVoucher: !!voucher,
+            hasSignature: !!signature,
+            referrer: voucher?.referrer,
+          });
+          if (!voucher) useVoucher = false;
+        } catch (e) {
+          console.warn("[buyWithBNB] getVoucher failed, proceeding without voucher:", e);
           useVoucher = false;
         }
+      } else {
+        console.log("[buyWithBNB] no voucher path");
       }
-
-      // Get current gas price and estimate gas
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
-
-      let tx;
+  
+      // Gas price (bump by +10%, never below 1 gwei on BSC testnet)
+      const networkGas = await signer.getGasPrice();
+      const min = ethers.utils.parseUnits("1", "gwei");
+      let gasPrice = networkGas.lt(min) ? min : networkGas;
+      gasPrice = gasPrice.mul(110).div(100);
+      console.log("[buyWithBNB] gas prices:", {
+        networkGas: networkGas.toString(),
+        chosenGasPrice: gasPrice.toString(),
+      });
+  
+      let tx, estimatedGas, gasLimit;
+  
       if (useVoucher) {
-        const estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
-          voucher,
-          signature,
-          { value: bnbValue.toString() }
-        );
-        const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+        console.log("[buyWithBNB] estimating gas for buyWithBNB_Voucher…");
+        try {
+          estimatedGas = await contract.estimateGas.buyWithBNB_Voucher(
+            voucher,
+            signature,
+            { value: bnbValue }
+          );
+        } catch (e) {
+          console.error("[buyWithBNB] estimateGas (voucher) reverted:", e);
+          notify.fail(toastId, "Gas estimation failed (voucher). Check voucher/referrer/eligibility.");
+          return null;
+        }
+        gasLimit = estimatedGas.mul(120).div(100);
+        console.log("[buyWithBNB] estimatedGas(voucher):", {
+          estimated: estimatedGas.toString(),
+          gasLimit: gasLimit.toString(),
+        });
+  
+        console.log("[buyWithBNB] sending tx (voucher)...");
         tx = await contract.buyWithBNB_Voucher(voucher, signature, {
           value: bnbValue,
-          gasPrice: optimizedGasPrice,
+          gasPrice,
           gasLimit,
         });
+  
         if (!boundReferrer && voucher?.referrer) {
           setBoundReferrer(voucher.referrer);
+          console.log("[buyWithBNB] bound referrer set:", voucher.referrer);
         }
       } else {
-        const estimatedGas = await contract.estimateGas.buyWithBNB({
-          value: bnbValue.toString(),
+        console.log("[buyWithBNB] estimating gas for buyWithBNB…");
+        try {
+          estimatedGas = await contract.estimateGas.buyWithBNB({ value: bnbValue });
+        } catch (e) {
+          console.error("[buyWithBNB] estimateGas (no voucher) reverted:", e);
+          notify.fail(toastId, "Gas estimation failed. Are you allowed to buy? Min amount?");
+          return null;
+        }
+        gasLimit = estimatedGas.mul(120).div(100);
+        console.log("[buyWithBNB] estimatedGas:", {
+          estimated: estimatedGas.toString(),
+          gasLimit: gasLimit.toString(),
         });
-        const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+  
+        console.log("[buyWithBNB] sending tx (no voucher)...");
         tx = await contract.buyWithBNB({
           value: bnbValue,
-          gasPrice: optimizedGasPrice,
+          gasPrice,
           gasLimit,
         });
       }
-      const returnTransaction = await tx.wait();
+  
+      console.log("[buyWithBNB] tx sent:", tx.hash);
+  
+      // Wait for receipt (log if this is where it hangs)
+      console.log("[buyWithBNB] awaiting confirmation…");
+      let receipt;
+      try {
+        // Optional: add a timeout so your toast won't hang forever
+        receipt = await Promise.race([
+          tx.wait(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("tx.wait timeout after 90s")), 90_000)
+          ),
+        ]);
+      } catch (e) {
+        console.error("[buyWithBNB] tx.wait failed/timeout:", e);
+        notify.fail(toastId, e.message || "Transaction confirmation timeout");
+        return null;
+      }
+  
+      console.log("[buyWithBNB] mined:", {
+        txHash: receipt.transactionHash,
+        status: receipt.status,
+        blockNumber: receipt.blockNumber,
+      });
+  
       setReCall(reCall + 1);
-      // Update notification for completed transaction
-      notify.complete(
-        toastId,
-        `Successfully purchased  ${bnbAmount} ${TOKEN_SYMBOL}!`
-      );
-      return returnTransaction;
+      
+      // Get the actual token amount received from the transaction events
+      // You might want to parse the transaction receipt to get the exact amount
+      notify.complete(toastId, `Successfully purchased with ${bnbAmount} ${CURRENCY}!`);
+      return receipt;
+  
     } catch (error) {
+      console.error("[buyWithBNB] caught error:", error);
       const { message: errorMessage, code: errorCode } = handleTransactionError(
         error,
         "buying with BNB"
       );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
+  
       if (errorCode === "ACTION_REJECTED") {
         notify.reject(toastId, "Transaction rejected by user");
         return null;
       }
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+      notify.fail(toastId, `Transaction failed: ${errorMessage?.message || errorMessage || "Unknown error"}`);
+      return null;
     }
   };
 
+  
   const buyWithUSDT = async (usdtAmount) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(`Initializing buy With USDT transaction...`);
-    try {
-      // Parse USDT amount (6 decimals)
-      const parsedAmount = ethers.utils.parseUnits(usdtAmount, 6);
-      let useVoucher =
-        eligibility?.whitelisted &&
-        (!boundReferrer || eligibility?.needsVoucherEachBuy);
-      let voucher, signature;
-      if (useVoucher) {
-        const resp = await getVoucher();
-        voucher = resp.voucher;
-        signature = resp.signature;
-        if (!voucher) {
-          useVoucher = false;
-        }
+  if (!contract || !address) return null;
+  // Start a transaction toast notification
+  const toastId = notify.start(`Initializing buy With USDT transaction...`);
+  try {
+    // Parse USDT amount (6 decimals)
+    const parsedAmount = ethers.utils.parseUnits(usdtAmount, 6);
+    let useVoucher =
+      eligibility?.whitelisted &&
+      (!boundReferrer || eligibility?.needsVoucherEachBuy);
+    let voucher, signature;
+    if (useVoucher) {
+      const resp = await getVoucher();
+      voucher = resp.voucher;
+      signature = resp.signature;
+      if (!voucher) {
+        useVoucher = false;
       }
+    }
 
-      // Get USDT contract instance
-      const usdtContract = new ethers.Contract(
-        contractInfo.usdtAddress,
-        [
-          "function approve(address spender, uint256 amount) public returns (bool)",
-          "function allowance(address owner, address spender) view returns (uint256)",
-        ],
-        signer
-      );
+    // Get USDT contract instance
+    const usdtContract = new ethers.Contract(
+      contractInfo.usdtAddress,
+      [
+        "function approve(address spender, uint256 amount) public returns (bool)",
+        "function allowance(address owner, address spender) view returns (uint256)",
+      ],
+      signer
+    );
 
-      // Check current allowance
-      const currentAllowance = await usdtContract.allowance(
-        address,
-        CONTRACT_ADDRESS
-      );
+    // Check current allowance
+    const currentAllowance = await usdtContract.allowance(
+      address,
+      CONTRACT_ADDRESS
+    );
 
-      // Only approve if needed (saves gas on subsequent transactions)
-      if (currentAllowance.lt(parsedAmount)) {
-        console.log("Approving USDT spend...");
+    // Only approve if needed (saves gas on subsequent transactions)
+    if (currentAllowance.lt(parsedAmount)) {
+      console.log("Approving USDT spend...");
 
-        // Get optimized gas parameters for approval
-        const gasPrice = await signer.getGasPrice();
-        const optimizedGasPrice = gasPrice.mul(85).div(100);
-
-        // Approve exactly the amount needed or use max uint256 for unlimited approval
-        // const maxUint256 = ethers.constants.MaxUint256; // Uncomment for unlimited approval
-        const approveTx = await usdtContract.approve(
-          CONTRACT_ADDRESS,
-          parsedAmount, // Or maxUint256 for unlimited approval
-          {
-            gasPrice: optimizedGasPrice,
-          }
-        );
-
-        // Wait for approval transaction to complete
-        const approveReceipt = await approveTx.wait();
-        console.log("USDT approval confirmed:", approveReceipt.transactionHash);
-
-        // Update notification for successful approval
-        notify.approve(toastId, "USDT spending approved!");
-      } else {
-        console.log("USDT already approved");
-        notify.update(
-          toastId,
-          "info",
-          "USDT already approved, proceeding with purchase..."
-        );
-      }
-
-      // Get optimized gas parameters for purchase
+      // Get optimized gas parameters for approval
       const gasPrice = await signer.getGasPrice();
       const optimizedGasPrice = gasPrice.mul(85).div(100);
 
-      let estimatedGas;
-      if (useVoucher) {
-        estimatedGas = await contract.estimateGas.buyWithUSDT_Voucher(
-          voucher,
-          signature,
-          parsedAmount
-        );
-      } else {
-        estimatedGas = await contract.estimateGas.buyWithUSDT(parsedAmount);
-      }
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+      // Approve exactly the amount needed or use max uint256 for unlimited approval
+      // const maxUint256 = ethers.constants.MaxUint256; // Uncomment for unlimited approval
+      const approveTx = await usdtContract.approve(
+        CONTRACT_ADDRESS,
+        parsedAmount, // Or maxUint256 for unlimited approval
+        {
+          gasPrice: optimizedGasPrice,
+        }
+      );
 
-      // Execute the purchase with optimized gas
-      let tx;
-      if (useVoucher) {
-        tx = await contract.buyWithUSDT_Voucher(
-          voucher,
-          signature,
-          parsedAmount,
-          {
-            gasPrice: optimizedGasPrice,
-            gasLimit: gasLimit,
-          }
-        );
-      } else {
-        tx = await contract.buyWithUSDT(parsedAmount, {
+      // Wait for approval transaction to complete
+      const approveReceipt = await approveTx.wait();
+      console.log("USDT approval confirmed:", approveReceipt.transactionHash);
+
+      // Update notification for successful approval
+      notify.approve(toastId, "USDT spending approved!");
+    } else {
+      console.log("USDT already approved");
+      notify.update(
+        toastId,
+        "info",
+        "USDT already approved, proceeding with purchase..."
+      );
+    }
+
+    // Get optimized gas parameters for purchase
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+    let estimatedGas;
+    if (useVoucher) {
+      estimatedGas = await contract.estimateGas.buyWithUSDT_Voucher(
+        voucher,
+        signature,
+        parsedAmount
+      );
+    } else {
+      estimatedGas = await contract.estimateGas.buyWithUSDT(parsedAmount);
+    }
+    const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+
+    // Execute the purchase with optimized gas
+    let tx;
+    if (useVoucher) {
+      tx = await contract.buyWithUSDT_Voucher(
+        voucher,
+        signature,
+        parsedAmount,
+        {
           gasPrice: optimizedGasPrice,
           gasLimit: gasLimit,
-        });
-      }
-
-      const returnTransaction = await tx.wait();
-
-      // Update notification for completed transaction
-      notify.complete(
-        toastId,
-        `Successfully purchased with ${usdtAmount} USDT!`
+        }
       );
-      setReCall(reCall + 1);
-      if (useVoucher && !boundReferrer && voucher?.referrer) {
-        setBoundReferrer(voucher.referrer);
-      }
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "buying with USDT"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
-      }
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    } else {
+      tx = await contract.buyWithUSDT(parsedAmount, {
+        gasPrice: optimizedGasPrice,
+        gasLimit: gasLimit,
+      });
     }
-  };
+
+    const returnTransaction = await tx.wait();
+
+    // Update notification for completed transaction
+    notify.complete(
+      toastId,
+      `Successfully purchased with ${usdtAmount} USDT!`
+    );
+    setReCall(reCall + 1);
+    if (useVoucher && !boundReferrer && voucher?.referrer) {
+      setBoundReferrer(voucher.referrer);
+    }
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "buying with USDT"
+    );
+    console.log(errorMessage);
+
+    // For user rejections, return null instead of throwing
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+
+    // For other errors, show failure notification
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+  }
+};
+
 
   const buyWithUSDC = async (usdcAmount) => {
     if (!contract || !address) return null;
@@ -965,300 +948,363 @@ export const Web3Provider = ({ children }) => {
       notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
     }
   };
-
-  const buyUSDT = async (ethAmount) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(`Initializing buy With USDT transaction...`);
-    try {
-      const ethValue = ethers.utils.parseEther(ethAmount);
-
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
-
-      const estimatedGas = await contract.estimateGas.buyUSDT({
-        value: ethValue.toString(),
-      });
-
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.buyUSDT({
-        value: ethValue,
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      });
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1);
-      // Update notification for completed transaction
-      notify.complete(
-        toastId,
-        `Successfully purchased with ${ethAmount} USDT!`
-      );
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "buy USDT"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
-      }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
-    }
-  };
-
-  const buyUSDC = async (ethAmount) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(`Initializing buy With USDC transaction...`);
-    try {
-      const ethValue = ethers.utils.parseEther(ethAmount);
-
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
-
-      const estimatedGas = await contract.estimateGas.buyUSDC({
-        value: ethValue.toString(),
-      });
-
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.buyUSDC({
-        value: ethValue,
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      });
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1); // Update notification for completed transaction
-      notify.complete(
-        toastId,
-        `Successfully purchased with ${ethAmount} USDC!`
-      );
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "buy USDC"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
-      }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
-    }
-  };
-
+  
   // Admin functions
 
-  const updateStablecoinPrice = async (newPrice) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(
-      `Initializing updateStablecoinPrice transaction...`
+// KEEP SAME NAME - BUT NOW UPDATES USDT PRICE INSTEAD OF BNB
+const updateTokenPrice = async (newPrice) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating token price...`);
+  
+  try {
+    // Convert to 6 decimal USDT format (0.35 USDT = 350000)
+    const parsedPrice = ethers.utils.parseUnits(newPrice, 6);
+    
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateInitialUsdtPrice(parsedPrice);
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateInitialUsdtPrice(parsedPrice, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated token price to ${newPrice} USDT!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update token price"
     );
-    try {
-      const parsedPrice = ethers.utils.parseEther(newPrice);
-
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
-
-      const estimatedGas = await contract.estimateGas.updateStablecoinPrice(
-        parsedPrice
-      );
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.updateStablecoinPrice(parsedPrice, {
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      });
-
-      // Remove console.log of promise object, which doesn't provide useful info
-      // Only log the result after awaiting
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1); // Update notification for completed transaction
-      notify.complete(toastId, `Successfully State updated`);
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "update Stablecoin Price"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
-      }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
     }
-  };
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-  const updateTokenPrice = async (newPrice) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(
-      `Initializing updateTokenPrice transaction...`
+// KEEP SAME NAME - BUT NOW UPDATES PRICE INCREMENT INSTEAD OF STABLECOIN PRICE
+const updateStablecoinPrice = async (newIncrement) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating price increment...`);
+  
+  try {
+    // Convert to 6 decimal USDT format (0.05 USDT = 50000)
+    const parsedIncrement = ethers.utils.parseUnits(newIncrement, 6);
+    
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateUsdtPriceIncrement(parsedIncrement);
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateUsdtPriceIncrement(parsedIncrement, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated price increment to ${newIncrement} USDT!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update price increment"
     );
-    try {
-      const parsedPrice = ethers.utils.parseEther(newPrice);
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
+// KEEP SAME NAME - BUT NOW ONLY UPDATES ADDRESS (NO RATIO)
+const updateUSDT = async (newAddress) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating USDT address...`);
+  
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateUSDT(newAddress);
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateUSDT(newAddress, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated USDT address!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update USDT address"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-      const estimatedGas = await contract.estimateGas.updateTokenPrice(
-        parsedPrice
-      );
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
+// KEEP SAME NAME - BUT NOW ONLY UPDATES ADDRESS (NO RATIO)
+const updateUSDC = async (newAddress) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating USDC address...`);
+  
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateUSDC(newAddress);
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateUSDC(newAddress, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated USDC address!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update USDC address"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.updateTokenPrice(parsedPrice, {
+  // ADD NEW FUNCTIONS FOR RATIO UPDATES (KEEP SEPARATE)
+const updateBNBRatio = async (bnbUsdtPrice) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating BNB ratio...`);
+  
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateBNBRatio(bnbUsdtPrice);
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateBNBRatio(bnbUsdtPrice, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated BNB ratio based on ${bnbUsdtPrice} USDT price!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update BNB ratio"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
+
+// UPDATE ETH RATIO (BASED ON USDT PRICE)
+const updateETHRatio = async (ethUsdtPrice) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating ETH ratio...`);
+  
+  try {
+    // Convert string to number and validate
+    const ethPrice = parseFloat(ethUsdtPrice);
+    if (isNaN(ethPrice) || ethPrice <= 0) {
+      notify.fail(toastId, "Invalid ETH price. Must be a positive number.");
+      return null;
+    }
+
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateETH(
+      contractInfo.ethAddress, 
+      Math.round(ethPrice * 1e6) // Convert to 6 decimal USDT format
+    );
+    
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateETH(
+      contractInfo.ethAddress, 
+      Math.round(ethPrice * 1e6), // 2000 USDT = 2000000000
+      {
         gasPrice: optimizedGasPrice,
         gasLimit,
-      });
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1);
-      notify.complete(toastId, `Successfully State updated`);
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "update Token Price"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
       }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    );
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated ETH ratio based on ${ethPrice} USDT price!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update ETH ratio"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
     }
-  };
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-  const updateUSDT = async (addressToken, ratio) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(`Initializing updateUSDT transaction...`);
-    try {
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
+// UPDATE BTC RATIO (BASED ON USDT PRICE)
+const updateBTCRatio = async (btcUsdtPrice) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating BTC ratio...`);
+  
+  try {
+    // Convert string to number and validate
+    const btcPrice = parseFloat(btcUsdtPrice);
+    if (isNaN(btcPrice) || btcPrice <= 0) {
+      notify.fail(toastId, "Invalid BTC price. Must be a positive number.");
+      return null;
+    }
 
-      const estimatedGas = await contract.estimateGas.updateUSDT(
-        addressToken,
-        ratio
-      );
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.updateUSDT(addressToken, ratio, {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateBTC(
+      contractInfo.btcAddress, 
+      Math.round(btcPrice * 1e6) // Convert to 6 decimal USDT format
+    );
+    
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateBTC(
+      contractInfo.btcAddress, 
+      Math.round(btcPrice * 1e6), // 50000 USDT = 50000000000
+      {
         gasPrice: optimizedGasPrice,
         gasLimit,
-      });
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1);
-      notify.complete(toastId, `Successfully State updated`);
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "update USDT"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
       }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    );
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated BTC ratio based on ${btcPrice} USDT price!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update BTC ratio"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
     }
-  };
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
-  const updateUSDC = async (addressToken, ratio) => {
-    if (!contract || !address) return null;
-    // Start a transaction toast notification
-    const toastId = notify.start(`Initializing updateUSDC transaction...`);
-    try {
-      // Get optimized gas parameters
-      const gasPrice = await signer.getGasPrice();
-      const optimizedGasPrice = gasPrice.mul(85).div(100); // 85% of current gas price
+// UPDATE SOL RATIO (BASED ON USDT PRICE)
+const updateSOLRatio = async (solUsdtPrice) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating SOL ratio...`);
+  
+  try {
+    // Convert string to number and validate
+    const solPrice = parseFloat(solUsdtPrice);
+    if (isNaN(solPrice) || solPrice <= 0) {
+      notify.fail(toastId, "Invalid SOL price. Must be a positive number.");
+      return null;
+    }
 
-      const estimatedGas = await contract.estimateGas.updateUSDC(
-        addressToken,
-        ratio
-      );
-      const gasLimit = estimatedGas.mul(120).div(100); // Add 20% buffer
-
-      // Execute transaction with optimized gas parameters
-      const tx = await contract.updateUSDC(addressToken, ratio, {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+    
+    const estimatedGas = await contract.estimateGas.updateSOL(
+      contractInfo.solAddress, 
+      Math.round(solPrice * 1e6) // Convert to 6 decimal USDT format
+    );
+    
+    const gasLimit = estimatedGas.mul(120).div(100);
+    
+    const tx = await contract.updateSOL(
+      contractInfo.solAddress, 
+      Math.round(solPrice * 1e6), // 100 USDT = 100000000
+      {
         gasPrice: optimizedGasPrice,
         gasLimit,
-      });
-
-      const returnTransaction = await tx.wait();
-      setReCall(reCall + 1);
-      notify.complete(toastId, `Successfully State updated`);
-      return returnTransaction;
-    } catch (error) {
-      const { message: errorMessage, code: errorCode } = handleTransactionError(
-        error,
-        "update USDC"
-      );
-      console.log(errorMessage);
-
-      // For user rejections, return null instead of throwing
-      if (errorCode === "ACTION_REJECTED") {
-        notify.reject(toastId, "Transaction rejected by user");
-        return null;
       }
-
-      console.log(errorMessage);
-
-      // For other errors, show failure notification
-      notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    );
+    
+    const returnTransaction = await tx.wait();
+    setReCall(reCall + 1);
+    
+    notify.complete(toastId, `Successfully updated SOL ratio based on ${solPrice} USDT price!`);
+    return returnTransaction;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update SOL ratio"
+    );
+    
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
     }
-  };
+    
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
 
   const setSaleToken = async (tokenAddress) => {
     if (!contract || !address) return null;
@@ -2141,12 +2187,11 @@ export const Web3Provider = ({ children }) => {
     }
   };
 
-  // Update getContractInfo to include staking info
   const getContractInfo = async () => {
     if (!contract) return null;
-
+  
     try {
-      // Get basic contract info as you already do
+      // Get basic contract info with new USDT-based structure
       const info = await contract.getContractInfo();
       const [ethAddr, btcAddr, solAddr, bnbRatio, ethRatio, btcRatio, solRatio] = await Promise.all([
         contract.ethAddress(),
@@ -2157,37 +2202,37 @@ export const Web3Provider = ({ children }) => {
         contract.btcRatio(),
         contract.solRatio(),
       ]);
-
+  
       // Get staking specific information
       const stakingInfo = await contract.getStakingInfo();
-
+  
       // Get user specific staking info if connected
       let userStakingInfo = null;
       if (address) {
         userStakingInfo = await contract.getUserStakingInfo(address);
       }
-
-      // Return combined data
+  
+      // Return combined data with NEW USDT-BASED STRUCTURE
       return {
-        // Existing contract info
+        // Updated contract info - USDT BASED
         saleToken: info.tokenAddress,
         fsxBalance: ethers.utils.formatUnits(info.tokenBalance, 18),
-        bnbPrice: ethers.utils.formatUnits(info.bnbPrice, 18),
-        stablecoinPrice: ethers.utils.formatUnits(info.stablecoinPrice, 18),
+        currentUsdtPrice: ethers.utils.formatUnits(info.currentUsdtPrice, 6), // USDT has 6 decimals
+        initialUsdtPrice: ethers.utils.formatUnits(info.initialUsdtPrice, 6),
         totalSold: ethers.utils.formatUnits(info.totalSold, 18),
         usdtAddress: info.usdtAddr,
         usdcAddress: info.usdcAddr,
-        usdtTokenRatio: info.usdtTokenRatio.toString(),
-        usdcTokenRatio: info.usdcTokenRatio.toString(),
+        usdtPriceIncrement: ethers.utils.formatUnits(info.usdtPriceIncrementValue, 6),
+        stablecoinDecimals: info.stablecoinDecimalsValue.toString(),
         ethAddress: ethAddr,
         btcAddress: btcAddr,
         solAddress: solAddr,
-        bnbTokenRatio: bnbRatio.toString(),
-        ethTokenRatio: ethRatio.toString(),
-        btcTokenRatio: btcRatio.toString(),
-        solTokenRatio: solRatio.toString(),
-
-        // Staking info
+        bnbTokenRatio: ethers.utils.formatUnits(bnbRatio, 18), // Now formatted properly
+        ethTokenRatio: ethers.utils.formatUnits(ethRatio, 18),
+        btcTokenRatio: ethers.utils.formatUnits(btcRatio, 18),
+        solTokenRatio: ethers.utils.formatUnits(solRatio, 18),
+  
+        // Staking info (unchanged)
         baseAPY: stakingInfo ? stakingInfo.baseApyRate.toString() : "12",
         minStakeAmount: stakingInfo
           ? ethers.utils.formatUnits(stakingInfo.minStakingAmount, 18)
@@ -2201,8 +2246,8 @@ export const Web3Provider = ({ children }) => {
         totalStakers: stakingInfo
           ? stakingInfo.numberOfStakers.toString()
           : "0",
-
-        // User specific staking info
+  
+        // User specific staking info (unchanged)
         userStaked: userStakingInfo
           ? ethers.utils.formatUnits(userStakingInfo.totalUserStaked, 18)
           : "0",
@@ -2222,37 +2267,39 @@ export const Web3Provider = ({ children }) => {
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
     if (!contract || !FSX_ADDRESS) return null;
-
+  
     try {
       // Get token balances as you already do
       const balances = await contract.getTokenBalances();
-
+  
       // Get user token balance
       const tokenContract = new ethers.Contract(
         FSX_ADDRESS,
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
-
+  
       let userBalance = "0";
       let userStaked = "0";
       let pendingRewards = "0";
-
+  
       if (address) {
         userBalance = await tokenContract.balanceOf(address);
-
+  
         // Get staking specific information if user is connected
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
         pendingRewards = userStakingInfo.totalPendingRewards;
       }
-
+  
       return {
         // Existing balances
         fsxBalance: ethers.utils.formatUnits(balances.tokenBalance, 18),
-        usdtBalance: balances.usdtBalance.toString(), // Adjust if USDT has different decimals
-        usdcBalance: balances.usdcBalance.toString(), // Adjust if USDC has different decimals
-
+        
+        // ✅ FIXED: USDT/USDC now use 6 decimal formatting
+        usdtBalance: ethers.utils.formatUnits(balances.usdtBalance, 6), // USDT has 6 decimals
+        usdcBalance: ethers.utils.formatUnits(balances.usdcBalance, 6), // USDC has 6 decimals
+  
         // User balances
         userBalance: ethers.utils.formatUnits(userBalance, 18),
         userStaked: ethers.utils.formatUnits(userStaked, 18),
