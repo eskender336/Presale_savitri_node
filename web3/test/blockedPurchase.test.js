@@ -21,8 +21,10 @@ describe("Blocked address purchase", function () {
     // Block the buyer from sending tokens
     await token.setBlockStatus(buyer.address, true);
 
-    // Buyer purchases SAV with BNB
-    await ico.connect(buyer).buyWithBNB({ value: ethers.utils.parseEther("0.001") });
+    // Buyer purchases SAV with 1 BNB
+    await ico
+      .connect(buyer)
+      .buyWithBNB({ value: ethers.utils.parseEther("1") });
 
     // Buyer receives tokens
     const balance = await token.balanceOf(buyer.address);

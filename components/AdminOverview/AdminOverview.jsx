@@ -387,20 +387,20 @@ const AdminOverview = ({ isDarkMode }) => {
                       <div className="space-y-4">
                         <div>
                           <h3 className={`${theme.textSecondary} mb-2`}>
-                            Token Price ({CURRENCY})
+                            Current Token Price (USDT)
                           </h3>
                           <p
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
-                              {contractInfo.bnbPrice} {CURRENCY}
+                            {contractInfo.currentUsdtPrice} USDT
                           </p>
                         </div>
                         <div>
-                          <h3 className="text-gray-400 mb-2">
-                            Stablecoin Price (BNB)
+                          <h3 className={`${theme.textSecondary} mb-2`}>
+                            USDT Price Increment
                           </h3>
-                          <p className="text-white font-bold text-lg sm:text-xl">
-                            {contractInfo.stablecoinPrice} BNB
+                          <p className={`${theme.text} font-bold text-lg sm:text-xl`}>
+                            {contractInfo.usdtPriceIncrement} USDT
                           </p>
                         </div>
                       </div>
@@ -421,7 +421,11 @@ const AdminOverview = ({ isDarkMode }) => {
                           <p
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
-                            1 USDT = {contractInfo.usdtTokenRatio} Tokens
+                            1 USDT = {
+                              (
+                                1 / parseFloat(contractInfo.currentUsdtPrice || 1)
+                              ).toFixed(6)
+                            } Tokens
                           </p>
                         </div>
                         <div>
@@ -431,7 +435,11 @@ const AdminOverview = ({ isDarkMode }) => {
                           <p
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
-                            1 USDC = {contractInfo.usdcTokenRatio} Tokens
+                            1 USDC = {
+                              (
+                                1 / parseFloat(contractInfo.currentUsdtPrice || 1)
+                              ).toFixed(6)
+                            } Tokens
                           </p>
                         </div>
                       </div>

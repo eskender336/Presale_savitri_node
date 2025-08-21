@@ -76,13 +76,11 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
     let intervalId;
     const load = async () => {
       try {
-        const [price, stable] = await Promise.all([
-          contract.getCurrentPrice(account || ethers.constants.AddressZero),
-          contract.bnbPriceForStablecoin(),
-        ]);
-        const usdPriceBN = price.mul(1_000_000).div(stable);
+        const [current] = await contract.getPriceInfo(
+          account || ethers.constants.AddressZero
+        );
         setCurrentUsdPrice(
-          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+          parseFloat(ethers.utils.formatUnits(current, 6)).toFixed(3)
         );
       } catch (err) {
         console.error("price fetch failed", err);

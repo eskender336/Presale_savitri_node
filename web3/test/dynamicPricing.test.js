@@ -20,12 +20,13 @@ describe("TokenICO dynamic pricing", function () {
     await ico.setSaleStartTime(block.timestamp);
 
     const basePrice = await ico.getCurrentPrice(user.address);
+    expect(basePrice).to.equal(ethers.utils.parseUnits("0.35", 6));
 
     await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
 
     const nextPrice = await ico.getCurrentPrice(user.address);
-    const expectedIncrement = ethers.utils.parseEther("0.00005");
+    const expectedIncrement = ethers.utils.parseUnits("0.05", 6);
 
     expect(nextPrice.sub(basePrice)).to.equal(expectedIncrement);
   });
@@ -48,7 +49,8 @@ describe("TokenICO dynamic pricing", function () {
     await ico.setSaleStartTime(block.timestamp);
 
     const [current, next, stage] = await ico.getPriceInfo(user.address);
-    const increment = ethers.utils.parseEther("0.00005");
+    const increment = ethers.utils.parseUnits("0.05", 6);
+    expect(current).to.equal(ethers.utils.parseUnits("0.35", 6));
     expect(next.sub(current)).to.equal(increment);
     expect(stage).to.equal(0);
 
@@ -91,7 +93,7 @@ describe("TokenICO dynamic pricing", function () {
     await ethers.provider.send("evm_increaseTime", [604800]);
     await ethers.provider.send("evm_mine");
     const laterPrice = await ico.getCurrentPrice(user.address);
-    const expectedIncrement = ethers.utils.parseEther("0.00005");
+    const expectedIncrement = ethers.utils.parseUnits("0.05", 6);
     expect(laterPrice.sub(basePrice)).to.equal(expectedIncrement);
   });
 

@@ -40,8 +40,8 @@ describe("Blocked buyer can receive but cannot send SAV", function () {
 
     // Compute expected token amount for a 1 BNB buy
     const paid = ethers.utils.parseEther("1");
-    const price = await ico.getCurrentPrice(buyer.address); // wei per token (18-dec)
-    const expectedTokens = paid.mul(ethers.utils.parseEther("1")).div(price);
+    const bnbRatio = await ico.bnbRatio();
+    const expectedTokens = paid.mul(bnbRatio).div(ethers.utils.parseEther("1"));
 
     // Blocked buyer buys with BNB: should SUCCEED (buyer is receiver; hook checks sender=ICO)
     await expect(ico.connect(buyer).buyWithBNB({ value: paid }))

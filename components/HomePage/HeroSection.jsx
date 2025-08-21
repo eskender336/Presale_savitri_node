@@ -77,9 +77,6 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
-  const [livePriceBNB, setLivePriceBNB] = useState(
-    ethers.BigNumber.from(0)
-  );
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
@@ -100,52 +97,24 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return parseFloat(percentage.toFixed(2));
   };
 
-  // Properly handle the price calculations with useMemo to avoid recalculations
+  // Derived token ratios based on current price and contract info
   const prices = useMemo(() => {
-    const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
-    const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
-    const defaultEthRatio = contractInfo?.ethTokenRatio;
-    const defaultBtcRatio = contractInfo?.btcTokenRatio;
-    const defaultSolRatio = contractInfo?.solTokenRatio;
+    const price = parseFloat(currentUsdPrice || "0");
 
-    let usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
-
-    try {
-      // Handle USDT ratio
-      usdtRatio = contractInfo?.usdtTokenRatio
-        ? parseFloat(contractInfo.usdtTokenRatio)
-        : defaultUsdtRatio;
-
-      // Handle USDC ratio
-      usdcRatio = contractInfo?.usdcTokenRatio
-        ? parseFloat(contractInfo.usdcTokenRatio)
-        : defaultUsdcRatio;
-
-      // Handle ETH ratio
-      ethRatio = contractInfo?.ethTokenRatio
-        ? parseFloat(contractInfo.ethTokenRatio)
-        : defaultEthRatio;
-
-      // Handle BTC ratio
-      btcRatio = contractInfo?.btcTokenRatio
-        ? parseFloat(contractInfo.btcTokenRatio)
-        : defaultBtcRatio;
-
-      // Handle SOL ratio
-      solRatio = contractInfo?.solTokenRatio
-        ? parseFloat(contractInfo.solTokenRatio)
-        : defaultSolRatio;
-    } catch (error) {
-      console.error("Error parsing prices:", error);
-      usdtRatio = defaultUsdtRatio;
-      usdcRatio = defaultUsdcRatio;
-      ethRatio = defaultEthRatio;
-      btcRatio = defaultBtcRatio;
-      solRatio = defaultSolRatio;
-    }
+    const usdtRatio = price ? 1 / price : 0;
+    const usdcRatio = usdtRatio;
+    const ethRatio = contractInfo?.ethTokenRatio
+      ? parseFloat(contractInfo.ethTokenRatio)
+      : 0;
+    const btcRatio = contractInfo?.btcTokenRatio
+      ? parseFloat(contractInfo.btcTokenRatio)
+      : 0;
+    const solRatio = contractInfo?.solTokenRatio
+      ? parseFloat(contractInfo.solTokenRatio)
+      : 0;
 
     return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
-  }, [contractInfo]);
+  }, [contractInfo, currentUsdPrice]);
 
   // Start loading effect when component mounts
   useEffect(() => {
@@ -167,7 +136,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
       return;
     }
 
-    // Check if FSX balance is below threshold
+    // Check if SAV balance is below threshold
     const lowTokenSupply = parseFloat(tokenBalances?.fsxBalance || "0") < 20;
 
     if (lowTokenSupply) {
@@ -277,11 +246,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const tokensPerBnb = Number(
-            ethers.utils.formatEther(livePriceBNB)
-          );
-          calculatedAmount =
-            tokensPerBnb > 0 ? parseFloat(amount) / tokensPerBnb : 0;
+          const ratio = parseFloat(contractInfo.bnbTokenRatio || 0);
+          calculatedAmount = ratio > 0 ? parseFloat(amount) * ratio : 0;
           break;
         }
         case "ETH":
@@ -337,55 +303,31 @@ useEffect(() => {
 
   const load = async () => {
     try {
-      const [
-        priceBNB,
-        step,
-        bnbPerStable,
-        startBN,
-        isWl,
-        wlIntBN,
-        pubIntBN,
-      ] = await Promise.all([
-        contract.getCurrentPrice(account || ethers.constants.AddressZero),
-        contract.stablecoinPriceIncrement(),
-        contract.bnbPriceForStablecoin(),
-        contract.saleStartTime(),
-        account ? contract.waitlisted(account) : false,
-        contract.waitlistInterval(),
-        contract.publicInterval(),
-      ]);
+      const [priceInfo, startBN, isWl, wlIntBN, pubIntBN, decimals] =
+        await Promise.all([
+          contract.getPriceInfo(account || ethers.constants.AddressZero),
+          contract.saleStartTime(),
+          account ? contract.waitlisted(account) : false,
+          contract.waitlistInterval(),
+          contract.publicInterval(),
+          contract.stablecoinDecimals(),
+        ]);
 
-      
-      
-        setIsWaitlisted(isWl);
+      const [current, next] = priceInfo;
 
-        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
-        const nextUsdBN = usdPriceBN.add(step);
-        setCurrentUsdPrice(
-          ethers.utils.formatUnits(usdPriceBN, 6)
-        );
-        setNextUsdPrice(
-          ethers.utils.formatUnits(nextUsdBN, 6)
-        );
-        setLivePriceBNB(priceBNB);
-        
+      setIsWaitlisted(isWl);
+
+      setCurrentUsdPrice(ethers.utils.formatUnits(current, decimals));
+      setNextUsdPrice(ethers.utils.formatUnits(next, decimals));
+
       const net = await contract.provider.getNetwork();
-      console.log('ICO DEBUG', {
-        account,
-        contract: contract.address,
-        chainId: net.chainId,
-        isWl,                               // <- это из contract.waitlisted(account)
-        wlInt: wlIntBN.toString(),
-        pubInt: pubIntBN.toString(),
-        saleStart: startBN.toString(),
-      });
+      
       if (cancelled) return;
       // derive values from chain (with safe fallbacks)
       const saleStart = startBN?.toNumber?.() ?? 0;
       const wlInt     = toPosSec(wlIntBN, WAITLIST_INTERVAL_SEC);   // expect 1209600 (14d) if WL
       const pubInt    = toPosSec(pubIntBN, PUBLIC_INTERVAL_SEC);     // expect 604800  (7d)  if public
       const chosenInt = isWl ? wlInt : pubInt;
-      console.log("CHOSEINT", pubInt)
       // immediately sync UI state to match what you logged
       setSaleStartTs(saleStart);
       setIsWaitlisted(Boolean(isWl));
@@ -406,7 +348,6 @@ useEffect(() => {
     cancelled = true;
     provider.off("block", onBlock);
   };
-  
 }, [contract, account]);
 
 
@@ -438,7 +379,7 @@ useEffect(() => {
 
   useEffect(() => {
     setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
-  }, [inputAmount, selectedToken, livePriceBNB, prices]);
+  }, [inputAmount, selectedToken, prices]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {
@@ -499,6 +440,25 @@ useEffect(() => {
       console.error(`Error buying with ${displayToken}:`, error);
       alert("Transaction failed. Please try again.");
     }
+  };
+
+  const logAllBalances = (tb = tokenBalances) => {
+    if (!tb) return console.log("No balances yet (tokenBalances is undefined)");
+  
+    const val = (v) => (v ?? "0");
+    const balances = {
+      ETH:  val(tb?.userEthBalance),
+      BNB:  val(tb?.userBNBBalance),
+      BTC:  val(tb?.userBTCBalance),
+      SOL:  val(tb?.userSOLBalance),
+      USDT: val(tb?.userUSDTBalance),
+      USDC: val(tb?.userUSDCBalance),
+      SAV:  val(tb?.userSAVBalance), // if you track it
+    };
+  
+    console.log("User balances:", balances);
+    console.table(balances);
+    return balances;
   };
 
   // Get current balance based on selected token
@@ -806,7 +766,7 @@ useEffect(() => {
                   <div className={`${secondaryTextColor} flex flex-col`}>
                     <span className="text-xs mb-1">Current Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {currentUsdPrice}
+                      $ {parseFloat(currentUsdPrice).toFixed(2)}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-500/20 to-transparent"></div>
@@ -815,7 +775,7 @@ useEffect(() => {
                   >
                     <span className="text-xs mb-1">Next Stage Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {nextUsdPrice}
+                      $ {parseFloat(nextUsdPrice).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -879,7 +839,7 @@ useEffect(() => {
                   </span>
                   <div className="px-3 py-1 rounded-lg text-light-gradient">
                     <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
-                      ${currentUsdPrice}
+                      ${parseFloat(currentUsdPrice).toFixed(2)}
                     </span>
                   </div>
                 </div>

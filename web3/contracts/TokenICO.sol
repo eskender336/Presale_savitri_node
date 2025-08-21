@@ -54,7 +54,6 @@ contract TokenICO {
 
     // Dynamic pricing
     uint256 public saleStartTime;
-    uint256 public stablecoinPriceIncrement = 5e4; // 0.05 USD assuming 6 decimals
     uint256 public waitlistInterval = 14 days; // seconds for waitlisted wallets (2 weeks)
     uint256 public publicInterval = 7 days; // seconds for others (1 week)
     mapping(address => bool) public waitlisted;
@@ -213,11 +212,11 @@ contract TokenICO {
     
     // Admin Functions
     
-    function updateStablecoinPrice(uint256 newPrice) external onlyOwner {
+    function updateInitialUsdtPrice(uint256 newPrice) external onlyOwner {
         require(newPrice > 0, "Invalid price");
         uint256 oldPrice = initialUsdtPricePerToken;
-        bnbPriceForStablecoin = newPrice;
-        emit PriceUpdated("STABLECOIN", oldPrice, newPrice);
+        initialUsdtPricePerToken = newPrice;
+        emit PriceUpdated("USDT_PRICE", oldPrice, newPrice);
     }
 
     function updateUsdtPriceIncrement(uint256 newIncrement) external onlyOwner {
@@ -234,6 +233,12 @@ contract TokenICO {
     function updateUSDC(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
         usdcAddress = newAddress;
+    }
+
+    function updateBNBRatio(uint256 bnbUsdtPrice) external onlyOwner {
+        require(bnbUsdtPrice > 0, "Invalid price");
+        uint256 currentPrice = getCurrentPrice(address(0));
+        bnbRatio = (bnbUsdtPrice * 1e18) / currentPrice;
     }
 
     function updateETH(address newAddress, uint256 ethUsdtPrice) external onlyOwner {
@@ -315,7 +320,7 @@ contract TokenICO {
     }
 
     function getCurrentPrice(address buyer) public view returns (uint256) {
-        (uint256 price, , ) = _priceData(buyer);
+        (uint256 price, ) = _priceData(buyer);
         return price;
     }
 

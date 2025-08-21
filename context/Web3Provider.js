@@ -82,20 +82,20 @@ export const Web3Provider = ({ children }) => {
   const [contractInfo, setContractInfo] = useState({
     fsxAddress: null,
     fsxBalance: "0",
-    currentUsdtPrice: "0",        // Changed from bnbPrice
-    initialUsdtPrice: "0",        // Added initial USDT price
+    currentUsdtPrice: "0",        // Current token price in USDT
+    initialUsdtPrice: "0",        // Initial USDT price
     totalSold: "0",
     usdtAddress: null,
     usdcAddress: null,
-    usdtPriceIncrement: "0",      // Changed from usdtTokenRatio
-    stablecoinDecimals: "6",      // Added stablecoin decimals
+    usdtPriceIncrement: "0",
+    stablecoinDecimals: "6",
     ethAddress: null,
     btcAddress: null,
     solAddress: null,
-    bnbRatio: "0",
-    ethRatio: "0",
-    btcRatio: "0",
-    solRatio: "0",
+    bnbTokenRatio: "0",
+    ethTokenRatio: "0",
+    btcTokenRatio: "0",
+    solTokenRatio: "0",
   });
 
   const [tokenBalances, setTokenBalances] = useState({
@@ -107,12 +107,13 @@ export const Web3Provider = ({ children }) => {
     userBTCBalance: "0",
     userSOLBalance: "0",
     fsxBalance: "0",
-    bnbPrice: "0",
-    stablecoinPrice: "0",
     usdtBalance: "0",
     usdcBalance: "0",
     userUSDCBalance: "0",
     userUSDTBalance: "0",
+    userBalance: "0",
+    userStaked: "0",
+    pendingRewards: "0",
     totalPenalty: "0",
   });
   const [error, setError] = useState(null);
@@ -193,13 +194,18 @@ export const Web3Provider = ({ children }) => {
           readOnlyContract.solRatio(),
         ]);
     
+        const formatAmount = (amount, decimals, fixedDigits = 2) =>
+          parseFloat(
+            ethers.utils.formatUnits(amount.toString(), decimals)
+          ).toFixed(fixedDigits);
+
         // Set contract info with new USDT-based structure
         setContractInfo({
           fsxAddress: info.tokenAddress,
-          fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMALS),
+          fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMAL),
           currentUsdtPrice: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
           initialUsdtPrice: formatAmount(info.initialUsdtPrice, 6, 6),
-          totalSold: formatAmount(info.totalSold, TOKEN_DECIMALS),
+          totalSold: formatAmount(info.totalSold, TOKEN_DECIMAL),
           usdtAddress: info.usdtAddr,
           usdcAddress: info.usdcAddr,
           usdtPriceIncrement: formatAmount(info.usdtPriceIncrementValue, 6, 6),
@@ -1619,125 +1625,16 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Refresh contract data
   const refreshContractData = async () => {
-    if (contract && account) {
-      try {
-        // Constants
-        const TOKEN_DECIMALS = 18;
-        const STABLE_DECIMALS = 6; // Both USDT and USDC use 6 decimals
-
-        // Create contracts
-        const usdtContract = new ethers.Contract(
-          USDT_ADDRESS,
-          erc20Abi,
-          signer
-        );
-        const usdcContract = new ethers.Contract(
-          USDC_ADDRESS,
-          erc20Abi,
-          signer
-        );
-
-        // Fetch all data concurrently for better performance
-        const [
-          info,
-          bnbAddr,
-          btcAddr,
-          solAddr,
-          bnbRatio,
-          ethRatio,
-          btcRatio,
-          solRatio,
-          usdtBalanceMy,
-          usdcBalanceMy,
-          balanceWei,
-        ] = await Promise.all([
-          contract.getContractInfo(),
-          contract.ethAddress(),
-          contract.btcAddress(),
-          contract.solAddress(),
-          contract.bnbRatio(),
-          contract.ethRatio(),
-          contract.btcRatio(),
-          contract.solRatio(),
-          usdtContract.balanceOf(address),
-          usdcContract.balanceOf(address),
-          provider.getBalance(address),
-        ]);
-
-        // Create token contract after we have the address from info
-        const tokenContract = new ethers.Contract(
-          info.tokenAddress,
-          erc20Abi,
-          provider
-        );
-
-        // Fetch additional data concurrently
-        const ethContract = new ethers.Contract(ethAddr, erc20Abi, provider);
-        const btcContract = new ethers.Contract(btcAddr, erc20Abi, provider);
-
-        const [rawSupply, userFsxBalance, balances, totalPenaltyCollected, ethBalanceMy, btcBalanceMy] =
-          await Promise.all([
-            tokenContract.totalSupply(),
-            tokenContract.balanceOf(address),
-            contract.getTokenBalances(),
-            readOnlyContract.getTotalPenaltyCollected(),
-            ethContract.balanceOf(address),
-            btcContract.balanceOf(address),
-          ]);
-
-        // Helper function to format units and fix decimals
-        const formatAmount = (amount, decimals, fixedDigits = 2) =>
-          parseFloat(
-            ethers.utils.formatUnits(amount.toString(), decimals)
-          ).toFixed(fixedDigits);
-
-        // Set contract info
-        setContractInfo({
-          fsxAddress: info.tokenAddress,
-          fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMALS),
-          bnbPrice: formatAmount(info.bnbPrice, TOKEN_DECIMALS, 6),
-          stablecoinPrice: formatAmount(
-            info.stablecoinPrice,
-            TOKEN_DECIMALS,
-            6
-          ),
-          totalSold: formatAmount(info.totalSold, TOKEN_DECIMALS),
-          usdtAddress: info.usdtAddr,
-          usdcAddress: info.usdcAddr,
-          usdtTokenRatio: info.usdtTokenRatio.toString(),
-          usdcTokenRatio: info.usdcTokenRatio.toString(),
-          ethAddress: ethAddr,
-          btcAddress: btcAddr,
-          solAddress: solAddr,
-          bnbTokenRatio: bnbRatio.toString(),
-          ethTokenRatio: ethRatio.toString(),
-          btcTokenRatio: btcRatio.toString(),
-          solTokenRatio: solRatio.toString(),
-        });
-
-        // Set token balances
-        setTokenBalances({
-          fsxSupply: formatAmount(rawSupply, TOKEN_DECIMALS),
-          userFsxBlanace: formatAmount(userFsxBalance, TOKEN_DECIMALS),
-          contractBnbBalance: ethers.utils.formatEther(contractBalanceWei),
-          userBNBBalance: ethers.utils.formatEther(balanceWei),
-          userEthBalance: formatAmount(ethBalanceMy, TOKEN_DECIMALS),
-          userBTCBalance: formatAmount(btcBalanceMy, TOKEN_DECIMALS),
-          fsxBalance: formatAmount(balances.tokenBalance, TOKEN_DECIMALS),
-          bnbPrice: formatAmount(info.bnbPrice, TOKEN_DECIMALS, 6),
-          stablecoinPrice: formatAmount(info.stablecoinPrice, TOKEN_DECIMALS),
-          usdtBalance: formatAmount(balances.usdtBalance, STABLE_DECIMALS),
-          usdcBalance: formatAmount(balances.usdcBalance, STABLE_DECIMALS),
-          userUSDCBalance: formatAmount(usdcBalanceMy, STABLE_DECIMALS),
-          userUSDTBalance: formatAmount(usdtBalanceMy, STABLE_DECIMALS),
-          totalPenalty: formatAmount(totalPenaltyCollected, TOKEN_DECIMALS),
-        });
-      } catch (error) {
-        const errorMessage = handleTransactionError(error, "withdraw Tokens");
-        console.log(errorMessage);
-
-        setError("Failed to fetch contract data");
-      }
+    if (!contract) return;
+    try {
+      const info = await getContractInfo();
+      if (info) setContractInfo(info);
+      const balances = await getTokenBalances();
+      if (balances) setTokenBalances(balances);
+    } catch (error) {
+      const errorMessage = handleTransactionError(error, "refresh contract data");
+      console.log(errorMessage);
+      setError("Failed to fetch contract data");
     }
   };
 
@@ -2311,6 +2208,38 @@ const updateSOLRatio = async (solUsdtPrice) => {
     }
   };
 
+  // Helper: get current USDT price per token
+  const getCurrentPrice = async (buyerAddress) => {
+    if (!contract) return null;
+    try {
+      const price = await contract.getCurrentPrice(
+        buyerAddress || ethers.constants.AddressZero
+      );
+      return ethers.utils.formatUnits(price, 6);
+    } catch (error) {
+      console.error("Error getting current price:", error);
+      return null;
+    }
+  };
+
+  // Helper: get price info (current, next, stage)
+  const getPriceInfo = async (buyerAddress) => {
+    if (!contract) return null;
+    try {
+      const [current, next, stage] = await contract.getPriceInfo(
+        buyerAddress || ethers.constants.AddressZero
+      );
+      return {
+        current: ethers.utils.formatUnits(current, 6),
+        next: ethers.utils.formatUnits(next, 6),
+        stage: stage.toString(),
+      };
+    } catch (error) {
+      console.error("Error getting price info:", error);
+      return null;
+    }
+  };
+
   //REFERAL
 
   // Function to register a referrer
@@ -2512,12 +2441,14 @@ const updateSOLRatio = async (solUsdtPrice) => {
     buyWithETH,
     buyWithBTC,
     buyWithSOL,
-    buyUSDT,
-    buyUSDC,
     updateStablecoinPrice,
     updateTokenPrice,
     updateUSDT,
     updateUSDC,
+    updateBNBRatio,
+    updateETHRatio,
+    updateBTCRatio,
+    updateSOLRatio,
     setSaleToken,
     setBlockStatus,
     withdrawTokens,
@@ -2530,13 +2461,13 @@ const updateSOLRatio = async (solUsdtPrice) => {
     setReCall,
     addtokenToMetaMask,
     stakeTokens,
-    // New staking functions
-    stakeTokens,
     unstakeTokens,
     harvestRewards,
     getUserStakes,
     getContractInfo,
     getTokenBalances,
+    getCurrentPrice,
+    getPriceInfo,
     updateBaseAPY,
     updateMinStakeAmount,
     unstakeEarly,

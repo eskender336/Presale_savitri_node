@@ -70,12 +70,10 @@ const AdminFunctions = ({ isDarkMode }) => {
   const [activeTab, setActiveTab] = useState("priceSettings");
 
   // Form state for each function
-  const [stablecoinPrice, setStablecoinPrice] = useState("");
+  const [priceIncrement, setPriceIncrement] = useState("");
   const [tokenPrice, setTokenPrice] = useState("");
   const [usdtAddress, setUsdtAddress] = useState("");
-  const [usdtRatio, setUsdtRatio] = useState("");
   const [usdcAddress, setUsdcAddress] = useState("");
-  const [usdcRatio, setUsdcRatio] = useState("");
   const [saleTokenAddress, setSaleTokenAddress] = useState("");
   const [blockAddress, setBlockAddress] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
@@ -100,14 +98,14 @@ const AdminFunctions = ({ isDarkMode }) => {
     setTransactionHash("");
     try {
       if (functionName === "updateStablecoinPrice") {
-        console.log(stablecoinPrice);
+        console.log(priceIncrement);
         setIsProcessing(true);
-        const response = await updateStablecoinPrice(stablecoinPrice);
+        const response = await updateStablecoinPrice(priceIncrement);
         console.log(response);
 
         setTransactionHash(response?.transactionHash);
         setSuccessMessage(
-          `Successfully transferred ${stablecoinPrice} Stable Coin Price set to ${formatAddress(
+          `Successfully set price increment to ${priceIncrement} USDT at ${formatAddress(
             response?.to
           )}`
         );
@@ -136,24 +134,24 @@ const AdminFunctions = ({ isDarkMode }) => {
         setIsProcessing(false);
       } else if (functionName === "updateUSDT") {
         setIsProcessing(true);
-        const response = await updateUSDT(usdtAddress, usdtRatio);
+        const response = await updateUSDT(usdtAddress);
         console.log(response);
         setTransactionHash(response?.transactionHash);
         setSuccessMessage(
-          `Successfully USDT  ${formatAddress(
-            usdtAddress
-          )} Token Set to ${formatAddress(response?.to)}`
+          `Successfully USDT ${formatAddress(usdtAddress)} set to ${formatAddress(
+            response?.to
+          )}`
         );
         setIsProcessing(false);
       } else if (functionName === "updateUSDC") {
         setIsProcessing(true);
-        const response = await updateUSDC(usdcAddress, usdcRatio);
+        const response = await updateUSDC(usdcAddress);
         console.log(response);
         setTransactionHash(response?.transactionHash);
         setSuccessMessage(
-          `Successfully USDC  ${formatAddress(
-            usdcAddress
-          )} Token Set to ${formatAddress(response?.to)}`
+          `Successfully USDC ${formatAddress(usdcAddress)} set to ${formatAddress(
+            response?.to
+          )}`
         );
         setIsProcessing(false);
       } else if (functionName === "setBlockStatus") {
@@ -282,16 +280,16 @@ const AdminFunctions = ({ isDarkMode }) => {
                 className="space-y-4"
               >
                 <h3 className={`text-lg font-semibold ${theme.fieldTitle}`}>
-                  Update Stablecoin Price
+                  Update Price Increment
                 </h3>
                 <div className="space-y-2">
                   <label className={`block ${theme.textSecondary}`}>
-                    New Price (in ETH)
+                    New Increment (USDT)
                   </label>
                   <input
                     type="text"
-                    value={stablecoinPrice}
-                    onChange={(e) => setStablecoinPrice(e.target.value)}
+                    value={priceIncrement}
+                    onChange={(e) => setPriceIncrement(e.target.value)}
                     placeholder="0.0"
                     className={`w-full ${theme.inputBg} rounded-lg p-3 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600`}
                     required
@@ -299,10 +297,10 @@ const AdminFunctions = ({ isDarkMode }) => {
                 </div>
                 <button
                   type="submit"
-                  disabled={isProcessing || !stablecoinPrice}
+                  disabled={isProcessing || !priceIncrement}
                   className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? "Processing..." : "Update Stablecoin Price"}
+                  {isProcessing ? "Processing..." : "Update Price Increment"}
                 </button>
               </form>
 
@@ -431,28 +429,15 @@ const AdminFunctions = ({ isDarkMode }) => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className={`block ${theme.textSecondary}`}>
-                      USDT Ratio
-                    </label>
-                    <input
-                      type="text"
-                      value={usdtRatio}
-                      onChange={(e) => setUsdtRatio(e.target.value)}
-                      placeholder="0.0"
-                      className={`w-full ${theme.inputBg} rounded-lg p-3 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600`}
-                      required
-                    />
-                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isProcessing || !usdtRatio || !usdtAddress}
-                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? "Processing..." : "Update USDT"}
-                </button>
-              </form>
+              <button
+                type="submit"
+                disabled={isProcessing || !usdtAddress}
+                className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? "Processing..." : "Update USDT"}
+              </button>
+            </form>
 
               <form
                 onSubmit={(e) => handleSubmit(e, "updateUSDC")}
@@ -475,29 +460,16 @@ const AdminFunctions = ({ isDarkMode }) => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className={`block ${theme.textSecondary}`}>
-                      USDC Ratio
-                    </label>
-                    <input
-                      type="text"
-                      value={usdcRatio}
-                      onChange={(e) => setUsdcRatio(e.target.value)}
-                      placeholder="0.0"
-                      className={`w-full ${theme.inputBg} rounded-lg p-3 ${theme.text} focus:outline-none focus:ring-2 focus:ring-purple-600`}
-                      required
-                    />
-                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isProcessing || !usdcRatio || !usdcAddress}
-                  className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? "Processing..." : "Update USDC"}
-                </button>
-              </form>
-            </div>
+              <button
+                type="submit"
+                disabled={isProcessing || !usdcAddress}
+                className="w-full text-light-gradient hover:from-teal-500 hover:to-indigo-600 text-white rounded-lg py-3 transition-colors font-medium py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? "Processing..." : "Update USDC"}
+              </button>
+            </form>
+          </div>
           )}
 
           {/* Access Control Tab */}

@@ -20,7 +20,7 @@ const OWNER_ADDRESS = process.env.NEXT_PUBLIC_OWNER_ADDRESS;
 const TOKEN_ICO_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const ETH_ADDRESS = process.env.NEXT_PUBLIC_ETH_ADDRESS;
 
 const StablecoinPurchase = ({ isDarkMode }) => {
@@ -34,8 +34,6 @@ const StablecoinPurchase = ({ isDarkMode }) => {
     buyWithETH,
     buyWithUSDT,
     buyWithUSDC,
-    buyUSDT,
-    buyUSDC,
     updateStablecoinPrice,
     updateTokenPrice,
     updateUSDT,
@@ -78,8 +76,8 @@ const StablecoinPurchase = ({ isDarkMode }) => {
 
   /// Exchange rate (ETH to stablecoin) - this would come from contract in real implementation
   const exchangeRate = {
-    USDT: 1 / (contractInfo?.stablecoinPrice ?? 1),
-    USDC: 1 / (contractInfo?.stablecoinPrice ?? 1),
+    USDT: 1 / (parseFloat(contractInfo?.currentUsdtPrice || 1)),
+    USDC: 1 / (parseFloat(contractInfo?.currentUsdtPrice || 1)),
   };
 
   // Calculate stablecoin amount based on ETH input
@@ -105,15 +103,7 @@ const StablecoinPurchase = ({ isDarkMode }) => {
     setIsProcessing(true);
 
     try {
-      // In a real implementation, you would call contract methods:
-      if (selectedStablecoin === "USDT") {
-        const tx = await buyUSDT(ethAmount);
-        console.log(tx);
-      } else {
-        const tx = await buyUSDC(ethAmount);
-        console.log(tx);
-      }
-
+      // Placeholder: stablecoin purchase not supported in updated ICO
       // Simulate transaction
       setTimeout(() => {
         // Create new transaction object

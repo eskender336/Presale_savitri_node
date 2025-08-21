@@ -65,8 +65,6 @@ const TokenSale = ({ isDarkMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [percentage, setPercentage] = useState(0);
-  const [priceBNB, setPriceBNB] = useState(null);
-  const [bnbPerStable, setBnbPerStable] = useState(null);
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
 
@@ -132,21 +130,14 @@ const TokenSale = ({ isDarkMode }) => {
     let intervalId;
     const load = async () => {
       try {
-        const [price, step, stable] = await Promise.all([
-          contract.getCurrentPrice(account || ethers.constants.AddressZero),
-          contract.stablecoinPriceIncrement(),
-          contract.bnbPriceForStablecoin(),
-        ]);
-        setPriceBNB(parseFloat(ethers.utils.formatEther(price)));
-        const bnbStable = parseFloat(ethers.utils.formatEther(stable));
-        setBnbPerStable(bnbStable);
-        const usdPriceBN = price.mul(1_000_000).div(stable);
-        const nextUsdBN = usdPriceBN.add(step);
+        const [current, next] = await contract.getPriceInfo(
+          account || ethers.constants.AddressZero
+        );
         setCurrentUsdPrice(
-          parseFloat(ethers.utils.formatUnits(usdPriceBN, 6)).toFixed(3)
+          parseFloat(ethers.utils.formatUnits(current, 6)).toFixed(3)
         );
         setNextUsdPrice(
-          parseFloat(ethers.utils.formatUnits(nextUsdBN, 6)).toFixed(3)
+          parseFloat(ethers.utils.formatUnits(next, 6)).toFixed(3)
         );
       } catch (err) {
         console.error("price fetch failed", err);
@@ -159,19 +150,17 @@ const TokenSale = ({ isDarkMode }) => {
 
   // Calculate tokens based on input and payment method
   useEffect(() => {
-    if (!priceBNB) {
-      setCalculatedTokens("0");
-      return;
-    }
+    const usdPrice = parseFloat(currentUsdPrice);
 
-    if (activeTab === "buyWithBNB" && bnbAmount) {
-      const tokens = parseFloat(bnbAmount) / priceBNB;
+    if (activeTab === "buyWithBNB" && bnbAmount && contractInfo.bnbTokenRatio) {
+      const tokens =
+        parseFloat(bnbAmount) * parseFloat(contractInfo.bnbTokenRatio);
       setCalculatedTokens(tokens.toLocaleString());
-    } else if (activeTab === "buyWithUSDT" && usdtAmount && bnbPerStable) {
-      const tokens = parseFloat(usdtAmount) * (bnbPerStable / priceBNB);
+    } else if (activeTab === "buyWithUSDT" && usdtAmount && usdPrice) {
+      const tokens = parseFloat(usdtAmount) / usdPrice;
       setCalculatedTokens(tokens.toLocaleString());
-    } else if (activeTab === "buyWithUSDC" && usdcAmount && bnbPerStable) {
-      const tokens = parseFloat(usdcAmount) * (bnbPerStable / priceBNB);
+    } else if (activeTab === "buyWithUSDC" && usdcAmount && usdPrice) {
+      const tokens = parseFloat(usdcAmount) / usdPrice;
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithETH" && ethAmount) {
       const tokens =
@@ -196,11 +185,11 @@ const TokenSale = ({ isDarkMode }) => {
     ethAmount,
     btcAmount,
     solAmount,
-    priceBNB,
-    bnbPerStable,
+    contractInfo.bnbTokenRatio,
     contractInfo.ethTokenRatio,
     contractInfo.btcTokenRatio,
     contractInfo.solTokenRatio,
+    currentUsdPrice,
   ]);
 
   // Function to handle token purchase
@@ -547,8 +536,8 @@ const TokenSale = ({ isDarkMode }) => {
                         </div>
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
                           1 BNB ={" "}
-                          {(
-                            1 / parseFloat(Number(contractInfo?.bnbPrice) || 1)
+                          {parseFloat(
+                            contractInfo?.bnbTokenRatio || 0
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -578,11 +567,9 @@ const TokenSale = ({ isDarkMode }) => {
                           </div>
                         </div>
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
-                          1 USDT ={" "}
-                          {parseFloat(
-                            contractInfo?.usdtTokenRatio || 1
-                          ).toLocaleString()}{" "}
-                          {TOKEN_SYMBOL}
+                          1 USDT = {(
+                            1 / parseFloat(currentUsdPrice || 1)
+                          ).toLocaleString()} {TOKEN_SYMBOL}
                         </p>
                       </div>
                     )}
@@ -617,11 +604,9 @@ const TokenSale = ({ isDarkMode }) => {
                           </div>
                         </div>
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
-                          1 USDC ={" "}
-                          {parseFloat(
-                            contractInfo?.usdtTokenRatio || 1
-                          ).toLocaleString()}{" "}
-                          {TOKEN_SYMBOL}
+                          1 USDC = {(
+                            1 / parseFloat(currentUsdPrice || 1)
+                          ).toLocaleString()} {TOKEN_SYMBOL}
                         </p>
                       </div>
                     )}
