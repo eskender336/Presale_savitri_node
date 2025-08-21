@@ -8,14 +8,13 @@ import TOKEN_ICO_ABI from "../web3/artifacts/contracts/TokenICO.sol/TokenICO.jso
 import { useEthersProvider, useEthersSigner } from "../provider/hooks";
 import { config } from "../provider/wagmiConfigs";
 import { handleTransactionError, erc20Abi, generateId } from "./Utility";
-import { readProvider } from "../provider/readProvider";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL || 18;
+const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL;
 const TOKEN_LOGO = process.env.NEXT_PUBLIC_TOKEN_LOGO;
 const DOMAIN_URL = process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL;
 const TokenICOAbi = TOKEN_ICO_ABI.abi;
@@ -25,14 +24,8 @@ const Web3Context = createContext(null);
 
 // Constants
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
-
-// Pre-instantiate a read-only contract using a fallback provider so view calls
-// do not depend on the user's wallet RPC.
-const readContract = new ethers.Contract(
-  CONTRACT_ADDRESS,
-  TokenICOAbi,
-  readProvider
-);
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
+console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
 
 export const Web3Provider = ({ children }) => {
   // Get toast functions
@@ -47,8 +40,9 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
-
+  
   const signer = useEthersSigner();
+  const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -151,7 +145,7 @@ export const Web3Provider = ({ children }) => {
       try {
         // Prefer signer for write calls but allow a read-only provider when
         // the user has not connected a wallet yet
-        const library = signer || provider || readProvider;
+        const library = signer || provider || fallbackProvider;
         if (!library) return;
 
         const contractInstance = new ethers.Contract(
@@ -175,16 +169,13 @@ export const Web3Provider = ({ children }) => {
     const fetchContractInfo = async () => {
       setGlobalLoad(true);
       
-      console.log("readProvider:", readProvider.connection);
       try {
-        console.log("network:", await readProvider.getNetwork());
-      } catch (e) {
-        console.error("getNetwork failed", e);
-      }
-      console.log("CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
-
-      try {
-        const readOnlyContract = readContract;
+        const currentProvider = provider || fallbackProvider;
+        const readOnlyContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          TokenICOAbi,
+          currentProvider
+        );
     
         // Fetch updated contract info with new structure
         const info = await readOnlyContract.getContractInfo();
@@ -1511,8 +1502,8 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
         // Format output amount
         let amountOut;
-        if (tokenOutName === TOKEN_SYMBOL) {
-          // Handle SAV token with appropriate decimals
+        if (tokenOutName === "FSX") {
+          // Handle FSX token with appropriate decimals
           amountOut = parseFloat(
             ethers.utils.formatUnits(tx.amountOut.toString(), 18)
           ).toFixed(2);
@@ -1591,8 +1582,8 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
         // Format output amount
         let amountOut;
-        if (tokenOutName === TOKEN_SYMBOL) {
-          // Handle SAV token with appropriate decimals
+        if (tokenOutName === "FSX") {
+          // Handle FSX token with appropriate decimals
           amountOut = parseFloat(
             ethers.utils.formatUnits(tx.amountOut.toString(), 18)
           ).toFixed(2);
@@ -1671,7 +1662,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
         params: {
           type: "ERC20",
           options: {
-            address: SAV_ADDRESS,
+            address: FSX_ADDRESS,
             symbol: TOKEN_SYMBOL,
             decimals: TOKEN_DECIMAL,
             image: TOKEN_LOGO,
@@ -1717,7 +1708,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
       // First need to approve the contract to spend tokens
       const tokenContract = new ethers.Contract(
-        SAV_ADDRESS,
+        FSX_ADDRESS,
         [
           "function approve(address spender, uint256 amount) public returns (bool)",
         ],
@@ -2172,64 +2163,50 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
-    console.log("CALLLING GET TOKE BALANCES")
-    if (!contract || !SAV_ADDRESS) return null;
+    if (!contract || !FSX_ADDRESS) return null;
   
     try {
+      // Get token balances as you already do
       const balances = await contract.getTokenBalances();
-      console.log("TOKEN BALANCES", balances)
+  
+      // Get user token balance
       const tokenContract = new ethers.Contract(
-        SAV_ADDRESS,
+        FSX_ADDRESS,
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
   
-      let userBalance = ethers.constants.Zero;
-      let userStaked = ethers.constants.Zero;
-      let pendingRewards = ethers.constants.Zero;
+      let userBalance = "0";
+      let userStaked = "0";
+      let pendingRewards = "0";
   
       if (address) {
         userBalance = await tokenContract.balanceOf(address);
   
+        // Get staking specific information if user is connected
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
         pendingRewards = userStakingInfo.totalPendingRewards;
       }
   
-      // ---- ЧЕЛОВЕКО-ЧИТАЕМОЕ ----
-      const result = {
-        fsxBalance:       ethers.utils.formatUnits(balances.tokenBalance, 18),
+      return {
+        // Existing balances
+        fsxBalance: ethers.utils.formatUnits(balances.tokenBalance, 18),
+        
+        // ✅ FIXED: USDT/USDC now use 6 decimal formatting
+        usdtBalance: ethers.utils.formatUnits(balances.usdtBalance, 6), // USDT has 6 decimals
+        usdcBalance: ethers.utils.formatUnits(balances.usdcBalance, 6), // USDC has 6 decimals
   
-        // Stablecoins = 6 decimals
-        usdtBalance:      ethers.utils.formatUnits(balances.usdtBalance, 6),
-        usdcBalance:      ethers.utils.formatUnits(balances.usdcBalance, 6),
-  
-        // User-specific
-        userBalance:      ethers.utils.formatUnits(userBalance, 18),
-        userStaked:       ethers.utils.formatUnits(userStaked, 18),
-        pendingRewards:   ethers.utils.formatUnits(pendingRewards, 18),
+        // User balances
+        userBalance: ethers.utils.formatUnits(userBalance, 18),
+        userStaked: ethers.utils.formatUnits(userStaked, 18),
+        pendingRewards: ethers.utils.formatUnits(pendingRewards, 18),
       };
-  
-      // ---- ЛОГИ В КОНСОЛЬ ----
-      console.log("=== Token balances (formatted) ===");
-      console.table(result);
-  
-      console.log("=== Raw balances (wei) ===", {
-        tokenBalance:   balances.tokenBalance?.toString?.(),
-        usdtBalance:    balances.usdtBalance?.toString?.(),
-        usdcBalance:    balances.usdcBalance?.toString?.(),
-        userBalance:    userBalance?.toString?.(),
-        userStaked:     userStaked?.toString?.(),
-        pendingRewards: pendingRewards?.toString?.(),
-      });
-  
-      return result;
     } catch (error) {
       console.error("Error getting token balances:", error);
       return null;
     }
   };
-  
 
   // Helper: get current USDT price per token
   const getCurrentPrice = async (buyerAddress) => {
@@ -2268,20 +2245,6 @@ const updateSOLRatio = async (solUsdtPrice) => {
   // Function to register a referrer
   const registerReferrer = async (referrerAddress) => {
     if (!contract || !address) return null;
-
-    // Basic validation before touching the chain
-    if (!ethers.utils.isAddress(referrerAddress)) {
-      throw new Error("Invalid referrer address");
-    }
-    if (address.toLowerCase() === referrerAddress.toLowerCase()) {
-      throw new Error("Cannot refer yourself");
-    }
-
-    // Check if already registered
-    const current = await readContract.getReferralInfo(address);
-    if (current.referrer !== ethers.constants.AddressZero) {
-      return "Already registered";
-    }
 
     const toastId = notify.start(`Registering referrer...`);
 
@@ -2328,8 +2291,10 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get referral information
   const getReferralInfo = async (userAddress) => {
+    if (!contract) return null;
+
     try {
-      const referralInfo = await readContract.getReferralInfo(
+      const referralInfo = await contract.getReferralInfo(
         userAddress || address
       );
 
@@ -2340,7 +2305,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
           referralInfo.totalRewardsEarned,
           18
         ),
-        rewardPercentage: referralInfo.rewardPercentage.toNumber(),
+        rewardPercentage: referralInfo.rewardPercentage.toString(),
       };
     } catch (error) {
       console.error("Error getting referral info:", error);
@@ -2350,10 +2315,10 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get user's referrals
   const getUserReferrals = async (userAddress) => {
+    if (!contract) return [];
+
     try {
-      const referrals = await readContract.getUserReferrals(
-        userAddress || address
-      );
+      const referrals = await contract.getUserReferrals(userAddress || address);
       return referrals;
     } catch (error) {
       console.error("Error getting user referrals:", error);
@@ -2363,9 +2328,11 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get referral transactions
   const getReferralTransactions = async (userAddress) => {
+    if (!contract) return [];
+
     try {
       // Get all user transactions
-      const allTransactions = await readContract.getUserTransactions(
+      const allTransactions = await contract.getUserTransactions(
         userAddress || address
       );
 
