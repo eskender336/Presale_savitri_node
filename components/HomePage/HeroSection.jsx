@@ -68,6 +68,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     boundReferrer,
     formatAddress,
     eligibility,
+    refreshContractData,
   } = useWeb3();
 
   const [selectedToken, setSelectedToken] = useState("BNB");
@@ -444,6 +445,12 @@ useEffect(() => {
   useEffect(() => {
     setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
   }, [inputAmount, selectedToken, livePriceBNB, prices]);
+
+  useEffect(() => {
+    if (account) {
+      refreshContractData();
+    }
+  }, [account, refreshContractData]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {
