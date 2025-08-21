@@ -2163,11 +2163,12 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
+    console.log("CALLLING GET TOKE BALANCES")
     if (!contract || !SAV_ADDRESS) return null;
   
     try {
       const balances = await contract.getTokenBalances();
-  
+      console.log("TOKEN BALANCES", balances)
       const tokenContract = new ethers.Contract(
         SAV_ADDRESS,
         ["function balanceOf(address) view returns (uint256)"],
