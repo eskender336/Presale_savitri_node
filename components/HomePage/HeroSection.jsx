@@ -77,9 +77,6 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
-  const [livePriceBNB, setLivePriceBNB] = useState(
-    ethers.BigNumber.from(0)
-  );
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
@@ -100,52 +97,24 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return parseFloat(percentage.toFixed(2));
   };
 
-  // Properly handle the price calculations with useMemo to avoid recalculations
+  // Derived token ratios based on current price and contract info
   const prices = useMemo(() => {
-    const defaultUsdtRatio = contractInfo?.usdtTokenRatio;
-    const defaultUsdcRatio = contractInfo?.usdcTokenRatio;
-    const defaultEthRatio = contractInfo?.ethTokenRatio;
-    const defaultBtcRatio = contractInfo?.btcTokenRatio;
-    const defaultSolRatio = contractInfo?.solTokenRatio;
+    const price = parseFloat(currentUsdPrice || "0");
 
-    let usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio;
-
-    try {
-      // Handle USDT ratio
-      usdtRatio = contractInfo?.usdtTokenRatio
-        ? parseFloat(contractInfo.usdtTokenRatio)
-        : defaultUsdtRatio;
-
-      // Handle USDC ratio
-      usdcRatio = contractInfo?.usdcTokenRatio
-        ? parseFloat(contractInfo.usdcTokenRatio)
-        : defaultUsdcRatio;
-
-      // Handle ETH ratio
-      ethRatio = contractInfo?.ethTokenRatio
-        ? parseFloat(contractInfo.ethTokenRatio)
-        : defaultEthRatio;
-
-      // Handle BTC ratio
-      btcRatio = contractInfo?.btcTokenRatio
-        ? parseFloat(contractInfo.btcTokenRatio)
-        : defaultBtcRatio;
-
-      // Handle SOL ratio
-      solRatio = contractInfo?.solTokenRatio
-        ? parseFloat(contractInfo.solTokenRatio)
-        : defaultSolRatio;
-    } catch (error) {
-      console.error("Error parsing prices:", error);
-      usdtRatio = defaultUsdtRatio;
-      usdcRatio = defaultUsdcRatio;
-      ethRatio = defaultEthRatio;
-      btcRatio = defaultBtcRatio;
-      solRatio = defaultSolRatio;
-    }
+    const usdtRatio = price ? 1 / price : 0;
+    const usdcRatio = usdtRatio;
+    const ethRatio = contractInfo?.ethTokenRatio
+      ? parseFloat(contractInfo.ethTokenRatio)
+      : 0;
+    const btcRatio = contractInfo?.btcTokenRatio
+      ? parseFloat(contractInfo.btcTokenRatio)
+      : 0;
+    const solRatio = contractInfo?.solTokenRatio
+      ? parseFloat(contractInfo.solTokenRatio)
+      : 0;
 
     return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
-  }, [contractInfo]);
+  }, [contractInfo, currentUsdPrice]);
 
   // Start loading effect when component mounts
   useEffect(() => {
@@ -277,11 +246,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const tokensPerBnb = Number(
-            ethers.utils.formatEther(livePriceBNB)
-          );
-          calculatedAmount =
-            tokensPerBnb > 0 ? parseFloat(amount) / tokensPerBnb : 0;
+          const ratio = parseFloat(contractInfo.bnbTokenRatio || 0);
+          calculatedAmount = ratio > 0 ? parseFloat(amount) * ratio : 0;
           break;
         }
         case "ETH":
@@ -337,38 +303,21 @@ useEffect(() => {
 
   const load = async () => {
     try {
-      const [
-        priceBNB,
-        step,
-        bnbPerStable,
-        startBN,
-        isWl,
-        wlIntBN,
-        pubIntBN,
-      ] = await Promise.all([
-        contract.getCurrentPrice(account || ethers.constants.AddressZero),
-        contract.stablecoinPriceIncrement(),
-        contract.bnbPriceForStablecoin(),
+      const [priceInfo, startBN, isWl, wlIntBN, pubIntBN] = await Promise.all([
+        contract.getPriceInfo(account || ethers.constants.AddressZero),
         contract.saleStartTime(),
         account ? contract.waitlisted(account) : false,
         contract.waitlistInterval(),
         contract.publicInterval(),
       ]);
 
-      
-      
-        setIsWaitlisted(isWl);
+      const [current, next] = priceInfo;
 
-        const usdPriceBN = priceBNB.mul(1_000_000).div(bnbPerStable);
-        const nextUsdBN = usdPriceBN.add(step);
-        setCurrentUsdPrice(
-          ethers.utils.formatUnits(usdPriceBN, 6)
-        );
-        setNextUsdPrice(
-          ethers.utils.formatUnits(nextUsdBN, 6)
-        );
-        setLivePriceBNB(priceBNB);
-        
+      setIsWaitlisted(isWl);
+
+      setCurrentUsdPrice(ethers.utils.formatUnits(current, 6));
+      setNextUsdPrice(ethers.utils.formatUnits(next, 6));
+
       const net = await contract.provider.getNetwork();
       console.log('ICO DEBUG', {
         account,
@@ -406,7 +355,6 @@ useEffect(() => {
     cancelled = true;
     provider.off("block", onBlock);
   };
-  
 }, [contract, account]);
 
 
@@ -438,7 +386,7 @@ useEffect(() => {
 
   useEffect(() => {
     setTokenAmount(calculateTokenAmount(inputAmount, selectedToken));
-  }, [inputAmount, selectedToken, livePriceBNB, prices]);
+  }, [inputAmount, selectedToken, prices]);
 
   // Execute purchase based on selected token
   const executePurchase = async () => {

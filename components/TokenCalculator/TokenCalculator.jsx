@@ -10,8 +10,7 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("BNB");
   const [tokensToReceive, setTokensToReceive] = useState(0);
-  const [bnbPrice, setBnbPrice] = useState(null);
-  const [bnbPerStable, setBnbPerStable] = useState(null);
+  const [usdPrice, setUsdPrice] = useState(null);
 
   // Quick calculate options
   const quickOptions = {
@@ -38,12 +37,10 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
     let intervalId;
     const load = async () => {
       try {
-        const [price, stable] = await Promise.all([
-          contract.getCurrentPrice(account || ethers.constants.AddressZero),
-          contract.bnbPriceForStablecoin(),
-        ]);
-        setBnbPrice(parseFloat(ethers.utils.formatEther(price)));
-        setBnbPerStable(parseFloat(ethers.utils.formatEther(stable)));
+        const [current] = await contract.getPriceInfo(
+          account || ethers.constants.AddressZero
+        );
+        setUsdPrice(parseFloat(ethers.utils.formatUnits(current, 6)));
       } catch (err) {
         console.error("price fetch failed", err);
       }
@@ -55,10 +52,10 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
 
   useEffect(() => {
     calculateTokens();
-  }, [amount, currency, bnbPrice, bnbPerStable, contractInfo]);
+  }, [amount, currency, usdPrice, contractInfo]);
 
   const calculateTokens = () => {
-    if (!amount || isNaN(amount) || amount <= 0 || bnbPrice === null) {
+    if (!amount || isNaN(amount) || amount <= 0) {
       setTokensToReceive(0);
       return;
     }
@@ -66,12 +63,12 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
     let tokens = 0;
     switch (currency) {
       case "BNB":
-        tokens = parseFloat(amount) / bnbPrice;
+        tokens =
+          parseFloat(amount) * parseFloat(contractInfo.bnbTokenRatio || 0);
         break;
       case "USDT":
       case "USDC":
-        if (bnbPerStable)
-          tokens = parseFloat(amount) * (bnbPerStable / bnbPrice);
+        if (usdPrice) tokens = parseFloat(amount) / usdPrice;
         break;
       case "ETH":
         tokens =
