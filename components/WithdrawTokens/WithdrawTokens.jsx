@@ -23,7 +23,7 @@ const OWNER_ADDRESS = process.env.NEXT_PUBLIC_OWNER_ADDRESS;
 const TOKEN_ICO_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
-const FSX_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
 const ETH_ADDRESS = process.env.NEXT_PUBLIC_ETH_ADDRESS;
 const EXPLORER_ADDRESS_URL = process.env.NEXT_PUBLIC_EXPLORER_ADDRESS_URL;
 
@@ -63,7 +63,7 @@ const WithdrawTokens = ({ isDarkMode }) => {
     USDC: tokenBalances?.usdcBalance,
   });
   const [tokenAddresses, setTokenAddresses] = useState({
-    SAV: FSX_ADDRESS,
+    SAV: SAV_ADDRESS,
     ETH: ETH_ADDRESS,
     USDT: USDT_ADDRESS,
     USDC: USDC_ADDRESS,
