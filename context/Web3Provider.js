@@ -194,6 +194,11 @@ export const Web3Provider = ({ children }) => {
           readOnlyContract.solRatio(),
         ]);
     
+        const formatAmount = (amount, decimals, fixedDigits = 2) =>
+          parseFloat(
+            ethers.utils.formatUnits(amount.toString(), decimals)
+          ).toFixed(fixedDigits);
+
         // Set contract info with new USDT-based structure
         setContractInfo({
           fsxAddress: info.tokenAddress,

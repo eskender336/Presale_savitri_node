@@ -303,20 +303,22 @@ useEffect(() => {
 
   const load = async () => {
     try {
-      const [priceInfo, startBN, isWl, wlIntBN, pubIntBN] = await Promise.all([
-        contract.getPriceInfo(account || ethers.constants.AddressZero),
-        contract.saleStartTime(),
-        account ? contract.waitlisted(account) : false,
-        contract.waitlistInterval(),
-        contract.publicInterval(),
-      ]);
+      const [priceInfo, startBN, isWl, wlIntBN, pubIntBN, decimals] =
+        await Promise.all([
+          contract.getPriceInfo(account || ethers.constants.AddressZero),
+          contract.saleStartTime(),
+          account ? contract.waitlisted(account) : false,
+          contract.waitlistInterval(),
+          contract.publicInterval(),
+          contract.stablecoinDecimals(),
+        ]);
 
       const [current, next] = priceInfo;
 
       setIsWaitlisted(isWl);
 
-      setCurrentUsdPrice(ethers.utils.formatUnits(current, 6));
-      setNextUsdPrice(ethers.utils.formatUnits(next, 6));
+      setCurrentUsdPrice(ethers.utils.formatUnits(current, decimals));
+      setNextUsdPrice(ethers.utils.formatUnits(next, decimals));
 
       const net = await contract.provider.getNetwork();
       console.log('ICO DEBUG', {
@@ -754,7 +756,7 @@ useEffect(() => {
                   <div className={`${secondaryTextColor} flex flex-col`}>
                     <span className="text-xs mb-1">Current Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {currentUsdPrice}
+                      $ {parseFloat(currentUsdPrice).toFixed(2)}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-500/20 to-transparent"></div>
@@ -763,7 +765,7 @@ useEffect(() => {
                   >
                     <span className="text-xs mb-1">Next Stage Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {nextUsdPrice}
+                      $ {parseFloat(nextUsdPrice).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -827,7 +829,7 @@ useEffect(() => {
                   </span>
                   <div className="px-3 py-1 rounded-lg text-light-gradient">
                     <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
-                      ${currentUsdPrice}
+                      ${parseFloat(currentUsdPrice).toFixed(2)}
                     </span>
                   </div>
                 </div>
