@@ -235,6 +235,12 @@ contract TokenICO {
         usdcAddress = newAddress;
     }
 
+    function updateBNBRatio(uint256 bnbUsdtPrice) external onlyOwner {
+        require(bnbUsdtPrice > 0, "Invalid price");
+        uint256 currentPrice = getCurrentPrice(address(0));
+        bnbRatio = (bnbUsdtPrice * 1e18) / currentPrice;
+    }
+
     function updateETH(address newAddress, uint256 ethUsdtPrice) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
         ethAddress = newAddress;
