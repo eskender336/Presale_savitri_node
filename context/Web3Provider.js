@@ -8,6 +8,7 @@ import TOKEN_ICO_ABI from "../web3/artifacts/contracts/TokenICO.sol/TokenICO.jso
 import { useEthersProvider, useEthersSigner } from "../provider/hooks";
 import { config } from "../provider/wagmiConfigs";
 import { handleTransactionError, erc20Abi, generateId } from "./Utility";
+import { readProvider } from "../provider/readProvider";
 
 const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS;
@@ -24,8 +25,14 @@ const Web3Context = createContext(null);
 
 // Constants
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
-console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
+
+// Pre-instantiate a read-only contract using a fallback provider so view calls
+// do not depend on the user's wallet RPC.
+const readContract = new ethers.Contract(
+  CONTRACT_ADDRESS,
+  TokenICOAbi,
+  readProvider
+);
 
 export const Web3Provider = ({ children }) => {
   // Get toast functions
@@ -40,9 +47,8 @@ export const Web3Provider = ({ children }) => {
 
   // Custom ethers hooks
   const provider = useEthersProvider();
-  
+
   const signer = useEthersSigner();
-  const fallbackProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
 
@@ -145,7 +151,7 @@ export const Web3Provider = ({ children }) => {
       try {
         // Prefer signer for write calls but allow a read-only provider when
         // the user has not connected a wallet yet
-        const library = signer || provider || fallbackProvider;
+        const library = signer || provider || readProvider;
         if (!library) return;
 
         const contractInstance = new ethers.Contract(
@@ -170,12 +176,7 @@ export const Web3Provider = ({ children }) => {
       setGlobalLoad(true);
       
       try {
-        const currentProvider = provider || fallbackProvider;
-        const readOnlyContract = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          TokenICOAbi,
-          currentProvider
-        );
+        const readOnlyContract = readContract;
     
         // Fetch updated contract info with new structure
         const info = await readOnlyContract.getContractInfo();
@@ -2246,6 +2247,20 @@ const updateSOLRatio = async (solUsdtPrice) => {
   const registerReferrer = async (referrerAddress) => {
     if (!contract || !address) return null;
 
+    // Basic validation before touching the chain
+    if (!ethers.utils.isAddress(referrerAddress)) {
+      throw new Error("Invalid referrer address");
+    }
+    if (address.toLowerCase() === referrerAddress.toLowerCase()) {
+      throw new Error("Cannot refer yourself");
+    }
+
+    // Check if already registered
+    const current = await readContract.getReferralInfo(address);
+    if (current.referrer !== ethers.constants.AddressZero) {
+      return "Already registered";
+    }
+
     const toastId = notify.start(`Registering referrer...`);
 
     try {
@@ -2291,10 +2306,8 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get referral information
   const getReferralInfo = async (userAddress) => {
-    if (!contract) return null;
-
     try {
-      const referralInfo = await contract.getReferralInfo(
+      const referralInfo = await readContract.getReferralInfo(
         userAddress || address
       );
 
@@ -2305,7 +2318,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
           referralInfo.totalRewardsEarned,
           18
         ),
-        rewardPercentage: referralInfo.rewardPercentage.toString(),
+        rewardPercentage: referralInfo.rewardPercentage.toNumber(),
       };
     } catch (error) {
       console.error("Error getting referral info:", error);
@@ -2315,10 +2328,10 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get user's referrals
   const getUserReferrals = async (userAddress) => {
-    if (!contract) return [];
-
     try {
-      const referrals = await contract.getUserReferrals(userAddress || address);
+      const referrals = await readContract.getUserReferrals(
+        userAddress || address
+      );
       return referrals;
     } catch (error) {
       console.error("Error getting user referrals:", error);
@@ -2328,11 +2341,9 @@ const updateSOLRatio = async (solUsdtPrice) => {
 
   // Function to get referral transactions
   const getReferralTransactions = async (userAddress) => {
-    if (!contract) return [];
-
     try {
       // Get all user transactions
-      const allTransactions = await contract.getUserTransactions(
+      const allTransactions = await readContract.getUserTransactions(
         userAddress || address
       );
 
