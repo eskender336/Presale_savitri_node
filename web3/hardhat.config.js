@@ -45,6 +45,9 @@ if (NETWORK_RPC_URL) {
     url: NETWORK_RPC_URL,
     accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     chainId: 97,
+    gasPrice: Number(process.env.GAS_PRICE_GWEI || 25) * 1e9, // 25 gwei default
+    gasMultiplier: 1.2,                                       // bump auto-estimates a bit
+    timeout: 120000,
   };
 }
 

@@ -42,6 +42,11 @@ async function main() {
   // faster status updates from provider
   const [deployer] = await hre.ethers.getSigners();
   const net = await hre.ethers.provider.getNetwork();
+
+  const PROD_CHAINS = new Set([56]); // 56 = BSC mainnet. Add 1 if you also deploy to Ethereum mainnet.
+  if (!PROD_CHAINS.has(Number(net.chainId))) {
+    throw new Error(`deploy.prod.js is restricted to prod chains. Current chainId=${net.chainId}`);
+  }
   const bal = await deployer.getBalance();
 
   // === Gas overrides (default 10 gwei, 6_000_000 gasLimit) ===
@@ -132,16 +137,37 @@ async function main() {
     BTC:  { addr: process.env.BTC_ADDRESS,  ratio: u(process.env.BTC_RATIO,  1000), fn: "updateBTC"  },
   };
 
-  for (const [sym, { addr, ratio, fn }] of Object.entries(cfg)) {
-    if (!addr) continue;
-    if (!hre.ethers.utils.isAddress(addr)) throw new Error(`${sym}_ADDRESS is invalid`);
-    if (typeof tokenICO[fn] !== "function") {
-      console.log(`ℹ️  ${fn} not found on ICO; skipping ${sym}`);
-      continue;
+  // helper (put above main loop)
+  async function setPaymentToken(ico, sym, addr, ratio, fn, overrides) {
+    if (!addr) return;
+    if (!hre.ethers.utils.isAddress(addr)) {
+      throw new Error(`${sym}_ADDRESS is invalid`);
     }
-    await waitFor(tokenICO[fn](addr, ratio, overrides), `${fn}(${sym})`);
-    console.log(`✅ ${sym} payment enabled @ ${addr} (ratio=${ratio})`);
+
+    const oneArg  = `${fn}(address)`;
+    const twoArgs = `${fn}(address,uint256)`;
+
+    const has1 = !!ico.interface.functions[oneArg];
+    const has2 = !!ico.interface.functions[twoArgs];
+
+    if (has2) {
+      await waitFor(ico[twoArgs](addr, ratio, overrides), `${fn}(${sym})[2-arg]`);
+      console.log(`✅ ${sym} enabled @ ${addr} (ratio=${ratio})`);
+    } else if (has1) {
+      await waitFor(ico[oneArg](addr, overrides), `${fn}(${sym})[1-arg]`);
+      console.log(`✅ ${sym} enabled @ ${addr}`);
+    } else {
+      console.log(`ℹ️  ${fn} not found on ICO; skipping ${sym}`);
+    }
   }
+
+
+  await setPaymentToken(tokenICO, "USDT", cfg.USDT.addr, cfg.USDT.ratio, "updateUSDT", overrides);
+  await setPaymentToken(tokenICO, "USDC", cfg.USDC.addr, cfg.USDC.ratio, "updateUSDC", overrides);
+  await setPaymentToken(tokenICO, "ETH",  cfg.ETH.addr,  cfg.ETH.ratio,  "updateETH",  overrides);
+  await setPaymentToken(tokenICO, "SOL",  cfg.SOL.addr,  cfg.SOL.ratio,  "updateSOL",  overrides);
+  await setPaymentToken(tokenICO, "BTC",  cfg.BTC.addr,  cfg.BTC.ratio,  "updateBTC",  overrides);
+
 
   // --- Intervals
   console.log(`[${now()}] STEP 8: Set intervals`);

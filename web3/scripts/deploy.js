@@ -72,8 +72,8 @@ async function main() {
     );
 
     // Register payment tokens + ratios (no balances minted)
-    await tokenICO.updateUSDT(mockUSDT.address, 1000);
-    await tokenICO.updateUSDC(mockUSDC.address, 1000);
+    await tokenICO.updateUSDT(mockUSDT.address);
+    await tokenICO.updateUSDC(mockUSDC.address);
     await tokenICO.updateETH(mockETH.address, 1000);
     await tokenICO.updateSOL(mockSOL.address, 1000);
     await tokenICO.updateBTC(mockBTC.address, 1000);
