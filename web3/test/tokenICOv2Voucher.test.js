@@ -20,6 +20,12 @@ describe("TokenICOv2 vouchers", function () {
     await saleToken.transfer(ico.address, ethers.utils.parseEther("1000000"));
     await saleToken.setAllowedSender(ico.address, true);
 
+    // configure BNB price feed
+    const Feed = await ethers.getContractFactory("MockPriceFeed");
+    const feed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8));
+    await feed.deployed();
+    await ico.setBNBPriceFeed(feed.address);
+
     await ico.connect(owner).setSigner(signer.address);
 
     const nonce = 1;

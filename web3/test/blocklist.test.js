@@ -9,7 +9,7 @@ describe("Blocked buyer can receive but cannot send SAV", function () {
     const Sav = await ethers.getContractFactory("SavitriCoin");
     const sav = await Sav.deploy();
     await sav.deployed();
-  
+
     const ICO = await ethers.getContractFactory("TokenICO");
     const ico = await ICO.deploy();
     await ico.deployed();
@@ -21,9 +21,15 @@ describe("Blocked buyer can receive but cannot send SAV", function () {
     await sav.connect(owner).transfer(ico.address, saleLiquidity);
   
     await sav.connect(owner).setAllowedSender(ico.address, true);
-  
+
     const block = await ethers.provider.getBlock("latest");
     await ico.connect(owner).setSaleStartTime(block.timestamp);
+
+    // configure price feed for BNB
+    const Feed = await ethers.getContractFactory("MockPriceFeed");
+    const feed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8));
+    await feed.deployed();
+    await ico.setBNBPriceFeed(feed.address);
   
     return { owner, buyer, other, sav, ico };
   }

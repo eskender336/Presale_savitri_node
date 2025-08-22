@@ -18,6 +18,12 @@ describe("Blocked address purchase", function () {
     await token.setAllowedSender(ico.address, true);
     await ico.setSaleToken(token.address);
 
+    // configure price feed
+    const Feed = await ethers.getContractFactory("MockPriceFeed");
+    const feed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8));
+    await feed.deployed();
+    await ico.setBNBPriceFeed(feed.address);
+
     // Block the buyer from sending tokens
     await token.setBlockStatus(buyer.address, true);
 
