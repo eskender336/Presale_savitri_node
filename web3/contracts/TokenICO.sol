@@ -15,6 +15,21 @@ interface IDelegationChecker {
     function isDelegated(address user) external view returns (bool);
 }
 
+interface AggregatorV3Interface {
+    function decimals() external view returns (uint8);
+
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
+
 contract TokenICO {
     using ECDSA for bytes32;
     address public immutable owner;
@@ -28,16 +43,13 @@ contract TokenICO {
     address public solAddress;
     
     // Price Configuration
-    uint256 public bnbPriceForToken = 0.00035 ether;    // 1 token = 0.35 USD (0.00035 BNB @ 1 USDT = 0.001 BNB)
-    uint256 public bnbPriceForStablecoin = 0.001 ether; // 1 USDT/USDC = 0.001 BNB
-    
-    // Token ratios
-    uint256 public usdtRatio;  // Tokens per 1 USDT
-    uint256 public usdcRatio;  // Tokens per 1 USDC
-    uint256 public bnbRatio;   // Tokens per 1 native BNB
-    uint256 public ethRatio;   // Tokens per 1 ETH token
-    uint256 public btcRatio;   // Tokens per 1 BTC
-    uint256 public solRatio;   // Tokens per 1 SOL
+    uint256 public usdtPriceForToken = 35e4; // 0.35 USDT with 6 decimals
+
+    // Chainlink price feeds (asset/USDT)
+    AggregatorV3Interface public bnbUsdPriceFeed;
+    AggregatorV3Interface public ethUsdPriceFeed;
+    AggregatorV3Interface public btcUsdPriceFeed;
+    AggregatorV3Interface public solUsdPriceFeed;
     
     uint256 public tokensSold;
     uint256 public waitlistSold;
@@ -193,11 +205,6 @@ contract TokenICO {
     constructor() {
         owner = msg.sender;
         signer = msg.sender;
-        usdtRatio = 20;
-        usdcRatio = 20;
-        bnbRatio = 20;
-        ethRatio = 20;
-        solRatio = 20;
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
@@ -208,55 +215,59 @@ contract TokenICO {
             )
         );
     }
-    
+
     // Admin Functions
-    
-    function updateStablecoinPrice(uint256 newPrice) external onlyOwner {
-        require(newPrice > 0, "Invalid price");
-        uint256 oldPrice = bnbPriceForStablecoin;
-        bnbPriceForStablecoin = newPrice;
-        emit PriceUpdated("STABLECOIN", oldPrice, newPrice);
-    }
 
     function updateTokenPrice(uint256 newPrice) external onlyOwner {
         require(newPrice > 0, "Invalid price");
-        uint256 oldPrice = bnbPriceForToken;
-        bnbPriceForToken = newPrice;
+        uint256 oldPrice = usdtPriceForToken;
+        usdtPriceForToken = newPrice;
         emit PriceUpdated("TOKEN", oldPrice, newPrice);
     }
-    function updateUSDT(address newAddress, uint256 newRatio) external onlyOwner {
+
+    function setUSDT(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
-        require(newRatio > 0, "Invalid ratio");
         usdtAddress = newAddress;
-        usdtRatio = newRatio;
     }
 
-    function updateUSDC(address newAddress, uint256 newRatio) external onlyOwner {
+    function setUSDC(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
-        require(newRatio > 0, "Invalid ratio");
         usdcAddress = newAddress;
-        usdcRatio = newRatio;
     }
 
-    function updateETH(address newAddress, uint256 newRatio) external onlyOwner {
+    function setETH(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
-        require(newRatio > 0, "Invalid ratio");
         ethAddress = newAddress;
-        ethRatio = newRatio;
     }
 
-    function updateBTC(address newAddress, uint256 newRatio) external onlyOwner {
+    function setBTC(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
-        require(newRatio > 0, "Invalid ratio");
         btcAddress = newAddress;
-        btcRatio = newRatio;
     }
 
-    function updateSOL(address newAddress, uint256 newRatio) external onlyOwner {
+    function setSOL(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
-        require(newRatio > 0, "Invalid ratio");
         solAddress = newAddress;
-        solRatio = newRatio;
+    }
+
+    function setBNBPriceFeed(address feed) external onlyOwner {
+        require(feed != address(0), "Invalid address");
+        bnbUsdPriceFeed = AggregatorV3Interface(feed);
+    }
+
+    function setETHPriceFeed(address feed) external onlyOwner {
+        require(feed != address(0), "Invalid address");
+        ethUsdPriceFeed = AggregatorV3Interface(feed);
+    }
+
+    function setBTCPriceFeed(address feed) external onlyOwner {
+        require(feed != address(0), "Invalid address");
+        btcUsdPriceFeed = AggregatorV3Interface(feed);
+    }
+
+    function setSOLPriceFeed(address feed) external onlyOwner {
+        require(feed != address(0), "Invalid address");
+        solUsdPriceFeed = AggregatorV3Interface(feed);
     }
     
     function setSaleToken(address _token) external onlyOwner {
@@ -306,23 +317,23 @@ contract TokenICO {
         view
         returns (
             uint256 price,
-            uint256 incrementBNB,
+            uint256 incrementUSDT,
             uint256 increments
         )
     {
-        incrementBNB = (stablecoinPriceIncrement * bnbPriceForStablecoin) / 1e6;
+        incrementUSDT = stablecoinPriceIncrement;
 
         if (saleStartTime == 0 || block.timestamp < saleStartTime) {
-            return (bnbPriceForToken, incrementBNB, 0);
+            return (usdtPriceForToken, incrementUSDT, 0);
         }
 
         uint256 interval = waitlisted[buyer] ? waitlistInterval : publicInterval;
         if (interval == 0) {
-            return (bnbPriceForToken, incrementBNB, 0);
+            return (usdtPriceForToken, incrementUSDT, 0);
         }
 
         increments = (block.timestamp - saleStartTime) / interval;
-        price = bnbPriceForToken + (increments * incrementBNB);
+        price = usdtPriceForToken + (increments * incrementUSDT);
     }
 
     function getCurrentPrice(address buyer) public view returns (uint256) {
@@ -339,9 +350,9 @@ contract TokenICO {
             uint256 stage
         )
     {
-        (uint256 price, uint256 incrementBNB, uint256 increments) = _priceData(buyer);
+        (uint256 price, uint256 incrementUSDT, uint256 increments) = _priceData(buyer);
         currentPrice = price;
-        nextPrice = price + incrementBNB;
+        nextPrice = price + incrementUSDT;
         stage = increments;
     }
     
@@ -415,14 +426,28 @@ contract TokenICO {
         }
     }
 
+    function _getUSDTValue(
+        uint256 amount,
+        AggregatorV3Interface feed,
+        uint8 assetDecimals
+    ) internal view returns (uint256) {
+        require(address(feed) != address(0), "Feed not set");
+        (, int256 answer, , , ) = feed.latestRoundData();
+        require(answer > 0, "Invalid price");
+        uint8 feedDecimals = feed.decimals();
+        return (amount * uint256(answer)) / (10 ** (assetDecimals + feedDecimals - 6));
+    }
+
     // User Functions - Buying Tokens
 
     function buyWithBNB() external payable {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
+        require(address(bnbUsdPriceFeed) != address(0), "BNB feed not set");
 
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 tokenAmount = (msg.value * 1e18) / price;
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(msg.value, bnbUsdPriceFeed, 18);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         // Process referral if applicable
         tokenAmount = _processReferralReward(tokenAmount);
@@ -447,22 +472,21 @@ contract TokenICO {
         require(usdtAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdtAddress != address(0), "USDT not configured");
-        
+
         uint256 usdtInSmallestUnit = usdtAmount * 1e6;
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 bnbEquivalent = usdtAmount * bnbPriceForStablecoin;
-        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
-        
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / tokenPrice;
+
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
             "USDT transfer failed"
         );
-        
+
         // Process referral if applicable
         tokenAmount = _processReferralReward(tokenAmount);
-        
+
         _processPurchase(tokenAmount);
-        
+
         _recordTransaction(
             msg.sender,
             usdtAddress,
@@ -471,7 +495,7 @@ contract TokenICO {
             tokenAmount,
             "BUY"
         );
-        
+
         emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
     }
     
@@ -479,22 +503,21 @@ contract TokenICO {
         require(usdcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdcAddress != address(0), "USDC not configured");
-        
+
         uint256 usdcInSmallestUnit = usdcAmount * 1e6;
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 bnbEquivalent = usdcAmount * bnbPriceForStablecoin;
-        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
-        
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / tokenPrice;
+
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
             "USDC transfer failed"
         );
-        
+
         // Process referral if applicable
         tokenAmount = _processReferralReward(tokenAmount);
-        
+
         _processPurchase(tokenAmount);
-        
+
         _recordTransaction(
             msg.sender,
             usdcAddress,
@@ -503,7 +526,7 @@ contract TokenICO {
             tokenAmount,
             "BUY"
         );
-        
+
         emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
     }
 
@@ -511,8 +534,12 @@ contract TokenICO {
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(ethAddress != address(0), "ETH not configured");
+        require(address(ethUsdPriceFeed) != address(0), "ETH feed not set");
 
-        uint256 tokenAmount = ethAmount * ethRatio;
+        uint8 ethDecimals = IERC20(ethAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(ethAmount, ethUsdPriceFeed, ethDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount),
@@ -539,8 +566,12 @@ contract TokenICO {
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(btcAddress != address(0), "BTC not configured");
+        require(address(btcUsdPriceFeed) != address(0), "BTC feed not set");
 
-        uint256 tokenAmount = btcAmount * btcRatio * 1e10;
+        uint8 btcDecimals = IERC20(btcAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(btcAmount, btcUsdPriceFeed, btcDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
@@ -567,8 +598,12 @@ contract TokenICO {
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
+        require(address(solUsdPriceFeed) != address(0), "SOL feed not set");
 
-        uint256 tokenAmount = solAmount * solRatio * 1e9;
+        uint8 solDecimals = IERC20(solAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(solAmount, solUsdPriceFeed, solDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
@@ -595,9 +630,11 @@ contract TokenICO {
         _validateVoucherAndBind(v, sig);
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
+        require(address(bnbUsdPriceFeed) != address(0), "BNB feed not set");
 
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 tokenAmount = (msg.value * 1e18) / price;
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(msg.value, bnbUsdPriceFeed, 18);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         tokenAmount = _processReferralReward(tokenAmount);
 
@@ -624,9 +661,8 @@ contract TokenICO {
         require(usdtAddress != address(0), "USDT not configured");
 
         uint256 usdtInSmallestUnit = usdtAmount * 1e6;
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 bnbEquivalent = usdtAmount * bnbPriceForStablecoin;
-        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / tokenPrice;
 
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
@@ -656,9 +692,8 @@ contract TokenICO {
         require(usdcAddress != address(0), "USDC not configured");
 
         uint256 usdcInSmallestUnit = usdcAmount * 1e6;
-        uint256 price = getCurrentPrice(msg.sender);
-        uint256 bnbEquivalent = usdcAmount * bnbPriceForStablecoin;
-        uint256 tokenAmount = (bnbEquivalent * 1e18) / price;
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / tokenPrice;
 
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
@@ -686,8 +721,12 @@ contract TokenICO {
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(ethAddress != address(0), "ETH not configured");
+        require(address(ethUsdPriceFeed) != address(0), "ETH feed not set");
 
-        uint256 tokenAmount = ethAmount * ethRatio;
+        uint8 ethDecimals = IERC20(ethAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(ethAmount, ethUsdPriceFeed, ethDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount),
@@ -715,8 +754,12 @@ contract TokenICO {
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(btcAddress != address(0), "BTC not configured");
+        require(address(btcUsdPriceFeed) != address(0), "BTC feed not set");
 
-        uint256 tokenAmount = btcAmount * btcRatio * 1e10;
+        uint8 btcDecimals = IERC20(btcAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(btcAmount, btcUsdPriceFeed, btcDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
@@ -744,8 +787,12 @@ contract TokenICO {
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
+        require(address(solUsdPriceFeed) != address(0), "SOL feed not set");
 
-        uint256 tokenAmount = solAmount * solRatio * 1e9;
+        uint8 solDecimals = IERC20(solAddress).decimals();
+        uint256 tokenPrice = getCurrentPrice(msg.sender);
+        uint256 usdtValue = _getUSDTValue(solAmount, solUsdPriceFeed, solDecimals);
+        uint256 tokenAmount = (usdtValue * 1e18) / tokenPrice;
 
         require(
             IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
@@ -773,9 +820,10 @@ contract TokenICO {
     function buyUSDT() external payable {
         require(msg.value > 0, "Must send BNB");
         require(usdtAddress != address(0), "USDT not configured");
+        require(address(bnbUsdPriceFeed) != address(0), "BNB feed not set");
 
-        uint256 usdtAmount = (msg.value * 1e6) / bnbPriceForStablecoin; // Assuming 6 decimals for USDT
-        
+        uint256 usdtAmount = _getUSDTValue(msg.value, bnbUsdPriceFeed, 18);
+
         require(
             IERC20(usdtAddress).balanceOf(address(this)) >= usdtAmount,
             "Insufficient USDT liquidity"
@@ -803,9 +851,10 @@ contract TokenICO {
     function buyUSDC() external payable {
         require(msg.value > 0, "Must send BNB");
         require(usdcAddress != address(0), "USDC not configured");
+        require(address(bnbUsdPriceFeed) != address(0), "BNB feed not set");
 
-        uint256 usdcAmount = (msg.value * 1e6) / bnbPriceForStablecoin; // Assuming 6 decimals for USDC
-        
+        uint256 usdcAmount = _getUSDTValue(msg.value, bnbUsdPriceFeed, 18);
+
         require(
             IERC20(usdcAddress).balanceOf(address(this)) >= usdcAmount,
             "Insufficient USDC liquidity"
@@ -1266,24 +1315,18 @@ contract TokenICO {
     function getContractInfo() external view returns (
         address tokenAddress,
         uint256 tokenBalance,
-        uint256 bnbPrice,
-        uint256 stablecoinPrice,
+        uint256 tokenPriceUSDT,
         uint256 totalSold,
         address usdtAddr,
-        address usdcAddr,
-        uint256 usdtTokenRatio,
-        uint256 usdcTokenRatio
+        address usdcAddr
     ) {
         return (
             saleToken,
             IERC20(saleToken).balanceOf(address(this)),
-            bnbPriceForToken,
-            bnbPriceForStablecoin,
+            usdtPriceForToken,
             tokensSold,
             usdtAddress,
-            usdcAddress,
-            usdtRatio,
-            usdcRatio
+            usdcAddress
         );
     }
     
