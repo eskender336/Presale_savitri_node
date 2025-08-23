@@ -318,11 +318,11 @@ const UserDashboard = ({ isDarkMode }) => {
                       <span className={theme.textSecondary}>Total Balance</span>
                     </div>
                     <h3 className={`text-2xl font-bold ${theme.text} mb-1`}>
-                      {formatLargeNumber(tokenBalances.userFsxBlanace)}{" "}
+                      {formatLargeNumber(tokenBalances.userSavBalance)}{" "}
                       {TOKEN_SYMBOL}
                     </h3>
                     <p className={theme.textSecondary}>
-                      ≈ ${tokenBalances?.userFsxBlanace * PER_TOKEN_USD_PRICE}
+                      ≈ ${tokenBalances?.userSavBalance * PER_TOKEN_USD_PRICE}
                     </p>
                   </div>
 
@@ -526,11 +526,11 @@ const UserDashboard = ({ isDarkMode }) => {
                       </div>
                       <div className="text-right">
                         <p className={`${theme.text} font-medium`}>
-                          {tokenBalances?.userFsxBlanace} {TOKEN_SYMBOL}
+                          {tokenBalances?.userSavBalance} {TOKEN_SYMBOL}
                         </p>
                         <p className={`text-sm ${theme.textSecondary}`}>
                           ≈ $
-                          {Number(tokenBalances?.userFsxBlanace) *
+                          {Number(tokenBalances?.userSavBalance) *
                             PER_TOKEN_USD_PRICE}
                         </p>
                       </div>

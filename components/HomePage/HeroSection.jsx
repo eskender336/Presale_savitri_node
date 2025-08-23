@@ -453,7 +453,7 @@ useEffect(() => {
       SOL:  val(tb?.userSOLBalance),
       USDT: val(tb?.userUSDTBalance),
       USDC: val(tb?.userUSDCBalance),
-      SAV:  val(tb?.userFsxBalance ?? tb?.userFsxBlanace ?? tb?.userSAVBalance),
+      SAV:  val(tb?.userSavBalance),
     };
   
     console.log("User balances:", balances);
@@ -727,7 +727,7 @@ useEffect(() => {
   className={`w-[550px] ${cardBg} backdrop-blur-sm rounded-xl ${cardBorder} border shadow-xl overflow-hidden transform transition duration-500 hover:shadow-2xl`}
 >
               <div className="p-6 md:p-8">
-                {tokenBalances?.userFsxBalance > 0 && (
+                {tokenBalances?.userSavBalance > 0 && (
                     <div
                       className={`text-center text-xs ${secondaryTextColor} mb-4 bg-gradient-to-r from-teal-400/5 to-indigo-500/5 py-2 px-4 rounded-lg`}
                     >

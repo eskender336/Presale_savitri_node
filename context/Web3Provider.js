@@ -104,7 +104,7 @@ export const Web3Provider = ({ children }) => {
 
   const [tokenBalances, setTokenBalances] = useState({
     fsxSupply: "0",
-    userFsxBlanace: "0",
+    userSavBalance: "0",
     contractBnbBalance: null,
     userBNBBalance: null,
     userEthBalance: "0",
@@ -115,7 +115,6 @@ export const Web3Provider = ({ children }) => {
     usdcBalance: "0",
     userUSDCBalance: "0",
     userUSDTBalance: "0",
-    userBalance: "0",
     userStaked: "0",
     pendingRewards: "0",
     totalPenalty: "0",
@@ -2308,13 +2307,13 @@ const updateSOLAddress = async (newAddress) => {
         provider
       );
 
-      let userBalance = ethers.constants.Zero;
+      let userSavBalanceWei = ethers.constants.Zero;
       let userStaked = ethers.constants.Zero;
       let pendingRewards = ethers.constants.Zero;
 
       if (address) {
         console.log("[getTokenBalances] fetching user data for", address);
-        userBalance = await tokenContract.balanceOf(address);
+        userSavBalanceWei = await tokenContract.balanceOf(address);
 
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
@@ -2332,7 +2331,7 @@ const updateSOLAddress = async (newAddress) => {
         usdcBalance:      ethers.utils.formatUnits(balances.usdcBalance, 6),
 
         // User-specific
-        userBalance:      ethers.utils.formatUnits(userBalance, 18),
+        userSavBalance:   ethers.utils.formatUnits(userSavBalanceWei, 18),
         userStaked:       ethers.utils.formatUnits(userStaked, 18),
         pendingRewards:   ethers.utils.formatUnits(pendingRewards, 18),
       };
@@ -2345,7 +2344,7 @@ const updateSOLAddress = async (newAddress) => {
         tokenBalance:   balances.tokenBalance?.toString?.(),
         usdtBalance:    balances.usdtBalance?.toString?.(),
         usdcBalance:    balances.usdcBalance?.toString?.(),
-        userBalance:    userBalance?.toString?.(),
+        userSavBalance: userSavBalanceWei?.toString?.(),
         userStaked:     userStaked?.toString?.(),
         pendingRewards: pendingRewards?.toString?.(),
       });
