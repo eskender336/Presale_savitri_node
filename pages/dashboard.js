@@ -29,7 +29,6 @@ import {
   Sidebar,
   Dashboard,
   TokenDocumentation,
-  TokenSwap,
   Transaction,
   AdminDashboard,
   AdminFunctions,
@@ -37,12 +36,9 @@ import {
   AdminOverview,
   UserDashboard,
   WithdrawTokens,
-  TokenTransfer,
   ContactUs,
   WalletConnect,
   BlurOverlay,
-  StablecoinPurchase,
-  Staking,
 } from "../components/index";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
@@ -116,20 +112,14 @@ export default function Home() {
               <AdminFunctions isDarkMode={isDarkMode} />
             ) : isComponent == "Token Sale" ? (
               <TokenSale isDarkMode={isDarkMode} />
-            ) : isComponent == "Stablecoin Purchase" ? (
-              <StablecoinPurchase isDarkMode={isDarkMode} />
             ) : isComponent == "Admin Overview" ? (
               <AdminOverview isDarkMode={isDarkMode} />
             ) : isComponent == "User Dashboard" ? (
               <UserDashboard isDarkMode={isDarkMode} />
             ) : isComponent == "Withdraw Tokens" ? (
               <WithdrawTokens isDarkMode={isDarkMode} />
-            ) : isComponent == "Token Transfer" ? (
-              <TokenTransfer isDarkMode={isDarkMode} />
             ) : isComponent == "Contact Us" ? (
               <ContactUs isDarkMode={isDarkMode} />
-            ) : isComponent == "Staking" ? (
-              <Staking isDarkMode={isDarkMode} />
             ) : (
               ""
             )}
