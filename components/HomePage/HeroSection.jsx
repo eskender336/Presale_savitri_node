@@ -135,7 +135,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     }
 
     // Check if SAV balance is below threshold
-    const lowTokenSupply = parseFloat(tokenBalances?.fsxBalance || "0") < 20;
+    const lowTokenSupply = parseFloat(contractInfo?.fsxBalance || "0") < 20;
 
     if (lowTokenSupply) {
       setHasSufficientBalance(false);
@@ -146,30 +146,36 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     let hasBalance = false;
 
     switch (selectedToken) {
-      case "ETH":
-        const ethBalance = parseFloat(tokenBalances?.userEthBalance || "0");
+      case "ETH": {
+        const ethBalance = parseFloat(tokenBalances?.ETH || "0");
         hasBalance = ethBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
-      case "BNB":
-        const bnbBalance = parseFloat(tokenBalances?.userBNBBalance || "0");
+      }
+      case "BNB": {
+        const bnbBalance = parseFloat(tokenBalances?.BNB || "0");
         hasBalance = bnbBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
-      case "BTC":
-        const btcBalance = parseFloat(tokenBalances?.userBTCBalance || "0");
+      }
+      case "BTC": {
+        const btcBalance = parseFloat(tokenBalances?.BTC || "0");
         hasBalance = btcBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
-      case "SOL":
-        const solBalance = parseFloat(tokenBalances?.userSOLBalance || "0");
+      }
+      case "SOL": {
+        const solBalance = parseFloat(tokenBalances?.SOL || "0");
         hasBalance = solBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
-      case "USDT":
-        const usdtBalance = parseFloat(tokenBalances?.userUSDTBalance || "0");
+      }
+      case "USDT": {
+        const usdtBalance = parseFloat(tokenBalances?.USDT || "0");
         hasBalance = usdtBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
-      case "USDC":
-        const usdcBalance = parseFloat(tokenBalances?.userUSDCBalance || "0");
+      }
+      case "USDC": {
+        const usdcBalance = parseFloat(tokenBalances?.USDC || "0");
         hasBalance = usdcBalance >= inputAmountFloat && inputAmountFloat > 0;
         break;
+      }
       default:
         hasBalance = false;
     }
@@ -393,7 +399,7 @@ useEffect(() => {
     }
 
     if (!hasSufficientBalance) {
-      if (parseFloat(tokenBalances?.fsxBalance || "0") < 20) {
+      if (parseFloat(contractInfo?.fsxBalance || "0") < 20) {
         alert("Insufficient token supply. Please try again later.");
       } else {
         alert(`Insufficient ${displayToken} balance`);
@@ -444,15 +450,15 @@ useEffect(() => {
   const logAllBalances = (tb = tokenBalances) => {
     if (!tb) return console.log("No balances yet (tokenBalances is undefined)");
   
-    const val = (v) => (v ?? "0");
+    const val = (v) => v ?? "0";
     const balances = {
-      ETH:  val(tb?.userEthBalance),
-      BNB:  val(tb?.userBNBBalance),
-      BTC:  val(tb?.userBTCBalance),
-      SOL:  val(tb?.userSOLBalance),
-      USDT: val(tb?.userUSDTBalance),
-      USDC: val(tb?.userUSDCBalance),
-      SAV:  val(tb?.userSavBalance),
+      ETH:  val(tb?.ETH),
+      BNB:  val(tb?.BNB),
+      BTC:  val(tb?.BTC),
+      SOL:  val(tb?.SOL),
+      USDT: val(tb?.USDT),
+      USDC: val(tb?.USDC),
+      SAV:  val(tb?.SAV),
     };
   
     console.log("User balances:", balances);
@@ -466,17 +472,17 @@ useEffect(() => {
 
     switch (selectedToken) {
       case "ETH":
-        return tokenBalances?.userEthBalance || "0";
+        return tokenBalances?.ETH || "0";
       case "BNB":
-        return tokenBalances?.userBNBBalance || "0";
+        return tokenBalances?.BNB || "0";
       case "BTC":
-        return tokenBalances?.userBTCBalance || "0";
+        return tokenBalances?.BTC || "0";
       case "SOL":
-        return tokenBalances?.userSOLBalance || "0";
+        return tokenBalances?.SOL || "0";
       case "USDT":
-        return tokenBalances?.userUSDTBalance || "0";
+        return tokenBalances?.USDT || "0";
       case "USDC":
-        return tokenBalances?.userUSDCBalance || "0";
+        return tokenBalances?.USDC || "0";
       default:
         return "0";
     }
@@ -484,9 +490,9 @@ useEffect(() => {
 
   // Determine button state message
   const getButtonMessage = () => {
-    if (parseFloat(tokenBalances?.fsxBalance || "0") < 20) {
-      return "INSUFFICIENT TOKEN SUPPLY";
-    }
+      if (parseFloat(contractInfo?.fsxBalance || "0") < 20) {
+        return "INSUFFICIENT TOKEN SUPPLY";
+      }
     return hasSufficientBalance
       ? `BUY WITH ${displayToken}`
       : `INSUFFICIENT ${displayToken} BALANCE`;
@@ -726,7 +732,7 @@ useEffect(() => {
   className={`w-[550px] ${cardBg} backdrop-blur-sm rounded-xl ${cardBorder} border shadow-xl overflow-hidden transform transition duration-500 hover:shadow-2xl`}
 >
               <div className="p-6 md:p-8">
-                {tokenBalances?.userSavBalance > 0 && (
+                {tokenBalances?.SAV > 0 && (
                     <div
                       className={`text-center text-xs ${secondaryTextColor} mb-4 bg-gradient-to-r from-teal-400/5 to-indigo-500/5 py-2 px-4 rounded-lg`}
                     >

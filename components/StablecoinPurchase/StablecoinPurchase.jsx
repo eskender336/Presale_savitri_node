@@ -295,7 +295,7 @@ const StablecoinPurchase = ({ isDarkMode }) => {
                         <div className="flex justify-between mb-2">
                           <span className={theme.textMuted}>Amount</span>
                           <span className={theme.textMuted}>
-                            {tokenBalances?.userEthBalance} {CURRENCY}
+                            {tokenBalances?.ETH} {CURRENCY}
                           </span>
                         </div>
                         <div className="flex items-center">
