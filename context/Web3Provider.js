@@ -262,7 +262,11 @@ export const Web3Provider = ({ children }) => {
       console.warn("[buyWithBNB] Missing contract or address", { contract: !!contract, address });
       return null;
     }
-  
+
+    if (!boundReferrer) {
+      await handleReferralRegistration();
+    }
+
     // Start toast
     const toastId = notify.start(`Initializing buy With ${CURRENCY} transaction...`);
   
@@ -431,6 +435,9 @@ export const Web3Provider = ({ children }) => {
   
   const buyWithUSDT = async (usdtAmount) => {
   if (!contract || !address) return null;
+  if (!boundReferrer) {
+    await handleReferralRegistration();
+  }
   // Start a transaction toast notification
   const toastId = notify.start(`Initializing buy With USDT transaction...`);
   try {
@@ -566,6 +573,9 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithUSDC = async (usdcAmount) => {
     if (!contract || !address) return null;
+    if (!boundReferrer) {
+      await handleReferralRegistration();
+    }
     // Start a transaction toast notification
     const toastId = notify.start(`Initializing buy With USDC transaction...`);
     try {
@@ -697,6 +707,9 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithETH = async (ethAmount) => {
     if (!contract || !address) return null;
+    if (!boundReferrer) {
+      await handleReferralRegistration();
+    }
     const toastId = notify.start(`Initializing buy With ETH transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(ethAmount, 18);
@@ -792,6 +805,9 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithBTC = async (btcAmount) => {
     if (!contract || !address) return null;
+    if (!boundReferrer) {
+      await handleReferralRegistration();
+    }
     const toastId = notify.start(`Initializing buy With BTC transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(btcAmount, 8);
@@ -889,6 +905,9 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithSOL = async (solAmount) => {
     if (!contract || !address) return null;
+    if (!boundReferrer) {
+      await handleReferralRegistration();
+    }
     const toastId = notify.start(`Initializing buy With SOL transaction...`);
     try {
       const parsedAmount = ethers.utils.parseUnits(solAmount, 9);
@@ -2422,7 +2441,7 @@ const updateSOLAddress = async (newAddress) => {
 
   // Function to register a referrer
   const registerReferrer = async (referrerAddress) => {
-    if (!contract || !address) return null;
+    if (!contract || !address || !signer) return null;
 
     const toastId = notify.start(`Registering referrer...`);
 
@@ -2443,6 +2462,7 @@ const updateSOLAddress = async (newAddress) => {
       });
 
       const returnTransaction = await tx.wait();
+      setBoundReferrer(referrerAddress);
       setReCall(reCall + 1);
 
       // Update notification for completed transaction
