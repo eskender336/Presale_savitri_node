@@ -326,7 +326,10 @@ useEffect(() => {
       setNextUsdPrice(ethers.utils.formatUnits(next, decimals));
 
       const net = await contract.provider.getNetwork();
+      console.log("chainId =", net.chainId); // должен быть 56 для BSC mainnet
       
+      const code = await provider.getCode("0x4247dD6442360e1214787c66244ce6d3053C277c");
+      console.log("code len =", code.length); // "0x" => нет контракта на этой сети
       if (cancelled) return;
       // derive values from chain (with safe fallbacks)
       const saleStart = startBN?.toNumber?.() ?? 0;

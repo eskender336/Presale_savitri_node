@@ -1,4 +1,5 @@
 // scripts/deploy.prod.js
+// STRICT PRODUCTION DEPLOY (BSC mainnet only) — NO MOCK FEEDS
 const hre = require("hardhat");
 require("dotenv").config();
 
@@ -6,8 +7,18 @@ function u(v, d = 0) {
   const n = parseInt(v ?? "", 10);
   return Number.isFinite(n) ? n : d;
 }
+const isAddr = (x) => {
+  try { return hre.ethers.utils.isAddress(x); } catch { return false; }
+};
 
-// ---------- helpers: rich logging ----------
+// ---------- Chainlink Aggregator (minimal) ----------
+const FEED_ABI = [
+  "function decimals() view returns (uint8)",
+  "function description() view returns (string)",
+  "function latestRoundData() view returns (uint80,int256,uint256,uint256,uint80)",
+];
+
+// ---------- helpers ----------
 async function feeSnapshot() {
   try {
     const fd = await hre.ethers.provider.getFeeData();
@@ -26,11 +37,10 @@ function now() {
 }
 
 async function waitFor(txPromise, label = "tx") {
-  // Accept either a Promise<tx> or a tx object
   const tx = await txPromise;
   console.log(`[${now()}] → sent ${label}: ${tx.hash}`);
   console.time(`⏱ ${label}`);
-  const rcpt = await tx.wait(1); // 1 conf is enough for testnets
+  const rcpt = await tx.wait(1); // 1 conf is enough on prod usually; increase if you prefer
   console.timeEnd(`⏱ ${label}`);
   console.log(
     `[${now()}] ✓ mined ${label}: block=${rcpt.blockNumber} gasUsed=${rcpt.gasUsed?.toString()} status=${rcpt.status}`
@@ -38,22 +48,39 @@ async function waitFor(txPromise, label = "tx") {
   return rcpt;
 }
 
+async function validateFeed(sym, addr) {
+  if (!isAddr(addr)) throw new Error(`${sym}_FEED_ADDRESS missing/invalid`);
+  const feed = await hre.ethers.getContractAt(FEED_ABI, addr);
+  const [dec, desc, lrd] = await Promise.all([
+    feed.decimals(),
+    feed.description().catch(() => `${sym}/USD`),
+    feed.latestRoundData(),
+  ]);
+  const answer = lrd?.answer ?? lrd?.[1];
+  if (!answer || answer.lte(0)) throw new Error(`${sym} feed returned non-positive price`);
+  console.log(`🔎 ${sym} feed OK → ${desc} @ ${addr} (decimals=${dec}, price=${answer.toString()})`);
+  return { dec, desc, addr };
+}
+
 async function main() {
-  // faster status updates from provider
   const [deployer] = await hre.ethers.getSigners();
   const net = await hre.ethers.provider.getNetwork();
 
-  const PROD_CHAINS = new Set([56]); // 56 = BSC mainnet. Add 1 if you also deploy to Ethereum mainnet.
+  // ====== PROD GUARD: BNB Smart Chain mainnet only ======
+  const PROD_CHAINS = new Set([56]); // 56 = BSC mainnet
   if (!PROD_CHAINS.has(Number(net.chainId))) {
-    throw new Error(`deploy.prod.js is restricted to prod chains. Current chainId=${net.chainId}`);
+    throw new Error(`deploy.prod.js is restricted to BSC mainnet. Current chainId=${net.chainId}`);
   }
+
   const bal = await deployer.getBalance();
 
   // === Gas overrides (default 10 gwei, 6_000_000 gasLimit) ===
   const GAS_PRICE_GWEI = process.env.GAS_PRICE_GWEI || "10";
   const GAS_LIMIT = u(process.env.GAS_LIMIT, 6_000_000);
-  const overrides = { gasPrice: hre.ethers.utils.parseUnits(GAS_PRICE_GWEI || "25", "gwei") };
-
+  const overrides = {
+    gasPrice: hre.ethers.utils.parseUnits(GAS_PRICE_GWEI, "gwei"),
+    gasLimit: GAS_LIMIT,
+  };
 
   console.log("== Deploying ==");
   console.log("Network:", net.chainId);
@@ -142,7 +169,6 @@ async function main() {
     if (!hre.ethers.utils.isAddress(addr)) {
       throw new Error(`${sym}_ADDRESS is invalid`);
     }
-
     const selector = `${fn}(address)`;
     if (!ico.interface.functions[selector]) {
       console.log(`ℹ️  ${fn} not found on ICO; skipping ${sym}`);
@@ -158,7 +184,14 @@ async function main() {
   await setPaymentToken(tokenICO, "SOL",  cfg.SOL.addr,  "updateSOL",  overrides);
   await setPaymentToken(tokenICO, "BTC",  cfg.BTC.addr,  "updateBTC",  overrides);
 
-  // --- Configure price feeds
+  // Optional: ensure at least one payment token is enabled
+  const enabledPayments = ["USDT","USDC","ETH","SOL","BTC"].filter(k => !!cfg[k]?.addr);
+  if (enabledPayments.length === 0) {
+    throw new Error("No payment tokens configured. Set at least one of USDT_ADDRESS/USDC_ADDRESS/ETH_ADDRESS/SOL_ADDRESS/BTC_ADDRESS.");
+  }
+  console.log("💳 Enabled payments:", enabledPayments.join(", "));
+
+  // --- Configure price feeds (STRICT: no mocks)
   console.log(`[${now()}] STEP 8: Set price feeds`);
   const feeds = {
     BNB: process.env.BNB_FEED_ADDRESS,
@@ -166,10 +199,20 @@ async function main() {
     BTC: process.env.BTC_FEED_ADDRESS,
     SOL: process.env.SOL_FEED_ADDRESS,
   };
-  if (feeds.BNB) await waitFor(tokenICO.setBNBPriceFeed(feeds.BNB, overrides), "setBNBPriceFeed");
-  if (feeds.ETH) await waitFor(tokenICO.setETHPriceFeed(feeds.ETH, overrides), "setETHPriceFeed");
-  if (feeds.BTC) await waitFor(tokenICO.setBTCPriceFeed(feeds.BTC, overrides), "setBTCPriceFeed");
-  if (feeds.SOL) await waitFor(tokenICO.setSOLPriceFeed(feeds.SOL, overrides), "setSOLPriceFeed");
+
+  // Always require BNB/USD on BSC
+  await validateFeed("BNB", feeds.BNB);
+
+  // Require USD feeds for each enabled volatile payment asset
+  if (cfg.ETH.addr) await validateFeed("ETH", feeds.ETH);
+  if (cfg.BTC.addr) await validateFeed("BTC", feeds.BTC);
+  if (cfg.SOL.addr) await validateFeed("SOL", feeds.SOL);
+
+  // Wire feeds
+  await waitFor(tokenICO.setBNBPriceFeed(feeds.BNB, overrides), "setBNBPriceFeed");
+  if (cfg.ETH.addr) await waitFor(tokenICO.setETHPriceFeed(feeds.ETH, overrides), "setETHPriceFeed");
+  if (cfg.BTC.addr) await waitFor(tokenICO.setBTCPriceFeed(feeds.BTC, overrides), "setBTCPriceFeed");
+  if (cfg.SOL.addr) await waitFor(tokenICO.setSOLPriceFeed(feeds.SOL, overrides), "setSOLPriceFeed");
 
   // --- Intervals
   console.log(`[${now()}] STEP 9: Set intervals`);
@@ -201,10 +244,10 @@ async function main() {
   if (cfg.ETH.addr)  console.log("NEXT_PUBLIC_ETH_ADDRESS       =", cfg.ETH.addr);
   if (cfg.SOL.addr)  console.log("NEXT_PUBLIC_SOL_ADDRESS       =", cfg.SOL.addr);
   if (cfg.BTC.addr)  console.log("NEXT_PUBLIC_BTC_ADDRESS       =", cfg.BTC.addr);
-  if (feeds.BNB)      console.log("NEXT_PUBLIC_BNB_FEED          =", feeds.BNB);
-  if (feeds.ETH)      console.log("NEXT_PUBLIC_ETH_FEED          =", feeds.ETH);
-  if (feeds.BTC)      console.log("NEXT_PUBLIC_BTC_FEED          =", feeds.BTC);
-  if (feeds.SOL)      console.log("NEXT_PUBLIC_SOL_FEED          =", feeds.SOL);
+  if (feeds.BNB)     console.log("NEXT_PUBLIC_BNB_FEED          =", feeds.BNB);
+  if (feeds.ETH)     console.log("NEXT_PUBLIC_ETH_FEED          =", feeds.ETH);
+  if (feeds.BTC)     console.log("NEXT_PUBLIC_BTC_FEED          =", feeds.BTC);
+  if (feeds.SOL)     console.log("NEXT_PUBLIC_SOL_FEED          =", feeds.SOL);
 }
 
 main().then(() => process.exit(0)).catch((err) => {
