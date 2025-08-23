@@ -16,6 +16,7 @@ const networks = {
     chainId: CHAIN_ID,
     host: "0.0.0.0",
     port: 8545,
+    allowUnlimitedContractSize: true,
   },
 };
 

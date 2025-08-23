@@ -12,15 +12,10 @@ import { SiTether, SiBinance } from "react-icons/si";
 import { FaEthereum } from "react-icons/fa";
 import { useWeb3 } from "../../context/Web3Provider";
 import { Header } from "../index";
+import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
-const NEXT_PER_TOKEN_USD_PRICE =
-  process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE;
-const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
-const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
 const AdminOverview = ({ isDarkMode }) => {
   const {
@@ -46,6 +41,8 @@ const AdminOverview = ({ isDarkMode }) => {
     getUserTransactions,
     getAllTransactions,
 
+    contract,
+
     refreshContractData,
     isOwner,
   } = useWeb3();
@@ -54,6 +51,7 @@ const AdminOverview = ({ isDarkMode }) => {
   console.log(contractInfo);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
 
   // Theme configuration
   const theme = {
@@ -91,6 +89,26 @@ const AdminOverview = ({ isDarkMode }) => {
 
     fetchContractInfo();
   }, [account]);
+
+  useEffect(() => {
+    if (!contract) return;
+    let intervalId;
+    const load = async () => {
+      try {
+        const [current] = await contract.getPriceInfo(
+          account || ethers.constants.AddressZero
+        );
+        setCurrentUsdPrice(
+          parseFloat(ethers.utils.formatUnits(current, 6)).toFixed(3)
+        );
+      } catch (err) {
+        console.error("price fetch failed", err);
+      }
+    };
+    load();
+    intervalId = setInterval(load, 5000);
+    return () => clearInterval(intervalId);
+  }, [contract, account]);
 
   // Helper function to format token amounts based on decimals
   const formatTokenAmount = (amount, decimals = 18) => {
@@ -392,7 +410,7 @@ const AdminOverview = ({ isDarkMode }) => {
                           <p
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
-                            {contractInfo.currentUsdtPrice} USDT
+                            {currentUsdPrice} USDT
                           </p>
                         </div>
                         <div>
@@ -422,9 +440,7 @@ const AdminOverview = ({ isDarkMode }) => {
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
                             1 USDT = {
-                              (
-                                1 / parseFloat(contractInfo.currentUsdtPrice || 1)
-                              ).toFixed(6)
+                              (1 / parseFloat(currentUsdPrice || 1)).toFixed(6)
                             } Tokens
                           </p>
                         </div>
@@ -436,9 +452,7 @@ const AdminOverview = ({ isDarkMode }) => {
                             className={`${theme.text} font-bold text-lg sm:text-xl`}
                           >
                             1 USDC = {
-                              (
-                                1 / parseFloat(contractInfo.currentUsdtPrice || 1)
-                              ).toFixed(6)
+                              (1 / parseFloat(currentUsdPrice || 1)).toFixed(6)
                             } Tokens
                           </p>
                         </div>

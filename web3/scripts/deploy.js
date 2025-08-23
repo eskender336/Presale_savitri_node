@@ -35,6 +35,18 @@ async function main() {
     await mockBTC.deployed();
     console.log("✅ Mock BTC deployed to:", mockBTC.address);
 
+    // Deploy mock price feeds
+    const MockFeed = await hre.ethers.getContractFactory("MockPriceFeed");
+    const bnbFeed = await MockFeed.deploy(8, hre.ethers.utils.parseUnits("300", 8));
+    await bnbFeed.deployed();
+    const ethFeed = await MockFeed.deploy(8, hre.ethers.utils.parseUnits("2000", 8));
+    await ethFeed.deployed();
+    const btcFeed = await MockFeed.deploy(8, hre.ethers.utils.parseUnits("30000", 8));
+    await btcFeed.deployed();
+    const solFeed = await MockFeed.deploy(8, hre.ethers.utils.parseUnits("150", 8));
+    await solFeed.deployed();
+    console.log("✅ Mock price feeds deployed");
+
     // Deploy SAV token
     const SavitriCoin = await hre.ethers.getContractFactory("SavitriCoin");
     const savitriToken = await SavitriCoin.deploy();
@@ -71,13 +83,20 @@ async function main() {
       await savitriToken.allowedSenders(tokenICO.address)
     );
 
-    // Register payment tokens + ratios (no balances minted)
+    // Register payment tokens
     await tokenICO.updateUSDT(mockUSDT.address);
     await tokenICO.updateUSDC(mockUSDC.address);
-    await tokenICO.updateETH(mockETH.address, 1000);
-    await tokenICO.updateSOL(mockSOL.address, 1000);
-    await tokenICO.updateBTC(mockBTC.address, 1000);
+    await tokenICO.updateETH(mockETH.address);
+    await tokenICO.updateSOL(mockSOL.address);
+    await tokenICO.updateBTC(mockBTC.address);
     console.log("✅ All token payment methods registered with ICO");
+
+    // Set price feeds
+    await tokenICO.setBNBPriceFeed(bnbFeed.address);
+    await tokenICO.setETHPriceFeed(ethFeed.address);
+    await tokenICO.setBTCPriceFeed(btcFeed.address);
+    await tokenICO.setSOLPriceFeed(solFeed.address);
+    console.log("✅ Price feeds registered with ICO");
 
     // Intervals
     const waitlistInterval = parseInt(
@@ -108,6 +127,10 @@ async function main() {
     console.log("NEXT_PUBLIC_ETH_ADDRESS =", mockETH.address);
     console.log("NEXT_PUBLIC_SOL_ADDRESS =", mockSOL.address);
     console.log("NEXT_PUBLIC_BTC_ADDRESS =", mockBTC.address);
+    console.log("NEXT_PUBLIC_BNB_FEED =", bnbFeed.address);
+    console.log("NEXT_PUBLIC_ETH_FEED =", ethFeed.address);
+    console.log("NEXT_PUBLIC_BTC_FEED =", btcFeed.address);
+    console.log("NEXT_PUBLIC_SOL_FEED =", solFeed.address);
   }
 }
 

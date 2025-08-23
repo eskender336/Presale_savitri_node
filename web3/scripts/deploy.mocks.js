@@ -223,8 +223,21 @@ async function main() {
     console.log("⚠️ Mint calls failed/absent (continuing):", e?.message);
   }
 
-  // 8) Register payment tokens on ICO (your ABI uses 1 arg)
-  console.log(`[${now()}] STEP 8: Register payment tokens`);
+  // 8) Deploy price feed mocks
+  console.log(`[${now()}] STEP 8: Deploy price feed mocks`);
+  const Feed = await ethers.getContractFactory("MockPriceFeed");
+  const bnbFeed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8), ov(700000));
+  await waitFor(bnbFeed.deployTransaction, "BNB feed deploy");
+  const ethFeed = await Feed.deploy(8, ethers.utils.parseUnits("2000", 8), ov(700000));
+  await waitFor(ethFeed.deployTransaction, "ETH feed deploy");
+  const btcFeed = await Feed.deploy(8, ethers.utils.parseUnits("30000", 8), ov(700000));
+  await waitFor(btcFeed.deployTransaction, "BTC feed deploy");
+  const solFeed = await Feed.deploy(8, ethers.utils.parseUnits("150", 8), ov(700000));
+  await waitFor(solFeed.deployTransaction, "SOL feed deploy");
+  console.log("✅ Price feed mocks deployed");
+
+  // 9) Register payment tokens on ICO (your ABI uses 1 arg)
+  console.log(`[${now()}] STEP 9: Register payment tokens`);
   await waitFor(ico.updateUSDT(usdt.address, ov(post[9][1])), "ICO.updateUSDT");
   await waitFor(ico.updateUSDC(usdc.address, ov(post[10][1])), "ICO.updateUSDC");
   await waitFor(ico.updateETH(eth.address,   ov(post[11][1])), "ICO.updateETH");
@@ -232,8 +245,16 @@ async function main() {
   await waitFor(ico.updateBTC(btc.address,   ov(post[13][1])), "ICO.updateBTC");
   console.log("✅ Payment methods registered");
 
-  // 9) Intervals
-  console.log(`[${now()}] STEP 9: Set intervals`);
+  // 10) Set price feeds
+  console.log(`[${now()}] STEP 10: Set price feeds`);
+  await waitFor(ico.setBNBPriceFeed(bnbFeed.address, ov(80_000)), "ICO.setBNBPriceFeed");
+  await waitFor(ico.setETHPriceFeed(ethFeed.address, ov(80_000)), "ICO.setETHPriceFeed");
+  await waitFor(ico.setBTCPriceFeed(btcFeed.address, ov(80_000)), "ICO.setBTCPriceFeed");
+  await waitFor(ico.setSOLPriceFeed(solFeed.address, ov(80_000)), "ICO.setSOLPriceFeed");
+  console.log("✅ Price feeds set");
+
+  // 11) Intervals
+  console.log(`[${now()}] STEP 11: Set intervals`);
   const waitlistInterval = u(process.env.NEXT_PUBLIC_WAITLIST_INTERVAL, 14 * 24 * 60 * 60);
   const publicInterval   = u(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL,    7 * 24 * 60 * 60);
   await waitFor(ico.setIntervals(waitlistInterval, publicInterval, ov(post[14][1])), "ICO.setIntervals");
@@ -243,8 +264,8 @@ async function main() {
     "PUBLIC=" + (await ico.publicInterval()).toString() + "s"
   );
 
-  // 10) Sale start time
-  console.log(`[${now()}] STEP 10: Set sale start time`);
+  // 12) Sale start time
+  console.log(`[${now()}] STEP 12: Set sale start time`);
   const latest = await ethers.provider.getBlock("latest");
   await waitFor(ico.setSaleStartTime(latest.timestamp, ov(post[15][1])), "ICO.setSaleStartTime");
   console.log("✅ sale start time set:", (await ico.saleStartTime()).toString());
@@ -259,6 +280,10 @@ async function main() {
   console.log("NEXT_PUBLIC_ETH_ADDRESS       =", eth.address);
   console.log("NEXT_PUBLIC_SOL_ADDRESS       =", sol.address);
   console.log("NEXT_PUBLIC_BTC_ADDRESS       =", btc.address);
+  console.log("NEXT_PUBLIC_BNB_FEED          =", bnbFeed.address);
+  console.log("NEXT_PUBLIC_ETH_FEED          =", ethFeed.address);
+  console.log("NEXT_PUBLIC_BTC_FEED          =", btcFeed.address);
+  console.log("NEXT_PUBLIC_SOL_FEED          =", solFeed.address);
 }
 
 main().then(() => process.exit(0)).catch((e) => {

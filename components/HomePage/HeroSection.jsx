@@ -11,9 +11,7 @@ import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
-const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 
 const toPosSec = (bn, fallback) => {
   try {
@@ -103,14 +101,14 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
     const usdtRatio = price ? 1 / price : 0;
     const usdcRatio = usdtRatio;
-    const ethRatio = contractInfo?.ethTokenRatio
-      ? parseFloat(contractInfo.ethTokenRatio)
+    const ethRatio = contractInfo?.ethRatio
+      ? parseFloat(contractInfo.ethRatio)
       : 0;
-    const btcRatio = contractInfo?.btcTokenRatio
-      ? parseFloat(contractInfo.btcTokenRatio)
+    const btcRatio = contractInfo?.btcRatio
+      ? parseFloat(contractInfo.btcRatio)
       : 0;
-    const solRatio = contractInfo?.solTokenRatio
-      ? parseFloat(contractInfo.solTokenRatio)
+    const solRatio = contractInfo?.solRatio
+      ? parseFloat(contractInfo.solRatio)
       : 0;
 
     return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
@@ -246,7 +244,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     try {
       switch (token) {
         case "BNB": {
-          const ratio = parseFloat(contractInfo.bnbTokenRatio || 0);
+          const ratio = parseFloat(contractInfo.bnbRatio || 0);
           calculatedAmount = ratio > 0 ? parseFloat(amount) * ratio : 0;
           break;
         }

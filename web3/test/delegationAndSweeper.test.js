@@ -17,6 +17,12 @@ async function setupICO() {
   await sav.connect(owner).transfer(ico.address, saleLiquidity);
   await sav.connect(owner).setAllowedSender(ico.address, true);
 
+  // configure price feed for BNB
+  const Feed = await ethers.getContractFactory("MockPriceFeed");
+  const feed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8));
+  await feed.deployed();
+  await ico.setBNBPriceFeed(feed.address);
+
   return { owner, buyer, other, sav, ico };
 }
 

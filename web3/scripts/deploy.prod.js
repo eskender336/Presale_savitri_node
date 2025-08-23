@@ -130,47 +130,49 @@ async function main() {
   // --- Configure payment tokens (REAL addresses only; no mocks here)
   console.log(`[${now()}] STEP 7: Enable payment tokens (if provided)`);
   const cfg = {
-    USDT: { addr: process.env.USDT_ADDRESS, ratio: u(process.env.USDT_RATIO, 1000), fn: "updateUSDT" },
-    USDC: { addr: process.env.USDC_ADDRESS, ratio: u(process.env.USDC_RATIO, 1000), fn: "updateUSDC" },
-    ETH:  { addr: process.env.ETH_ADDRESS,  ratio: u(process.env.ETH_RATIO,  1000), fn: "updateETH"  },
-    SOL:  { addr: process.env.SOL_ADDRESS,  ratio: u(process.env.SOL_RATIO,  1000), fn: "updateSOL"  },
-    BTC:  { addr: process.env.BTC_ADDRESS,  ratio: u(process.env.BTC_RATIO,  1000), fn: "updateBTC"  },
+    USDT: { addr: process.env.USDT_ADDRESS, fn: "updateUSDT" },
+    USDC: { addr: process.env.USDC_ADDRESS, fn: "updateUSDC" },
+    ETH:  { addr: process.env.ETH_ADDRESS,  fn: "updateETH"  },
+    SOL:  { addr: process.env.SOL_ADDRESS,  fn: "updateSOL"  },
+    BTC:  { addr: process.env.BTC_ADDRESS,  fn: "updateBTC"  },
   };
 
-  // helper (put above main loop)
-  async function setPaymentToken(ico, sym, addr, ratio, fn, overrides) {
+  async function setPaymentToken(ico, sym, addr, fn, overrides) {
     if (!addr) return;
     if (!hre.ethers.utils.isAddress(addr)) {
       throw new Error(`${sym}_ADDRESS is invalid`);
     }
 
-    const oneArg  = `${fn}(address)`;
-    const twoArgs = `${fn}(address,uint256)`;
-
-    const has1 = !!ico.interface.functions[oneArg];
-    const has2 = !!ico.interface.functions[twoArgs];
-
-    if (has2) {
-      await waitFor(ico[twoArgs](addr, ratio, overrides), `${fn}(${sym})[2-arg]`);
-      console.log(`✅ ${sym} enabled @ ${addr} (ratio=${ratio})`);
-    } else if (has1) {
-      await waitFor(ico[oneArg](addr, overrides), `${fn}(${sym})[1-arg]`);
-      console.log(`✅ ${sym} enabled @ ${addr}`);
-    } else {
+    const selector = `${fn}(address)`;
+    if (!ico.interface.functions[selector]) {
       console.log(`ℹ️  ${fn} not found on ICO; skipping ${sym}`);
+      return;
     }
+    await waitFor(ico[selector](addr, overrides), `${fn}(${sym})`);
+    console.log(`✅ ${sym} enabled @ ${addr}`);
   }
 
+  await setPaymentToken(tokenICO, "USDT", cfg.USDT.addr, "updateUSDT", overrides);
+  await setPaymentToken(tokenICO, "USDC", cfg.USDC.addr, "updateUSDC", overrides);
+  await setPaymentToken(tokenICO, "ETH",  cfg.ETH.addr,  "updateETH",  overrides);
+  await setPaymentToken(tokenICO, "SOL",  cfg.SOL.addr,  "updateSOL",  overrides);
+  await setPaymentToken(tokenICO, "BTC",  cfg.BTC.addr,  "updateBTC",  overrides);
 
-  await setPaymentToken(tokenICO, "USDT", cfg.USDT.addr, cfg.USDT.ratio, "updateUSDT", overrides);
-  await setPaymentToken(tokenICO, "USDC", cfg.USDC.addr, cfg.USDC.ratio, "updateUSDC", overrides);
-  await setPaymentToken(tokenICO, "ETH",  cfg.ETH.addr,  cfg.ETH.ratio,  "updateETH",  overrides);
-  await setPaymentToken(tokenICO, "SOL",  cfg.SOL.addr,  cfg.SOL.ratio,  "updateSOL",  overrides);
-  await setPaymentToken(tokenICO, "BTC",  cfg.BTC.addr,  cfg.BTC.ratio,  "updateBTC",  overrides);
-
+  // --- Configure price feeds
+  console.log(`[${now()}] STEP 8: Set price feeds`);
+  const feeds = {
+    BNB: process.env.BNB_FEED_ADDRESS,
+    ETH: process.env.ETH_FEED_ADDRESS,
+    BTC: process.env.BTC_FEED_ADDRESS,
+    SOL: process.env.SOL_FEED_ADDRESS,
+  };
+  if (feeds.BNB) await waitFor(tokenICO.setBNBPriceFeed(feeds.BNB, overrides), "setBNBPriceFeed");
+  if (feeds.ETH) await waitFor(tokenICO.setETHPriceFeed(feeds.ETH, overrides), "setETHPriceFeed");
+  if (feeds.BTC) await waitFor(tokenICO.setBTCPriceFeed(feeds.BTC, overrides), "setBTCPriceFeed");
+  if (feeds.SOL) await waitFor(tokenICO.setSOLPriceFeed(feeds.SOL, overrides), "setSOLPriceFeed");
 
   // --- Intervals
-  console.log(`[${now()}] STEP 8: Set intervals`);
+  console.log(`[${now()}] STEP 9: Set intervals`);
   const WAITLIST_INTERVAL = u(process.env.NEXT_PUBLIC_WAITLIST_INTERVAL, 14 * 24 * 60 * 60);
   const PUBLIC_INTERVAL   = u(process.env.NEXT_PUBLIC_PUBLIC_INTERVAL,   7 * 24 * 60 * 60);
   await waitFor(tokenICO.setIntervals(WAITLIST_INTERVAL, PUBLIC_INTERVAL, overrides), "setIntervals");
@@ -181,7 +183,7 @@ async function main() {
   );
 
   // --- Sale start time
-  console.log(`[${now()}] STEP 9: Set sale start time`);
+  console.log(`[${now()}] STEP 10: Set sale start time`);
   const latest = await hre.ethers.provider.getBlock("latest");
   const startAtEnv = u(process.env.SALE_START_AT, 0);
   const startTs = startAtEnv > 0 ? startAtEnv : latest.timestamp;
@@ -189,7 +191,7 @@ async function main() {
   console.log("✅ sale start time set:", (await tokenICO.saleStartTime()).toString());
 
   // --- Export addresses
-  console.log(`[${now()}] STEP 10: Export addresses`);
+  console.log(`[${now()}] STEP 11: Export addresses`);
   console.log("-------- EXPORT --------");
   console.log("NEXT_PUBLIC_TOKEN_ICO_ADDRESS =", tokenICO.address);
   console.log("NEXT_PUBLIC_OWNER_ADDRESS     =", deployer.address);
@@ -199,6 +201,10 @@ async function main() {
   if (cfg.ETH.addr)  console.log("NEXT_PUBLIC_ETH_ADDRESS       =", cfg.ETH.addr);
   if (cfg.SOL.addr)  console.log("NEXT_PUBLIC_SOL_ADDRESS       =", cfg.SOL.addr);
   if (cfg.BTC.addr)  console.log("NEXT_PUBLIC_BTC_ADDRESS       =", cfg.BTC.addr);
+  if (feeds.BNB)      console.log("NEXT_PUBLIC_BNB_FEED          =", feeds.BNB);
+  if (feeds.ETH)      console.log("NEXT_PUBLIC_ETH_FEED          =", feeds.ETH);
+  if (feeds.BTC)      console.log("NEXT_PUBLIC_BTC_FEED          =", feeds.BTC);
+  if (feeds.SOL)      console.log("NEXT_PUBLIC_SOL_FEED          =", feeds.SOL);
 }
 
 main().then(() => process.exit(0)).catch((err) => {

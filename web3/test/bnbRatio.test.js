@@ -19,11 +19,19 @@ describe("TokenICO BNB ratio update", function () {
     const block = await ethers.provider.getBlock("latest");
     await ico.setSaleStartTime(block.timestamp);
 
-    const bnbPrice = ethers.utils.parseUnits("300", 6); // $300
-    await ico.updateBNBRatio(bnbPrice);
+    // Set mock price feed with BNB = $300
+    const Feed = await ethers.getContractFactory("MockPriceFeed");
+    const feed = await Feed.deploy(8, ethers.utils.parseUnits("300", 8));
+    await feed.deployed();
+    await ico.setBNBPriceFeed(feed.address);
 
     const currentPrice = await ico.getCurrentPrice(owner.address);
-    const expectedRatio = bnbPrice.mul(ethers.constants.WeiPerEther).div(currentPrice);
+    const bnbPrice = ethers.utils.parseUnits("300", 8);
+    const expectedRatio = bnbPrice
+      .mul(ethers.constants.WeiPerEther)
+      .mul(ethers.BigNumber.from(10).pow(6))
+      .div(currentPrice)
+      .div(ethers.BigNumber.from(10).pow(8));
     expect(await ico.bnbRatio()).to.equal(expectedRatio);
   });
 });
