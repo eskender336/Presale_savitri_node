@@ -184,6 +184,15 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   }, [tokenBalances, isConnected]);
 
   useEffect(() => {
+    if (!isConnected) return;
+    if (tokenBalances?.userBNBBalance !== undefined) {
+      console.log(
+        `[HeroSection] BNB Balance: ${tokenBalances.userBNBBalance} BNB`
+      );
+    }
+  }, [tokenBalances?.userBNBBalance, isConnected]);
+
+  useEffect(() => {
     const initReferral = async () => {
       // Only proceed if we haven't already attempted registration in this component instance
       if (isConnected && account && !hasAttemptedRegistration) {
