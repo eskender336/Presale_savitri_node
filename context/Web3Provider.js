@@ -441,8 +441,8 @@ export const Web3Provider = ({ children }) => {
   // Start a transaction toast notification
   const toastId = notify.start(`Initializing buy With USDT transaction...`);
   try {
-    // Parse USDT amount (6 decimals)
-    const parsedAmount = ethers.utils.parseUnits(usdtAmount, 6);
+    // Convert USDT amount to a whole-number BigNumber
+    const parsedAmount = ethers.BigNumber.from(usdtAmount);
     let useVoucher =
       eligibility?.whitelisted &&
       (!boundReferrer || eligibility?.needsVoucherEachBuy);
@@ -579,8 +579,8 @@ export const Web3Provider = ({ children }) => {
     // Start a transaction toast notification
     const toastId = notify.start(`Initializing buy With USDC transaction...`);
     try {
-      // Parse USDC amount (6 decimals)
-      const parsedAmount = ethers.utils.parseUnits(usdcAmount, 6);
+      // Convert USDC amount to a whole-number BigNumber
+      const parsedAmount = ethers.BigNumber.from(usdcAmount);
       let useVoucher =
         eligibility?.whitelisted &&
         (!boundReferrer || eligibility?.needsVoucherEachBuy);
