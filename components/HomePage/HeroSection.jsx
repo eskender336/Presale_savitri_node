@@ -178,8 +178,9 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   }, [isConnected, inputAmount, selectedToken, tokenBalances]);
 
   useEffect(() => {
-    console.log("my tBNB balance:", tokenBalances?.userBNBBalance);
-  }, [tokenBalances?.userBNBBalance]);
+    console.log("[HeroSection] tokenBalances", tokenBalances);
+    logAllBalances(tokenBalances);
+  }, [tokenBalances]);
 
   useEffect(() => {
     const initReferral = async () => {
@@ -451,7 +452,7 @@ useEffect(() => {
       SOL:  val(tb?.userSOLBalance),
       USDT: val(tb?.userUSDTBalance),
       USDC: val(tb?.userUSDCBalance),
-      SAV:  val(tb?.userSAVBalance), // if you track it
+      SAV:  val(tb?.userFsxBalance ?? tb?.userFsxBlanace ?? tb?.userSAVBalance),
     };
   
     console.log("User balances:", balances);

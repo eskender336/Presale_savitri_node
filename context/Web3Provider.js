@@ -122,6 +122,10 @@ export const Web3Provider = ({ children }) => {
   });
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    console.log("[Web3Provider] tokenBalances updated", tokenBalances);
+  }, [tokenBalances]);
+
   const getVoucher = async () => {
     if (!address) throw new Error("Wallet not connected");
     console.log("[web3] requesting voucher for", address);
@@ -1710,17 +1714,18 @@ const updateSOLAddress = async (newAddress) => {
 
   // Refresh contract data
   const refreshContractData = async () => {
-    console.log("AAAAAAAAAAAAAAAAAAA")
+    console.log("[refreshContractData] start", { hasContract: !!contract });
     if (!contract) return;
     try {
       const info = await getContractInfo();
+      console.log("[refreshContractData] contract info", info);
       if (info) setContractInfo(info);
       const balances = await getTokenBalances();
-      console.logI("BALANCE", balances)
+      console.log("[refreshContractData] token balances", balances);
       if (balances) setTokenBalances(balances);
     } catch (error) {
       const errorMessage = handleTransactionError(error, "refresh contract data");
-      console.log(errorMessage);
+      console.log("[refreshContractData] error", errorMessage);
       setError("Failed to fetch contract data");
     }
   };
@@ -2270,47 +2275,56 @@ const updateSOLAddress = async (newAddress) => {
 
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
+    console.log("[getTokenBalances] start", {
+      hasContract: !!contract,
+      SAV_ADDRESS,
+      address,
+    });
     if (!contract || !SAV_ADDRESS) return null;
-  
+
     try {
       const balances = await contract.getTokenBalances();
-  
+      console.log("[getTokenBalances] contract balances", balances);
+
       const tokenContract = new ethers.Contract(
         SAV_ADDRESS,
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
-  
+
       let userBalance = ethers.constants.Zero;
       let userStaked = ethers.constants.Zero;
       let pendingRewards = ethers.constants.Zero;
-  
+
       if (address) {
+        console.log("[getTokenBalances] fetching user data for", address);
         userBalance = await tokenContract.balanceOf(address);
-  
+
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
         pendingRewards = userStakingInfo.totalPendingRewards;
+      } else {
+        console.log("[getTokenBalances] no address connected");
       }
-  
+
       // ---- ЧЕЛОВЕКО-ЧИТАЕМОЕ ----
       const result = {
         fsxBalance:       ethers.utils.formatUnits(balances.tokenBalance, 18),
-  
+
         // Stablecoins = 6 decimals
         usdtBalance:      ethers.utils.formatUnits(balances.usdtBalance, 6),
         usdcBalance:      ethers.utils.formatUnits(balances.usdcBalance, 6),
-  
+
         // User-specific
         userBalance:      ethers.utils.formatUnits(userBalance, 18),
         userStaked:       ethers.utils.formatUnits(userStaked, 18),
         pendingRewards:   ethers.utils.formatUnits(pendingRewards, 18),
       };
-  
+
       // ---- ЛОГИ В КОНСОЛЬ ----
       console.log("=== Token balances (formatted) ===");
       console.table(result);
-  
+
       console.log("=== Raw balances (wei) ===", {
         tokenBalance:   balances.tokenBalance?.toString?.(),
         usdtBalance:    balances.usdtBalance?.toString?.(),
@@ -2319,7 +2333,8 @@ const updateSOLAddress = async (newAddress) => {
         userStaked:     userStaked?.toString?.(),
         pendingRewards: pendingRewards?.toString?.(),
       });
-  
+
+      console.log("[getTokenBalances] result", result);
       return result;
     } catch (error) {
       console.error("Error getting token balances:", error);
