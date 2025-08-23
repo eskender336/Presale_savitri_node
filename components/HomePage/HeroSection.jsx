@@ -88,6 +88,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
 
+  useEffect(() => {
+    console.log("[HeroSection] tokenBalances", tokenBalances);
+  }, [tokenBalances]);
+
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
     if (!contractInfo?.totalSold || !contractInfo?.fsxBalance) return 0;
@@ -182,6 +186,12 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     const inputAmountFloat = parseFloat(inputAmount) || 0;
     let hasBalance = false;
 
+    console.log("[HeroSection] checking balance", {
+      selectedToken,
+      inputAmount: inputAmountFloat,
+      tokenBalances,
+    });
+
     switch (selectedToken) {
       case "ETH":
         const ethBalance = parseFloat(tokenBalances?.userEthBalance || "0");
@@ -211,6 +221,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
         hasBalance = false;
     }
 
+    console.log("[HeroSection] hasBalance result", hasBalance);
     setHasSufficientBalance(hasBalance);
   }, [isConnected, inputAmount, selectedToken, tokenBalances]);
 

@@ -1573,8 +1573,10 @@ export const Web3Provider = ({ children }) => {
 
   // Refresh contract data
   const refreshContractData = async () => {
+    console.log("[refreshContractData] invoked");
     if (contract && account) {
       try {
+        console.log("[refreshContractData] fetching data for", address);
         // Constants
         const TOKEN_DECIMALS = 18;
         const STABLE_DECIMALS = 6; // Both USDT and USDC use 6 decimals
@@ -1618,6 +1620,20 @@ export const Web3Provider = ({ children }) => {
           provider.getBalance(address),
         ]);
 
+        console.log("[refreshContractData] base data", {
+          info,
+          bnbAddr,
+          btcAddr,
+          solAddr,
+          bnbRatio: bnbRatio.toString(),
+          ethRatio: ethRatio.toString(),
+          btcRatio: btcRatio.toString(),
+          solRatio: solRatio.toString(),
+          usdtBalanceMy: usdtBalanceMy.toString(),
+          usdcBalanceMy: usdcBalanceMy.toString(),
+          balanceWei: balanceWei.toString(),
+        });
+
         // Create token contract after we have the address from info
         const tokenContract = new ethers.Contract(
           info.tokenAddress,
@@ -1639,6 +1655,15 @@ export const Web3Provider = ({ children }) => {
             btcContract.balanceOf(address),
           ]);
 
+        console.log("[refreshContractData] additional data", {
+          rawSupply: rawSupply.toString(),
+          userFsxBalance: userFsxBalance.toString(),
+          balances,
+          totalPenaltyCollected: totalPenaltyCollected.toString(),
+          ethBalanceMy: ethBalanceMy.toString(),
+          btcBalanceMy: btcBalanceMy.toString(),
+        });
+
         // Helper function to format units and fix decimals
         const formatAmount = (amount, decimals, fixedDigits = 2) =>
           parseFloat(
@@ -1646,7 +1671,7 @@ export const Web3Provider = ({ children }) => {
           ).toFixed(fixedDigits);
 
         // Set contract info
-        setContractInfo({
+        const newContractInfo = {
           fsxAddress: info.tokenAddress,
           fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMALS),
           bnbPrice: formatAmount(info.bnbPrice, TOKEN_DECIMALS, 6),
@@ -1667,10 +1692,12 @@ export const Web3Provider = ({ children }) => {
           ethTokenRatio: ethRatio.toString(),
           btcTokenRatio: btcRatio.toString(),
           solTokenRatio: solRatio.toString(),
-        });
+        };
+        console.log("[refreshContractData] contractInfo", newContractInfo);
+        setContractInfo(newContractInfo);
 
         // Set token balances
-        setTokenBalances({
+        const newTokenBalances = {
           fsxSupply: formatAmount(rawSupply, TOKEN_DECIMALS),
           userFsxBlanace: formatAmount(userFsxBalance, TOKEN_DECIMALS),
           contractBnbBalance: ethers.utils.formatEther(contractBalanceWei),
@@ -1685,7 +1712,9 @@ export const Web3Provider = ({ children }) => {
           userUSDCBalance: formatAmount(usdcBalanceMy, STABLE_DECIMALS),
           userUSDTBalance: formatAmount(usdtBalanceMy, STABLE_DECIMALS),
           totalPenalty: formatAmount(totalPenaltyCollected, TOKEN_DECIMALS),
-        });
+        };
+        console.log("[refreshContractData] tokenBalances", newTokenBalances);
+        setTokenBalances(newTokenBalances);
       } catch (error) {
         const errorMessage = handleTransactionError(error, "withdraw Tokens");
         console.log(errorMessage);
@@ -2221,11 +2250,14 @@ export const Web3Provider = ({ children }) => {
 
   // Update getTokenBalances to include staking balances
   const getTokenBalances = async () => {
+    console.log("[getTokenBalances] invoked");
     if (!contract || !FSX_ADDRESS) return null;
 
     try {
+      console.log("[getTokenBalances] calling contract.getTokenBalances");
       // Get token balances as you already do
       const balances = await contract.getTokenBalances();
+      console.log("[getTokenBalances] contract balances", balances);
 
       // Get user token balance
       const tokenContract = new ethers.Contract(
@@ -2245,9 +2277,14 @@ export const Web3Provider = ({ children }) => {
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
         pendingRewards = userStakingInfo.totalPendingRewards;
+        console.log("[getTokenBalances] user staking", {
+          userBalance: userBalance.toString(),
+          userStaked: userStaked.toString(),
+          pendingRewards: pendingRewards.toString(),
+        });
       }
 
-      return {
+      const result = {
         // Existing balances
         fsxBalance: ethers.utils.formatUnits(balances.tokenBalance, 18),
         usdtBalance: balances.usdtBalance.toString(), // Adjust if USDT has different decimals
@@ -2258,6 +2295,8 @@ export const Web3Provider = ({ children }) => {
         userStaked: ethers.utils.formatUnits(userStaked, 18),
         pendingRewards: ethers.utils.formatUnits(pendingRewards, 18),
       };
+      console.log("[getTokenBalances] result", result);
+      return result;
     } catch (error) {
       console.error("Error getting token balances:", error);
       return null;
