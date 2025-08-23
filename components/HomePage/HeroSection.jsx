@@ -178,9 +178,10 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   }, [isConnected, inputAmount, selectedToken, tokenBalances]);
 
   useEffect(() => {
+    if (!isConnected) return;
     console.log("[HeroSection] tokenBalances", tokenBalances);
     logAllBalances(tokenBalances);
-  }, [tokenBalances]);
+  }, [tokenBalances, isConnected]);
 
   useEffect(() => {
     const initReferral = async () => {

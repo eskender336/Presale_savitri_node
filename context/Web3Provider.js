@@ -123,8 +123,9 @@ export const Web3Provider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!isConnected) return;
     console.log("[Web3Provider] tokenBalances updated", tokenBalances);
-  }, [tokenBalances]);
+  }, [tokenBalances, isConnected]);
 
   const getVoucher = async () => {
     if (!address) throw new Error("Wallet not connected");
@@ -171,6 +172,13 @@ export const Web3Provider = ({ children }) => {
 
     initContract();
   }, [provider, signer]);
+
+  // Refresh balances when wallet connects or changes accounts
+  useEffect(() => {
+    if (isConnected && contract) {
+      refreshContractData();
+    }
+  }, [isConnected, address, contract]);
 
   // Modified useEffect
   useEffect(() => {
@@ -1714,15 +1722,23 @@ const updateSOLAddress = async (newAddress) => {
 
   // Refresh contract data
   const refreshContractData = async () => {
-    console.log("[refreshContractData] start", { hasContract: !!contract });
+    console.log("[refreshContractData] start", {
+      hasContract: !!contract,
+      isConnected,
+    });
     if (!contract) return;
     try {
       const info = await getContractInfo();
       console.log("[refreshContractData] contract info", info);
       if (info) setContractInfo(info);
-      const balances = await getTokenBalances();
-      console.log("[refreshContractData] token balances", balances);
-      if (balances) setTokenBalances(balances);
+
+      if (isConnected) {
+        const balances = await getTokenBalances();
+        console.log("[refreshContractData] token balances", balances);
+        if (balances) setTokenBalances(balances);
+      } else {
+        console.log("[refreshContractData] skip token balances; wallet not connected");
+      }
     } catch (error) {
       const errorMessage = handleTransactionError(error, "refresh contract data");
       console.log("[refreshContractData] error", errorMessage);
