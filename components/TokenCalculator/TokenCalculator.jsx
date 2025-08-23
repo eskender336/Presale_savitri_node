@@ -50,43 +50,35 @@ const TokenCalculator = ({ isOpen, onClose, isDarkMode }) => {
     return () => clearInterval(intervalId);
   }, [contract, account]);
 
-  useEffect(() => {
-    calculateTokens();
-  }, [amount, currency, usdPrice, contractInfo]);
+  const rates = React.useMemo(() => {
+    const price = usdPrice || 0;
+    const usdt = price > 0 ? 1 / price : 0;
+    const usdc = usdt;
+    const bnb = parseFloat(contractInfo?.bnbRatio || 0);
+    const eth = parseFloat(contractInfo?.ethRatio || 0);
+    const btc = parseFloat(contractInfo?.btcRatio || 0);
+    const sol = parseFloat(contractInfo?.solRatio || 0);
+    return { BNB: bnb, ETH: eth, BTC: btc, SOL: sol, USDT: usdt, USDC: usdc };
+  }, [usdPrice, contractInfo]);
 
-  const calculateTokens = () => {
-    if (!amount || isNaN(amount) || amount <= 0) {
+  const tokenPrice = React.useMemo(() => ({
+    BNB: rates.BNB > 0 ? 1 / rates.BNB : 0,
+    ETH: rates.ETH > 0 ? 1 / rates.ETH : 0,
+    BTC: rates.BTC > 0 ? 1 / rates.BTC : 0,
+    SOL: rates.SOL > 0 ? 1 / rates.SOL : 0,
+    USDT: usdPrice || 0,
+    USDC: usdPrice || 0,
+  }), [rates, usdPrice]);
+
+  useEffect(() => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) {
       setTokensToReceive(0);
       return;
     }
-
-    let tokens = 0;
-    switch (currency) {
-      case "BNB":
-        tokens =
-          parseFloat(amount) * parseFloat(contractInfo.bnbTokenRatio || 0);
-        break;
-      case "USDT":
-      case "USDC":
-        if (usdPrice) tokens = parseFloat(amount) / usdPrice;
-        break;
-      case "ETH":
-        tokens =
-          parseFloat(amount) * parseFloat(contractInfo.ethTokenRatio || 0);
-        break;
-      case "BTC":
-        tokens =
-          parseFloat(amount) * parseFloat(contractInfo.btcTokenRatio || 0);
-        break;
-      case "SOL":
-        tokens =
-          parseFloat(amount) * parseFloat(contractInfo.solTokenRatio || 0);
-        break;
-      default:
-        tokens = 0;
-    }
-    setTokensToReceive(tokens);
-  };
+    const rate = rates[currency] || 0;
+    setTokensToReceive(amt * rate);
+  }, [amount, currency, rates]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;

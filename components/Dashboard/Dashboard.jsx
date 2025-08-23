@@ -28,7 +28,6 @@ import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 
 const Dashboard = ({ isDarkMode, setIsComponen }) => {

@@ -15,9 +15,6 @@ import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
-const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
-const BLOCKCHAIN = process.env.NEXT_PUBLIC_BLOCKCHAIN;
 //
 const TokenSale = ({ isDarkMode }) => {
   const {
@@ -152,9 +149,9 @@ const TokenSale = ({ isDarkMode }) => {
   useEffect(() => {
     const usdPrice = parseFloat(currentUsdPrice);
 
-    if (activeTab === "buyWithBNB" && bnbAmount && contractInfo.bnbTokenRatio) {
+    if (activeTab === "buyWithBNB" && bnbAmount && contractInfo.bnbRatio) {
       const tokens =
-        parseFloat(bnbAmount) * parseFloat(contractInfo.bnbTokenRatio);
+        parseFloat(bnbAmount) * parseFloat(contractInfo.bnbRatio);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithUSDT" && usdtAmount && usdPrice) {
       const tokens = parseFloat(usdtAmount) / usdPrice;
@@ -164,15 +161,15 @@ const TokenSale = ({ isDarkMode }) => {
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithETH" && ethAmount) {
       const tokens =
-        parseFloat(ethAmount) * parseFloat(contractInfo.ethTokenRatio);
+        parseFloat(ethAmount) * parseFloat(contractInfo.ethRatio);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithBTC" && btcAmount) {
       const tokens =
-        parseFloat(btcAmount) * parseFloat(contractInfo.btcTokenRatio);
+        parseFloat(btcAmount) * parseFloat(contractInfo.btcRatio);
       setCalculatedTokens(tokens.toLocaleString());
     } else if (activeTab === "buyWithSOL" && solAmount) {
       const tokens =
-        parseFloat(solAmount) * parseFloat(contractInfo.solTokenRatio);
+        parseFloat(solAmount) * parseFloat(contractInfo.solRatio);
       setCalculatedTokens(tokens.toLocaleString());
     } else {
       setCalculatedTokens("0");
@@ -185,10 +182,10 @@ const TokenSale = ({ isDarkMode }) => {
     ethAmount,
     btcAmount,
     solAmount,
-    contractInfo.bnbTokenRatio,
-    contractInfo.ethTokenRatio,
-    contractInfo.btcTokenRatio,
-    contractInfo.solTokenRatio,
+    contractInfo.bnbRatio,
+    contractInfo.ethRatio,
+    contractInfo.btcRatio,
+    contractInfo.solRatio,
     currentUsdPrice,
   ]);
 
@@ -537,7 +534,7 @@ const TokenSale = ({ isDarkMode }) => {
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
                           1 BNB ={" "}
                           {parseFloat(
-                            contractInfo?.bnbTokenRatio || 0
+                            contractInfo?.bnbRatio || 0
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -636,7 +633,7 @@ const TokenSale = ({ isDarkMode }) => {
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
                           1 ETH ={" "}
                           {parseFloat(
-                            contractInfo?.ethTokenRatio || 1
+                            contractInfo?.ethRatio || 1
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -668,7 +665,7 @@ const TokenSale = ({ isDarkMode }) => {
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
                           1 BTC ={" "}
                           {parseFloat(
-                            contractInfo?.btcTokenRatio || 1
+                            contractInfo?.btcRatio || 1
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -700,7 +697,7 @@ const TokenSale = ({ isDarkMode }) => {
                         <p className={`text-sm ${theme.textMuted} mt-2`}>
                           1 SOL ={" "}
                           {parseFloat(
-                            contractInfo?.solTokenRatio || 1
+                            contractInfo?.solRatio || 1
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
