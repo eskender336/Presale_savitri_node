@@ -179,18 +179,8 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   useEffect(() => {
     if (!isConnected) return;
-    console.log("[HeroSection] tokenBalances", tokenBalances);
     logAllBalances(tokenBalances);
   }, [tokenBalances, isConnected]);
-
-  useEffect(() => {
-    if (!isConnected) return;
-    if (tokenBalances?.userBNBBalance !== undefined) {
-      console.log(
-        `[HeroSection] BNB Balance: ${tokenBalances.userBNBBalance} BNB`
-      );
-    }
-  }, [tokenBalances?.userBNBBalance, isConnected]);
 
   useEffect(() => {
     const initReferral = async () => {

@@ -123,7 +123,26 @@ export const Web3Provider = ({ children }) => {
 
   useEffect(() => {
     if (!isConnected) return;
-    console.log("[Web3Provider] tokenBalances updated", tokenBalances);
+    const {
+      userSavBalance,
+      userBNBBalance,
+      userEthBalance,
+      userBTCBalance,
+      userSOLBalance,
+      userUSDTBalance,
+      userUSDCBalance,
+    } = tokenBalances || {};
+    const userBalances = {
+      SAV: userSavBalance,
+      BNB: userBNBBalance,
+      ETH: userEthBalance,
+      BTC: userBTCBalance,
+      SOL: userSOLBalance,
+      USDT: userUSDTBalance,
+      USDC: userUSDCBalance,
+    };
+    console.log("[Web3Provider] user balances", userBalances);
+    console.table(userBalances);
   }, [tokenBalances, isConnected]);
 
   const getVoucher = async () => {
@@ -1733,8 +1752,27 @@ const updateSOLAddress = async (newAddress) => {
 
       if (isConnected) {
         const balances = await getTokenBalances();
-        console.log("[refreshContractData] token balances", balances);
-        if (balances) setTokenBalances(balances);
+        if (balances) {
+          setTokenBalances((prev) => ({ ...prev, ...balances }));
+          const {
+            userSavBalance,
+            userBNBBalance,
+            userEthBalance,
+            userBTCBalance,
+            userSOLBalance,
+            userUSDTBalance,
+            userUSDCBalance,
+          } = { ...tokenBalances, ...balances };
+          console.log("[refreshContractData] user balances", {
+            SAV: userSavBalance,
+            BNB: userBNBBalance,
+            ETH: userEthBalance,
+            BTC: userBTCBalance,
+            SOL: userSOLBalance,
+            USDT: userUSDTBalance,
+            USDC: userUSDCBalance,
+          });
+        }
       } else {
         console.log("[refreshContractData] skip token balances; wallet not connected");
       }
@@ -2299,7 +2337,6 @@ const updateSOLAddress = async (newAddress) => {
 
     try {
       const balances = await contract.getTokenBalances();
-      console.log("[getTokenBalances] contract balances", balances);
 
       const tokenContract = new ethers.Contract(
         SAV_ADDRESS,
@@ -2308,12 +2345,60 @@ const updateSOLAddress = async (newAddress) => {
       );
 
       let userSavBalanceWei = ethers.constants.Zero;
+      let userBNBBalanceWei = ethers.constants.Zero;
+      let userEthBalanceWei = ethers.constants.Zero;
+      let userBTCBalanceWei = ethers.constants.Zero;
+      let userSOLBalanceWei = ethers.constants.Zero;
+      let userUSDTBalanceWei = ethers.constants.Zero;
+      let userUSDCBalanceWei = ethers.constants.Zero;
       let userStaked = ethers.constants.Zero;
       let pendingRewards = ethers.constants.Zero;
 
       if (address) {
         console.log("[getTokenBalances] fetching user data for", address);
         userSavBalanceWei = await tokenContract.balanceOf(address);
+        userBNBBalanceWei = await provider.getBalance(address);
+
+        const tokenContracts = [];
+        if (contractInfo.ethAddress) {
+          tokenContracts.push(
+            new ethers.Contract(contractInfo.ethAddress, erc20Abi, provider).balanceOf(address)
+          );
+        } else tokenContracts.push(Promise.resolve(ethers.constants.Zero));
+        if (contractInfo.btcAddress) {
+          tokenContracts.push(
+            new ethers.Contract(contractInfo.btcAddress, erc20Abi, provider).balanceOf(address)
+          );
+        } else tokenContracts.push(Promise.resolve(ethers.constants.Zero));
+        if (contractInfo.solAddress) {
+          tokenContracts.push(
+            new ethers.Contract(contractInfo.solAddress, erc20Abi, provider).balanceOf(address)
+          );
+        } else tokenContracts.push(Promise.resolve(ethers.constants.Zero));
+        if (USDT_ADDRESS) {
+          tokenContracts.push(
+            new ethers.Contract(USDT_ADDRESS, erc20Abi, provider).balanceOf(address)
+          );
+        } else tokenContracts.push(Promise.resolve(ethers.constants.Zero));
+        if (USDC_ADDRESS) {
+          tokenContracts.push(
+            new ethers.Contract(USDC_ADDRESS, erc20Abi, provider).balanceOf(address)
+          );
+        } else tokenContracts.push(Promise.resolve(ethers.constants.Zero));
+
+        const [
+          ethBal,
+          btcBal,
+          solBal,
+          usdtBal,
+          usdcBal,
+        ] = await Promise.all(tokenContracts);
+
+        userEthBalanceWei = ethBal;
+        userBTCBalanceWei = btcBal;
+        userSOLBalanceWei = solBal;
+        userUSDTBalanceWei = usdtBal;
+        userUSDCBalanceWei = usdcBal;
 
         const userStakingInfo = await contract.getUserStakingInfo(address);
         userStaked = userStakingInfo.totalUserStaked;
@@ -2332,24 +2417,25 @@ const updateSOLAddress = async (newAddress) => {
 
         // User-specific
         userSavBalance:   ethers.utils.formatUnits(userSavBalanceWei, 18),
+        userBNBBalance:   ethers.utils.formatUnits(userBNBBalanceWei, 18),
+        userEthBalance:   ethers.utils.formatUnits(userEthBalanceWei, 18),
+        userBTCBalance:   ethers.utils.formatUnits(userBTCBalanceWei, 18),
+        userSOLBalance:   ethers.utils.formatUnits(userSOLBalanceWei, 18),
+        userUSDTBalance:  ethers.utils.formatUnits(userUSDTBalanceWei, 6),
+        userUSDCBalance:  ethers.utils.formatUnits(userUSDCBalanceWei, 6),
         userStaked:       ethers.utils.formatUnits(userStaked, 18),
         pendingRewards:   ethers.utils.formatUnits(pendingRewards, 18),
       };
 
-      // ---- ЛОГИ В КОНСОЛЬ ----
-      console.log("=== Token balances (formatted) ===");
-      console.table(result);
-
-      console.log("=== Raw balances (wei) ===", {
-        tokenBalance:   balances.tokenBalance?.toString?.(),
-        usdtBalance:    balances.usdtBalance?.toString?.(),
-        usdcBalance:    balances.usdcBalance?.toString?.(),
-        userSavBalance: userSavBalanceWei?.toString?.(),
-        userStaked:     userStaked?.toString?.(),
-        pendingRewards: pendingRewards?.toString?.(),
+      console.log("[getTokenBalances] user balances", {
+        BNB:  result.userBNBBalance,
+        ETH:  result.userEthBalance,
+        BTC:  result.userBTCBalance,
+        SOL:  result.userSOLBalance,
+        USDT: result.userUSDTBalance,
+        USDC: result.userUSDCBalance,
+        SAV:  result.userSavBalance,
       });
-
-      console.log("[getTokenBalances] result", result);
       return result;
     } catch (error) {
       console.error("Error getting token balances:", error);
