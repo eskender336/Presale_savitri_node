@@ -82,8 +82,8 @@ export const Web3Provider = ({ children }) => {
   const [contractInfo, setContractInfo] = useState({
     fsxAddress: null,
     fsxBalance: "0",
-    currentUsdtPrice: "0",        // Current token price in USDT
-    initialUsdtPrice: "0",        // Initial USDT price
+    tokenPriceUSDT: "0", // Current token price in USDT
+    initialUsdtPrice: "0", // Initial USDT price
     totalSold: "0",
     usdtAddress: null,
     usdcAddress: null,
@@ -92,10 +92,14 @@ export const Web3Provider = ({ children }) => {
     ethAddress: null,
     btcAddress: null,
     solAddress: null,
-    bnbTokenRatio: "0",
-    ethTokenRatio: "0",
-    btcTokenRatio: "0",
-    solTokenRatio: "0",
+    bnbPriceFeed: null,
+    ethPriceFeed: null,
+    btcPriceFeed: null,
+    solPriceFeed: null,
+    bnbRatio: "0",
+    ethRatio: "0",
+    btcRatio: "0",
+    solRatio: "0",
   });
 
   const [tokenBalances, setTokenBalances] = useState({
@@ -179,15 +183,28 @@ export const Web3Provider = ({ children }) => {
     
         // Fetch updated contract info with new structure
         const info = await readOnlyContract.getContractInfo();
-        
-        // Get individual token addresses and ratios
+
+        // Get token addresses, price feed addresses and dynamic ratios
         const [
-          ethAddr, btcAddr, solAddr, 
-          bnbRatio, ethRatio, btcRatio, solRatio
+          ethAddr,
+          btcAddr,
+          solAddr,
+          bnbFeed,
+          ethFeed,
+          btcFeed,
+          solFeed,
+          bnbRatio,
+          ethRatio,
+          btcRatio,
+          solRatio,
         ] = await Promise.all([
           readOnlyContract.ethAddress(),
           readOnlyContract.btcAddress(),
           readOnlyContract.solAddress(),
+          readOnlyContract.bnbPriceFeed(),
+          readOnlyContract.ethPriceFeed(),
+          readOnlyContract.btcPriceFeed(),
+          readOnlyContract.solPriceFeed(),
           readOnlyContract.bnbRatio(),
           readOnlyContract.ethRatio(),
           readOnlyContract.btcRatio(),
@@ -203,7 +220,7 @@ export const Web3Provider = ({ children }) => {
         setContractInfo({
           fsxAddress: info.tokenAddress,
           fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMAL),
-          currentUsdtPrice: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
+          tokenPriceUSDT: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
           initialUsdtPrice: formatAmount(info.initialUsdtPrice, 6, 6),
           totalSold: formatAmount(info.totalSold, TOKEN_DECIMAL),
           usdtAddress: info.usdtAddr,
@@ -213,6 +230,10 @@ export const Web3Provider = ({ children }) => {
           ethAddress: ethAddr,
           btcAddress: btcAddr,
           solAddress: solAddr,
+          bnbPriceFeed: bnbFeed,
+          ethPriceFeed: ethFeed,
+          btcPriceFeed: btcFeed,
+          solPriceFeed: solFeed,
           bnbRatio: formatAmount(bnbRatio, 18, 2),
           ethRatio: formatAmount(ethRatio, 18, 2),
           btcRatio: formatAmount(btcRatio, 18, 2),
@@ -1115,198 +1136,262 @@ const updateUSDC = async (newAddress) => {
   }
 };
 
-  // ADD NEW FUNCTIONS FOR RATIO UPDATES (KEEP SEPARATE)
-const updateBNBRatio = async (bnbUsdtPrice) => {
+// Set price feed addresses for native and token payments
+const setBNBPriceFeed = async (feed) => {
   if (!contract || !address) return null;
-  const toastId = notify.start(`Updating BNB ratio...`);
-  
+  const toastId = notify.start(`Updating BNB price feed...`);
+
   try {
     const gasPrice = await signer.getGasPrice();
     const optimizedGasPrice = gasPrice.mul(85).div(100);
-    
-    const estimatedGas = await contract.estimateGas.updateBNBRatio(bnbUsdtPrice);
+
+    const estimatedGas = await contract.estimateGas.setBNBPriceFeed(feed);
     const gasLimit = estimatedGas.mul(120).div(100);
-    
-    const tx = await contract.updateBNBRatio(bnbUsdtPrice, {
+
+    const tx = await contract.setBNBPriceFeed(feed, {
       gasPrice: optimizedGasPrice,
       gasLimit,
     });
-    
-    const returnTransaction = await tx.wait();
+
+    const receipt = await tx.wait();
     setReCall(reCall + 1);
-    
-    notify.complete(toastId, `Successfully updated BNB ratio based on ${bnbUsdtPrice} USDT price!`);
-    return returnTransaction;
+
+    notify.complete(toastId, `BNB price feed updated`);
+    return receipt;
   } catch (error) {
     const { message: errorMessage, code: errorCode } = handleTransactionError(
       error,
-      "update BNB ratio"
+      "update BNB price feed"
     );
-    
+
     if (errorCode === "ACTION_REJECTED") {
       notify.reject(toastId, "Transaction rejected by user");
       return null;
     }
-    
+
     notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
     return null;
   }
 };
 
-// UPDATE ETH RATIO (BASED ON USDT PRICE)
-const updateETHRatio = async (ethUsdtPrice) => {
+const setETHPriceFeed = async (feed) => {
   if (!contract || !address) return null;
-  const toastId = notify.start(`Updating ETH ratio...`);
-  
-  try {
-    // Convert string to number and validate
-    const ethPrice = parseFloat(ethUsdtPrice);
-    if (isNaN(ethPrice) || ethPrice <= 0) {
-      notify.fail(toastId, "Invalid ETH price. Must be a positive number.");
-      return null;
-    }
+  const toastId = notify.start(`Updating ETH price feed...`);
 
+  try {
     const gasPrice = await signer.getGasPrice();
     const optimizedGasPrice = gasPrice.mul(85).div(100);
-    
-    const estimatedGas = await contract.estimateGas.updateETH(
-      contractInfo.ethAddress, 
-      Math.round(ethPrice * 1e6) // Convert to 6 decimal USDT format
-    );
-    
+
+    const estimatedGas = await contract.estimateGas.setETHPriceFeed(feed);
     const gasLimit = estimatedGas.mul(120).div(100);
-    
-    const tx = await contract.updateETH(
-      contractInfo.ethAddress, 
-      Math.round(ethPrice * 1e6), // 2000 USDT = 2000000000
-      {
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      }
-    );
-    
-    const returnTransaction = await tx.wait();
+
+    const tx = await contract.setETHPriceFeed(feed, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
     setReCall(reCall + 1);
-    
-    notify.complete(toastId, `Successfully updated ETH ratio based on ${ethPrice} USDT price!`);
-    return returnTransaction;
+
+    notify.complete(toastId, `ETH price feed updated`);
+    return receipt;
   } catch (error) {
     const { message: errorMessage, code: errorCode } = handleTransactionError(
       error,
-      "update ETH ratio"
+      "update ETH price feed"
     );
-    
+
     if (errorCode === "ACTION_REJECTED") {
       notify.reject(toastId, "Transaction rejected by user");
       return null;
     }
-    
+
     notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
     return null;
   }
 };
 
-// UPDATE BTC RATIO (BASED ON USDT PRICE)
-const updateBTCRatio = async (btcUsdtPrice) => {
+const setBTCPriceFeed = async (feed) => {
   if (!contract || !address) return null;
-  const toastId = notify.start(`Updating BTC ratio...`);
-  
-  try {
-    // Convert string to number and validate
-    const btcPrice = parseFloat(btcUsdtPrice);
-    if (isNaN(btcPrice) || btcPrice <= 0) {
-      notify.fail(toastId, "Invalid BTC price. Must be a positive number.");
-      return null;
-    }
+  const toastId = notify.start(`Updating BTC price feed...`);
 
+  try {
     const gasPrice = await signer.getGasPrice();
     const optimizedGasPrice = gasPrice.mul(85).div(100);
-    
-    const estimatedGas = await contract.estimateGas.updateBTC(
-      contractInfo.btcAddress, 
-      Math.round(btcPrice * 1e6) // Convert to 6 decimal USDT format
-    );
-    
+
+    const estimatedGas = await contract.estimateGas.setBTCPriceFeed(feed);
     const gasLimit = estimatedGas.mul(120).div(100);
-    
-    const tx = await contract.updateBTC(
-      contractInfo.btcAddress, 
-      Math.round(btcPrice * 1e6), // 50000 USDT = 50000000000
-      {
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      }
-    );
-    
-    const returnTransaction = await tx.wait();
+
+    const tx = await contract.setBTCPriceFeed(feed, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
     setReCall(reCall + 1);
-    
-    notify.complete(toastId, `Successfully updated BTC ratio based on ${btcPrice} USDT price!`);
-    return returnTransaction;
+
+    notify.complete(toastId, `BTC price feed updated`);
+    return receipt;
   } catch (error) {
     const { message: errorMessage, code: errorCode } = handleTransactionError(
       error,
-      "update BTC ratio"
+      "update BTC price feed"
     );
-    
+
     if (errorCode === "ACTION_REJECTED") {
       notify.reject(toastId, "Transaction rejected by user");
       return null;
     }
-    
+
     notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
     return null;
   }
 };
 
-// UPDATE SOL RATIO (BASED ON USDT PRICE)
-const updateSOLRatio = async (solUsdtPrice) => {
+const setSOLPriceFeed = async (feed) => {
   if (!contract || !address) return null;
-  const toastId = notify.start(`Updating SOL ratio...`);
-  
-  try {
-    // Convert string to number and validate
-    const solPrice = parseFloat(solUsdtPrice);
-    if (isNaN(solPrice) || solPrice <= 0) {
-      notify.fail(toastId, "Invalid SOL price. Must be a positive number.");
-      return null;
-    }
+  const toastId = notify.start(`Updating SOL price feed...`);
 
+  try {
     const gasPrice = await signer.getGasPrice();
     const optimizedGasPrice = gasPrice.mul(85).div(100);
-    
-    const estimatedGas = await contract.estimateGas.updateSOL(
-      contractInfo.solAddress, 
-      Math.round(solPrice * 1e6) // Convert to 6 decimal USDT format
-    );
-    
+
+    const estimatedGas = await contract.estimateGas.setSOLPriceFeed(feed);
     const gasLimit = estimatedGas.mul(120).div(100);
-    
-    const tx = await contract.updateSOL(
-      contractInfo.solAddress, 
-      Math.round(solPrice * 1e6), // 100 USDT = 100000000
-      {
-        gasPrice: optimizedGasPrice,
-        gasLimit,
-      }
-    );
-    
-    const returnTransaction = await tx.wait();
+
+    const tx = await contract.setSOLPriceFeed(feed, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
     setReCall(reCall + 1);
-    
-    notify.complete(toastId, `Successfully updated SOL ratio based on ${solPrice} USDT price!`);
-    return returnTransaction;
+
+    notify.complete(toastId, `SOL price feed updated`);
+    return receipt;
   } catch (error) {
     const { message: errorMessage, code: errorCode } = handleTransactionError(
       error,
-      "update SOL ratio"
+      "update SOL price feed"
     );
-    
+
     if (errorCode === "ACTION_REJECTED") {
       notify.reject(toastId, "Transaction rejected by user");
       return null;
     }
-    
+
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
+
+// Update addresses for wrapped payment tokens
+const updateETHAddress = async (newAddress) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating ETH token address...`);
+
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+    const estimatedGas = await contract.estimateGas.updateETH(newAddress);
+    const gasLimit = estimatedGas.mul(120).div(100);
+
+    const tx = await contract.updateETH(newAddress, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
+    setReCall(reCall + 1);
+
+    notify.complete(toastId, `ETH token address updated`);
+    return receipt;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update ETH address"
+    );
+
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
+
+const updateBTCAddress = async (newAddress) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating BTC token address...`);
+
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+    const estimatedGas = await contract.estimateGas.updateBTC(newAddress);
+    const gasLimit = estimatedGas.mul(120).div(100);
+
+    const tx = await contract.updateBTC(newAddress, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
+    setReCall(reCall + 1);
+
+    notify.complete(toastId, `BTC token address updated`);
+    return receipt;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update BTC address"
+    );
+
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+
+    notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
+    return null;
+  }
+};
+
+const updateSOLAddress = async (newAddress) => {
+  if (!contract || !address) return null;
+  const toastId = notify.start(`Updating SOL token address...`);
+
+  try {
+    const gasPrice = await signer.getGasPrice();
+    const optimizedGasPrice = gasPrice.mul(85).div(100);
+
+    const estimatedGas = await contract.estimateGas.updateSOL(newAddress);
+    const gasLimit = estimatedGas.mul(120).div(100);
+
+    const tx = await contract.updateSOL(newAddress, {
+      gasPrice: optimizedGasPrice,
+      gasLimit,
+    });
+
+    const receipt = await tx.wait();
+    setReCall(reCall + 1);
+
+    notify.complete(toastId, `SOL token address updated`);
+    return receipt;
+  } catch (error) {
+    const { message: errorMessage, code: errorCode } = handleTransactionError(
+      error,
+      "update SOL address"
+    );
+
+    if (errorCode === "ACTION_REJECTED") {
+      notify.reject(toastId, "Transaction rejected by user");
+      return null;
+    }
+
     notify.fail(toastId, `Transaction failed: ${errorMessage.message}`);
     return null;
   }
@@ -2090,10 +2175,26 @@ const updateSOLRatio = async (solUsdtPrice) => {
     try {
       // Get basic contract info with new USDT-based structure
       const info = await contract.getContractInfo();
-      const [ethAddr, btcAddr, solAddr, bnbRatio, ethRatio, btcRatio, solRatio] = await Promise.all([
+      const [
+        ethAddr,
+        btcAddr,
+        solAddr,
+        bnbFeed,
+        ethFeed,
+        btcFeed,
+        solFeed,
+        bnbRatio,
+        ethRatio,
+        btcRatio,
+        solRatio,
+      ] = await Promise.all([
         contract.ethAddress(),
         contract.btcAddress(),
         contract.solAddress(),
+        contract.bnbPriceFeed(),
+        contract.ethPriceFeed(),
+        contract.btcPriceFeed(),
+        contract.solPriceFeed(),
         contract.bnbRatio(),
         contract.ethRatio(),
         contract.btcRatio(),
@@ -2114,7 +2215,7 @@ const updateSOLRatio = async (solUsdtPrice) => {
         // Updated contract info - USDT BASED
         saleToken: info.tokenAddress,
         fsxBalance: ethers.utils.formatUnits(info.tokenBalance, 18),
-        currentUsdtPrice: ethers.utils.formatUnits(info.currentUsdtPrice, 6), // USDT has 6 decimals
+        tokenPriceUSDT: ethers.utils.formatUnits(info.currentUsdtPrice, 6), // USDT has 6 decimals
         initialUsdtPrice: ethers.utils.formatUnits(info.initialUsdtPrice, 6),
         totalSold: ethers.utils.formatUnits(info.totalSold, 18),
         usdtAddress: info.usdtAddr,
@@ -2124,10 +2225,14 @@ const updateSOLRatio = async (solUsdtPrice) => {
         ethAddress: ethAddr,
         btcAddress: btcAddr,
         solAddress: solAddr,
-        bnbTokenRatio: ethers.utils.formatUnits(bnbRatio, 18), // Now formatted properly
-        ethTokenRatio: ethers.utils.formatUnits(ethRatio, 18),
-        btcTokenRatio: ethers.utils.formatUnits(btcRatio, 18),
-        solTokenRatio: ethers.utils.formatUnits(solRatio, 18),
+        bnbPriceFeed: bnbFeed,
+        ethPriceFeed: ethFeed,
+        btcPriceFeed: btcFeed,
+        solPriceFeed: solFeed,
+        bnbRatio: ethers.utils.formatUnits(bnbRatio, 18), // Now formatted properly
+        ethRatio: ethers.utils.formatUnits(ethRatio, 18),
+        btcRatio: ethers.utils.formatUnits(btcRatio, 18),
+        solRatio: ethers.utils.formatUnits(solRatio, 18),
   
         // Staking info (unchanged)
         baseAPY: stakingInfo ? stakingInfo.baseApyRate.toString() : "12",
@@ -2458,10 +2563,13 @@ const updateSOLRatio = async (solUsdtPrice) => {
     updateTokenPrice,
     updateUSDT,
     updateUSDC,
-    updateBNBRatio,
-    updateETHRatio,
-    updateBTCRatio,
-    updateSOLRatio,
+    setBNBPriceFeed,
+    setETHPriceFeed,
+    setBTCPriceFeed,
+    setSOLPriceFeed,
+    updateETHAddress,
+    updateBTCAddress,
+    updateSOLAddress,
     setSaleToken,
     setBlockStatus,
     withdrawTokens,
