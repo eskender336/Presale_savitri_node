@@ -507,7 +507,7 @@ const AdminOverview = ({ isDarkMode }) => {
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.text} text-sm`}
                             >
-                              {formatLargeNumber(tokenBalances.fsxBalance)}
+                              {formatLargeNumber(contractInfo?.fsxBalance || 0)}
                             </td>
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.textSecondary} text-xs hidden sm:table-cell`}
@@ -527,7 +527,7 @@ const AdminOverview = ({ isDarkMode }) => {
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.text} text-sm`}
                             >
-                              {formatLargeNumber(tokenBalances.usdtBalance)}
+                              {formatLargeNumber(contractInfo?.usdtBalance || 0)}
                             </td>
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.textSecondary} text-xs hidden sm:table-cell`}
@@ -554,7 +554,7 @@ const AdminOverview = ({ isDarkMode }) => {
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.text} text-sm`}
                             >
-                              {formatLargeNumber(tokenBalances.usdcBalance)}
+                              {formatLargeNumber(contractInfo?.usdcBalance || 0)}
                             </td>
                             <td
                               className={`px-3 py-2 sm:px-4 sm:py-3 ${theme.textSecondary} text-xs hidden sm:table-cell`}

@@ -322,7 +322,7 @@ const Sidebar = ({
               {formatAddress(account)}
             </div>
             <div className={isDarkMode ? "text-gray-500" : "text-gray-500"}>
-              {tokenBalances?.userFsxBlanace} {TOKEN_SYMBOL}
+              {tokenBalances?.SAV} {TOKEN_SYMBOL}
             </div>
           </div>
         </div>

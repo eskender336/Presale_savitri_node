@@ -153,13 +153,13 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
-            {formatLargeNumber(tokenBalances?.fsxBalance)} {TOKEN_SYMBOL}
+            {formatLargeNumber(contractInfo?.fsxBalance)} {TOKEN_SYMBOL}
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {tokenBalances?.fsxBalance && currentUsdPrice
+            {contractInfo?.fsxBalance && currentUsdPrice
               ? (
-                  Number(tokenBalances.fsxBalance) * Number(currentUsdPrice)
+                  Number(contractInfo.fsxBalance) * Number(currentUsdPrice)
                 ).toFixed(2)
               : "0.00"}
           </p>
@@ -174,13 +174,13 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
-            {formatLargeNumber(tokenBalances?.fsxSupply)} {TOKEN_SYMBOL}
+            {formatLargeNumber(contractInfo?.totalSold)} {TOKEN_SYMBOL}
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {tokenBalances?.fsxSupply && currentUsdPrice
+            {contractInfo?.totalSold && currentUsdPrice
               ? (
-                  Number(tokenBalances?.fsxSupply) * Number(currentUsdPrice)
+                  Number(contractInfo?.totalSold) * Number(currentUsdPrice)
                 ).toFixed(2)
               : "0.00"}
           </p>

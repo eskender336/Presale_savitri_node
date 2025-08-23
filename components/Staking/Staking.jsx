@@ -371,7 +371,7 @@ const Staking = ({ isDarkMode }) => {
                     <div className="flex justify-between">
                       <span className={theme.textSecondary}>Your Balance:</span>
                       <span className={theme.text}>
-                        {formatLargeNumber(tokenBalances?.userFsxBlanace || 0)}{" "}
+                        {formatLargeNumber(tokenBalances?.SAV || 0)}{" "}
                         {TOKEN_SYMBOL}
                       </span>
                     </div>
@@ -544,7 +544,7 @@ const Staking = ({ isDarkMode }) => {
                         <p className={`text-sm ${theme.textMuted}`}>
                           Balance:{" "}
                           {formatLargeNumber(
-                            tokenBalances?.userFsxBlanace || 0
+                            tokenBalances?.SAV || 0
                           )}{" "}
                           {TOKEN_SYMBOL}
                         </p>
@@ -611,7 +611,7 @@ const Staking = ({ isDarkMode }) => {
                         parseFloat(stakeAmount) <
                           parseFloat(stakingInfo?.minStakeAmount) ||
                         parseFloat(stakeAmount) >
-                          parseFloat(tokenBalances?.userFsxBlanace || 0)
+                          parseFloat(tokenBalances?.SAV || 0)
                       }
                       className={`w-full ${
                         isLoading ||
@@ -619,7 +619,7 @@ const Staking = ({ isDarkMode }) => {
                         parseFloat(stakeAmount) <
                           parseFloat(stakingInfo?.minStakeAmount) ||
                         parseFloat(stakeAmount) >
-                          parseFloat(tokenBalances?.userFsxBlanace || 0)
+                          parseFloat(tokenBalances?.SAV || 0)
                           ? isDarkMode
                             ? "bg-gray-700 cursor-not-allowed"
                             : "bg-gray-300 cursor-not-allowed text-gray-500"
