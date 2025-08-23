@@ -1710,11 +1710,13 @@ const updateSOLAddress = async (newAddress) => {
 
   // Refresh contract data
   const refreshContractData = async () => {
+    console.log("AAAAAAAAAAAAAAAAAAA")
     if (!contract) return;
     try {
       const info = await getContractInfo();
       if (info) setContractInfo(info);
       const balances = await getTokenBalances();
+      console.logI("BALANCE", balances)
       if (balances) setTokenBalances(balances);
     } catch (error) {
       const errorMessage = handleTransactionError(error, "refresh contract data");
