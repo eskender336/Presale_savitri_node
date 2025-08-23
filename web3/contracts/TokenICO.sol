@@ -463,8 +463,8 @@ contract TokenICO {
         uint256 usdtInSmallestUnit = usdtAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
         
-        // Direct USDT pricing: tokens = (usdtAmount * 1e18) / price
-        uint256 tokenAmount = (usdtAmount * 1e18) / price;
+        // Direct USDT pricing: tokens = (usdtInSmallestUnit * 1e18) / price
+        uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / price;
         
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
@@ -478,12 +478,18 @@ contract TokenICO {
             msg.sender,
             usdtAddress,
             saleToken,
-            usdtAmount,
+            usdtInSmallestUnit,
             tokenAmount,
             "BUY"
         );
-        
-        emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
+
+        emit TokensPurchased(
+            msg.sender,
+            usdtAddress,
+            usdtInSmallestUnit,
+            tokenAmount,
+            block.timestamp
+        );
     }
     
     function buyWithUSDC(uint256 usdcAmount) external {
@@ -495,7 +501,7 @@ contract TokenICO {
         uint256 price = getCurrentPrice(msg.sender);
         
         // USDC uses same pricing as USDT (1:1)
-        uint256 tokenAmount = (usdcAmount * 1e18) / price;
+        uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / price;
         
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
@@ -509,12 +515,18 @@ contract TokenICO {
             msg.sender,
             usdcAddress,
             saleToken,
-            usdcAmount,
+            usdcInSmallestUnit,
             tokenAmount,
             "BUY"
         );
-        
-        emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
+
+        emit TokensPurchased(
+            msg.sender,
+            usdcAddress,
+            usdcInSmallestUnit,
+            tokenAmount,
+            block.timestamp
+        );
     }
 
     function buyWithBNB() external payable {
@@ -681,8 +693,8 @@ contract TokenICO {
         uint256 usdtInSmallestUnit = usdtAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
         
-        // Direct USDT pricing: tokens = (usdtAmount * 1e18) / price
-        uint256 tokenAmount = (usdtAmount * 1e18) / price;
+        // Direct USDT pricing: tokens = (usdtInSmallestUnit * 1e18) / price
+        uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / price;
         
         require(
             IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
@@ -696,12 +708,18 @@ contract TokenICO {
             msg.sender,
             usdtAddress,
             saleToken,
-            usdtAmount,
+            usdtInSmallestUnit,
             tokenAmount,
             "BUY"
         );
-        
-        emit TokensPurchased(msg.sender, usdtAddress, usdtAmount, tokenAmount, block.timestamp);
+
+        emit TokensPurchased(
+            msg.sender,
+            usdtAddress,
+            usdtInSmallestUnit,
+            tokenAmount,
+            block.timestamp
+        );
     }
 
     function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external {
@@ -714,7 +732,7 @@ contract TokenICO {
         uint256 price = getCurrentPrice(msg.sender);
         
         // USDC uses same pricing as USDT (1:1)
-        uint256 tokenAmount = (usdcAmount * 1e18) / price;
+        uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / price;
         
         require(
             IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
@@ -728,12 +746,18 @@ contract TokenICO {
             msg.sender,
             usdcAddress,
             saleToken,
-            usdcAmount,
+            usdcInSmallestUnit,
             tokenAmount,
             "BUY"
         );
-        
-        emit TokensPurchased(msg.sender, usdcAddress, usdcAmount, tokenAmount, block.timestamp);
+
+        emit TokensPurchased(
+            msg.sender,
+            usdcAddress,
+            usdcInSmallestUnit,
+            tokenAmount,
+            block.timestamp
+        );
     }
 
     function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external {
