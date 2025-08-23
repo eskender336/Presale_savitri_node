@@ -1,6 +1,4 @@
 import React from "react";
-import Link from "next/link";
-import { FaPlay } from "react-icons/fa";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
@@ -16,15 +14,14 @@ const Header = ({ theme, title }) => {
         {title}
       </h1>
       <div className=" gap-6 hidden lg:flex">
-        {["Roadmap", "Whitepaper", "Lightchain", "Docs"].map((item) => (
-          <Link
-            key={item}
-            href="/lightchain-whitepaper.pdf"
-            className={`${theme.textSecondary} hover:${theme.text}`}
-          >
-            {item}
-          </Link>
-        ))}
+        <a
+          href="https://savitrinetwork.com/wp-content/uploads/2025/08/White-Paper-Savitri.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${theme.textSecondary} hover:${theme.text}`}
+        >
+          Whitepaper
+        </a>
       </div>
     </div>
   );
