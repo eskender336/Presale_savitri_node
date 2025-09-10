@@ -118,13 +118,15 @@ export const Web3Provider = ({ children }) => {
 
   // Sale start helpers
   const getSaleStartTs = () => {
-    try {
-      const fromState = contractInfo?.saleStartTime;
-      if (fromState) return parseInt(fromState, 10);
-    } catch {}
+    // Prefer explicit frontend override if provided
     try {
       const fromEnv = process.env.NEXT_PUBLIC_SALE_START_TS;
       if (fromEnv) return parseInt(fromEnv, 10);
+    } catch {}
+    // Else use on-chain value exposed in state
+    try {
+      const fromState = contractInfo?.saleStartTime;
+      if (fromState) return parseInt(fromState, 10);
     } catch {}
     // Default: 2025-09-15 00:00:00 UTC
     return 1757894400;

@@ -65,6 +65,14 @@ const TokenSale = ({ isDarkMode }) => {
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
   const [nowTs, setNowTs] = useState(Math.floor(Date.now() / 1000));
+  const formatDMY = (tsSec) => {
+    if (!tsSec) return "";
+    const d = new Date(tsSec * 1000);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  };
 
   // Update 'now' every minute for gating
   useEffect(() => {
@@ -284,13 +292,12 @@ const TokenSale = ({ isDarkMode }) => {
           process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
           10
         );
-        const saleStartTs = parseInt(
-          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
-          10
-        );
+        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
+        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
+        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
         const saleLive = nowTs >= saleStartTs;
         if (saleLive) return null;
-        const startIso = new Date(saleStartTs * 1000).toLocaleString();
+        const startIso = formatDMY(saleStartTs);
         return (
           <div className={`mb-4 px-4`}>
             <div className={`rounded-lg p-4 ${theme.cardBg} border ${theme.border} flex items-start gap-3`}>
@@ -758,10 +765,9 @@ const TokenSale = ({ isDarkMode }) => {
                           process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
                           10
                         );
-                        const saleStartTs = parseInt(
-                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
-                          10
-                        );
+                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
+                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
+                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
                         const saleLive = nowTs >= saleStartTs;
                         return (
                           isLoading ||
@@ -774,10 +780,9 @@ const TokenSale = ({ isDarkMode }) => {
                           process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
                           10
                         );
-                        const saleStartTs = parseInt(
-                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
-                          10
-                        );
+                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
+                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
+                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
                         const saleLive = nowTs >= saleStartTs;
                         if (!saleLive) return isDarkMode ? "bg-gray-700 cursor-not-allowed" : "bg-gray-300 cursor-not-allowed text-gray-500";
                         return parseFloat(tokenBalances?.fsxBalance || 0) < 20
@@ -792,13 +797,15 @@ const TokenSale = ({ isDarkMode }) => {
                           process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
                           10
                         );
-                        const saleStartTs = parseInt(
-                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
-                          10
-                        );
+                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
+                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
+                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
                         const saleLive = nowTs >= saleStartTs;
                         if (isLoading) return "Processing...";
-                        if (!saleLive) return "Sales start on 15 Sep 2025";
+                        if (!saleLive) {
+                          const dateStr = formatDMY(saleStartTs);
+                          return `Sales start on ${dateStr}`;
+                        }
                         if (parseFloat(tokenBalances?.fsxBalance || 0) < 20) return "Insufficient Token Supply";
                         return `Buy with ${
                           activeTab === "buyWithBNB"

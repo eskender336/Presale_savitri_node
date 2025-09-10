@@ -86,41 +86,21 @@ const Sidebar = ({
       icon: FaUser,
       onClick: () => setIsComponent("User Dashboard"),
     },
-    {
-      name: "Token Documentation",
-      icon: BiImport,
-      onClick: () => setIsComponent("Token Documentation"),
-    },
+    // Hidden per requirements: Token Documentation
     {
       name: "Token Sale",
       icon: FaDollarSign,
       onClick: () => setIsComponent("Token Sale"),
     },
-    {
-      name: "Staking",
-      icon: BsBank2,
-      onClick: () => setIsComponent("Staking"),
-    },
-    {
-      name: "Stablecoin Purchase",
-      icon: FaBroadcastTower,
-      onClick: () => setIsComponent("Stablecoin Purchase"),
-    },
+    // Hidden per requirements: Staking
+    // Hidden per requirements: Stablecoin Purchase
     {
       name: "Transaction",
       icon: FaTint,
       onClick: () => setIsComponent("Transaction"),
     },
-    {
-      name: "Token Transfer",
-      icon: BiTransfer,
-      onClick: () => setIsComponent("Token Transfer"),
-    },
-    {
-      name: "Contact Us",
-      icon: MdOutlineContactSupport,
-      onClick: () => setIsComponent("Contact Us"),
-    },
+    // Hidden per requirements: Token Transfer
+    // Hidden per requirements: Contact Us
   ];
 
   const adminNavigationItems = [
@@ -234,7 +214,15 @@ const Sidebar = ({
           <h5 className="text-xs uppercase text-gray-500 font-medium mb-2 pl-4">
             Main Navigation
           </h5>
-          {navigationItems.map((item) => (
+          {navigationItems
+            .filter((i) => !(
+              i.name === "Token Documentation" ||
+              i.name === "Staking" ||
+              i.name === "Stablecoin Purchase" ||
+              i.name === "Token Transfer" ||
+              i.name === "Contact Us"
+            ))
+            .map((item) => (
             <Link
               key={item.name}
               href="#"

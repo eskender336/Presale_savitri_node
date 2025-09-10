@@ -243,25 +243,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
           </div>
         </div>
 
-        {/* Second Rank Card */}
-        <div
-          onClick={() => setIsComponen("Token Transfer")}
-          className={`rounded-xl p-4 md:p-6 ${theme.card} ${theme.shadow}`}
-        >
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 text-light-gradient hover:from-teal-500 hover:to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-              <FaMedal className="w-8 h-8 md:w-10 md:h-10 text-white" />
-            </div>
-            <div className="text-center sm:text-left">
-              <h3 className={`text-xl md:text-2xl font-bold ${theme.text}`}>
-                Transfer Token
-              </h3>
-              <p className={theme.textSecondary}>
-                {TOKEN_NAME} {TOKEN_SYMBOL}
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Transfer Token card removed per requirements */}
       </div>
 
       {/* Transaction  */}

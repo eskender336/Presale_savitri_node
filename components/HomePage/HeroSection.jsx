@@ -78,6 +78,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [nowTs, setNowTs] = useState(Math.floor(Date.now() / 1000));
+
+  // keep a local ticking clock for UI gating texts
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
@@ -298,7 +305,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   };
 
   const [saleStartTs, setSaleStartTs] = useState(0);
-const [intervalSec, setIntervalSec] = useState(0);
+  const [intervalSec, setIntervalSec] = useState(0);
 
 useEffect(() => {
   if (!contract) return;
@@ -332,7 +339,9 @@ useEffect(() => {
       console.log("code len =", code.length); // "0x" => нет контракта на этой сети
       if (cancelled) return;
       // derive values from chain (with safe fallbacks)
-      const saleStart = startBN?.toNumber?.() ?? 0;
+      const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
+      const saleStartFromChain = startBN?.toNumber?.() ?? 0;
+      const saleStart = envOverride > 0 ? envOverride : saleStartFromChain;
       const wlInt     = toPosSec(wlIntBN, WAITLIST_INTERVAL_SEC);   // expect 1209600 (14d) if WL
       const pubInt    = toPosSec(pubIntBN, PUBLIC_INTERVAL_SEC);     // expect 604800  (7d)  if public
       const chosenInt = isWl ? wlInt : pubInt;
@@ -493,9 +502,19 @@ useEffect(() => {
 
   // Determine button state message
   const getButtonMessage = () => {
-      if (parseFloat(contractInfo?.fsxBalance || "0") < 20) {
-        return "INSUFFICIENT TOKEN SUPPLY";
-      }
+    const startDateStr = (() => {
+      if (!saleStartTs) return "";
+      const d = new Date(saleStartTs * 1000);
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
+    })();
+    const saleLive = nowTs >= saleStartTs && saleStartTs > 0;
+    if (!saleLive) return `STARTS ON ${startDateStr}`.toUpperCase();
+    if (parseFloat(contractInfo?.fsxBalance || "0") < 20) {
+      return "INSUFFICIENT TOKEN SUPPLY";
+    }
     return hasSufficientBalance
       ? `BUY WITH ${displayToken}`
       : `INSUFFICIENT ${displayToken} BALANCE`;
@@ -763,9 +782,11 @@ useEffect(() => {
                 <div
                   className={`text-center text-sm ${secondaryTextColor} mb-4`}
                 >
-                    {timeRemaining > 0
-                      ? `Next price in ${formatTime(timeRemaining)}`
-                      : "Until price increase"}
+                  {nowTs < saleStartTs && saleStartTs > 0
+                    ? `Countdown starts ${(() => { const d=new Date(saleStartTs*1000); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}.${mm}.${yyyy}`; })()}`
+                    : timeRemaining > 0
+                    ? `Next price in ${formatTime(timeRemaining)}`
+                    : "Until price increase"}
                 </div>
                 </div>
 
@@ -1002,15 +1023,15 @@ useEffect(() => {
                 {isConnected ? (
                   <button
                     onClick={executePurchase}
-                    disabled={!hasSufficientBalance}
+                    disabled={!hasSufficientBalance || (saleStartTs > 0 && nowTs < saleStartTs)}
                     className={`w-full ${
-                      hasSufficientBalance
+                      hasSufficientBalance && !(saleStartTs > 0 && nowTs < saleStartTs)
                         ? `bg-gradient-to-r ${primaryGradient} hover:${primaryGradientHover}`
                         : isDarkMode
                         ? "bg-gray-700/70 cursor-not-allowed"
                         : "bg-gray-300 cursor-not-allowed"
                     } text-white rounded-lg py-4 mb-4 flex items-center justify-center transition-all duration-300 font-medium shadow-lg ${
-                      hasSufficientBalance
+                      hasSufficientBalance && !(saleStartTs > 0 && nowTs < saleStartTs)
                         ? "hover:shadow-indigo-500/20 hover:scale-[1.01]"
                         : ""
                     }`}
