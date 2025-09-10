@@ -29,7 +29,7 @@ console.log('NEXT_PUBLIC_RPC_URL =', process.env.NEXT_PUBLIC_RPC_URL);
 
 export const Web3Provider = ({ children }) => {
   // Get toast functions
-  const { notify } = useToast();
+  const { notify, showInfo } = useToast();
   // Wagmi hooks v2
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -100,6 +100,7 @@ export const Web3Provider = ({ children }) => {
     ethRatio: "0",
     btcRatio: "0",
     solRatio: "0",
+    saleStartTime: "0",
   });
 
   const [tokenBalances, setTokenBalances] = useState({
@@ -114,6 +115,22 @@ export const Web3Provider = ({ children }) => {
     pendingRewards: "0",
   });
   const [error, setError] = useState(null);
+
+  // Sale start helpers
+  const getSaleStartTs = () => {
+    try {
+      const fromState = contractInfo?.saleStartTime;
+      if (fromState) return parseInt(fromState, 10);
+    } catch {}
+    try {
+      const fromEnv = process.env.NEXT_PUBLIC_SALE_START_TS;
+      if (fromEnv) return parseInt(fromEnv, 10);
+    } catch {}
+    // Default: 2025-09-15 00:00:00 UTC
+    return 1757894400;
+  };
+
+  const isSaleLive = () => Math.floor(Date.now() / 1000) >= getSaleStartTs();
 
   useEffect(() => {
     if (!isConnected) return;
@@ -203,6 +220,7 @@ export const Web3Provider = ({ children }) => {
           ethRatio,
           btcRatio,
           solRatio,
+          saleStartTime,
         ] = await Promise.all([
           readOnlyContract.ethAddress(),
           readOnlyContract.btcAddress(),
@@ -215,6 +233,7 @@ export const Web3Provider = ({ children }) => {
           readOnlyContract.ethRatio(),
           readOnlyContract.btcRatio(),
           readOnlyContract.solRatio(),
+          readOnlyContract.saleStartTime(),
         ]);
     
         const formatAmount = (amount, decimals, fixedDigits = 2) =>
@@ -244,6 +263,7 @@ export const Web3Provider = ({ children }) => {
           ethRatio: formatAmount(ethRatio, 18, 2),
           btcRatio: formatAmount(btcRatio, 18, 2),
           solRatio: formatAmount(solRatio, 18, 2),
+          saleStartTime: saleStartTime.toString(),
         });
     
         setGlobalLoad(false);
@@ -260,6 +280,13 @@ export const Web3Provider = ({ children }) => {
   const buyWithBNB = async (bnbAmount) => {
     if (!contract || !address) {
       console.warn("[buyWithBNB] Missing contract or address", { contract: !!contract, address });
+      return null;
+    }
+
+    // Frontend gate: block before sale start
+    if (!isSaleLive()) {
+      const ts = getSaleStartTs();
+      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
       return null;
     }
 
@@ -435,6 +462,11 @@ export const Web3Provider = ({ children }) => {
   
   const buyWithUSDT = async (usdtAmount) => {
   if (!contract || !address) return null;
+  if (!isSaleLive()) {
+    const ts = getSaleStartTs();
+    showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
+    return null;
+  }
   if (!boundReferrer) {
     await handleReferralRegistration();
   }
@@ -573,6 +605,11 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithUSDC = async (usdcAmount) => {
     if (!contract || !address) return null;
+    if (!isSaleLive()) {
+      const ts = getSaleStartTs();
+      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
+      return null;
+    }
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -707,6 +744,11 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithETH = async (ethAmount) => {
     if (!contract || !address) return null;
+    if (!isSaleLive()) {
+      const ts = getSaleStartTs();
+      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
+      return null;
+    }
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -805,6 +847,11 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithBTC = async (btcAmount) => {
     if (!contract || !address) return null;
+    if (!isSaleLive()) {
+      const ts = getSaleStartTs();
+      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
+      return null;
+    }
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -905,6 +952,11 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithSOL = async (solAmount) => {
     if (!contract || !address) return null;
+    if (!isSaleLive()) {
+      const ts = getSaleStartTs();
+      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
+      return null;
+    }
     if (!boundReferrer) {
       await handleReferralRegistration();
     }

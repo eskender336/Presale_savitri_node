@@ -36,23 +36,7 @@ if (NETWORK_RPC_URL) {
 module.exports = {
   solidity: {
     version: "0.8.19",
-    settings: {
-      optimizer: { enabled: true, runs: 1 }, // favor small bytecode
-      viaIR: true,                           // this was smaller for your code
-      metadata: { bytecodeHash: "none" },    // tiny save
-      debug: { revertStrings: "strip" },     // drop revert strings if any remain
-    },
-  },
-  overrides: {
-    "contracts/TokenICO.sol": {
-      version: "0.8.19",
-      settings: {
-        optimizer: { enabled: true, runs: 1 },
-        viaIR: true,
-        metadata: { bytecodeHash: "none" },
-        debug: { revertStrings: "strip" },
-      },
-    },
+    settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
   },
   networks,
   paths: {

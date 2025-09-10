@@ -1,0 +1,86 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MockPriceFeed",
+  "sourceName": "contracts/mock/MockPriceFeed.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "_decimals",
+          "type": "uint8"
+        },
+        {
+          "internalType": "int256",
+          "name": "initialAnswer",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestRoundData",
+      "outputs": [
+        {
+          "internalType": "uint80",
+          "name": "roundId",
+          "type": "uint80"
+        },
+        {
+          "internalType": "int256",
+          "name": "answer",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updatedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint80",
+          "name": "answeredInRound",
+          "type": "uint80"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "newAnswer",
+          "type": "int256"
+        }
+      ],
+      "name": "updateAnswer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60803461006c57601f61014238819003918201601f19168301916001600160401b0383118484101761007157808492604094855283398101031261006c5780519060ff821680920361006c57602001519060ff19600054161760005560015560405160ba90816100888239f35b600080fd5b634e487b7160e01b600052604160045260246000fdfe6080806040526004361015601257600080fd5b600090813560e01c908163313ce56714608e57508063a87a20ce1460755763feaf968c14603e57600080fd5b346072578060031936011260725760a090600154906040519181835260208301528060408301528060608301526080820152f35b80fd5b5034607257602036600319011260725760043560015580f35b90503460a9578160031936011260a95760ff60209254168152f35b5080fdfea164736f6c6343000813000a",
+  "deployedBytecode": "0x6080806040526004361015601257600080fd5b600090813560e01c908163313ce56714608e57508063a87a20ce1460755763feaf968c14603e57600080fd5b346072578060031936011260725760a090600154906040519181835260208301528060408301528060608301526080820152f35b80fd5b5034607257602036600319011260725760043560015580f35b90503460a9578160031936011260a95760ff60209254168152f35b5080fdfea164736f6c6343000813000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

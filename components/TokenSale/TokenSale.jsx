@@ -64,6 +64,13 @@ const TokenSale = ({ isDarkMode }) => {
   const [percentage, setPercentage] = useState(0);
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [nowTs, setNowTs] = useState(Math.floor(Date.now() / 1000));
+
+  // Update 'now' every minute for gating
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Theme configuration
   const theme = {
@@ -271,6 +278,33 @@ const TokenSale = ({ isDarkMode }) => {
   return (
     <>
       <Header theme={theme} title="Token Sale" />
+      {/* Sale start notice */}
+      {(() => {
+        const fallbackStart = parseInt(
+          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+          10
+        );
+        const saleStartTs = parseInt(
+          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
+          10
+        );
+        const saleLive = nowTs >= saleStartTs;
+        if (saleLive) return null;
+        const startIso = new Date(saleStartTs * 1000).toLocaleString();
+        return (
+          <div className={`mb-4 px-4`}>
+            <div className={`rounded-lg p-4 ${theme.cardBg} border ${theme.border} flex items-start gap-3`}>
+              <FaInfoCircle className="text-yellow-400 mt-1" />
+              <div className={theme.text}>
+                <div className="font-semibold">Token sale not started</div>
+                <div className={theme.textSecondary}>
+                  Buying is disabled. The sale opens on {startIso}.
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {boundReferrer && (
         <div className={`mb-4 px-4 ${theme.text}`}>
           Referrer: {formatAddress(boundReferrer)}
@@ -719,35 +753,67 @@ const TokenSale = ({ isDarkMode }) => {
                     {/* Purchase Button */}
                     <button
                       type="submit"
-                      disabled={
-                        isLoading ||
-                        parseFloat(tokenBalances?.fsxBalance || 0) < 20
-                      }
-                      className={`w-full ${
-                        parseFloat(tokenBalances?.fsxBalance || 0) < 20
+                      disabled={(function () {
+                        const fallbackStart = parseInt(
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          10
+                        );
+                        const saleStartTs = parseInt(
+                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
+                          10
+                        );
+                        const saleLive = nowTs >= saleStartTs;
+                        return (
+                          isLoading ||
+                          parseFloat(tokenBalances?.fsxBalance || 0) < 20 ||
+                          !saleLive
+                        );
+                      })()}
+                      className={`w-full ${(() => {
+                        const fallbackStart = parseInt(
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          10
+                        );
+                        const saleStartTs = parseInt(
+                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
+                          10
+                        );
+                        const saleLive = nowTs >= saleStartTs;
+                        if (!saleLive) return isDarkMode ? "bg-gray-700 cursor-not-allowed" : "bg-gray-300 cursor-not-allowed text-gray-500";
+                        return parseFloat(tokenBalances?.fsxBalance || 0) < 20
                           ? isDarkMode
                             ? "bg-gray-700 cursor-not-allowed"
                             : "bg-gray-300 cursor-not-allowed text-gray-500"
-                          : "text-light-gradient hover:from-teal-500 hover:to-indigo-600"
-                      } text-white font-medium py-4 rounded-lg transition-colors`}
+                          : "text-light-gradient hover:from-teal-500 hover:to-indigo-600";
+                      })()} text-white font-medium py-4 rounded-lg transition-colors`}
                     >
-                      {isLoading
-                        ? "Processing..."
-                        : parseFloat(tokenBalances?.fsxBalance || 0) < 20
-                        ? "Insufficient Token Supply"
-                        : `Buy with ${
-                            activeTab === "buyWithBNB"
-                              ? "BNB"
-                              : activeTab === "buyWithUSDT"
-                              ? "USDT"
-                              : activeTab === "buyWithUSDC"
-                              ? "USDC"
-                              : activeTab === "buyWithETH"
-                              ? "ETH"
-                              : activeTab === "buyWithBTC"
-                              ? "BTC"
-                              : "SOL"
-                          }`}
+                      {(() => {
+                        const fallbackStart = parseInt(
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          10
+                        );
+                        const saleStartTs = parseInt(
+                          (contractInfo && contractInfo.saleStartTime) || fallbackStart,
+                          10
+                        );
+                        const saleLive = nowTs >= saleStartTs;
+                        if (isLoading) return "Processing...";
+                        if (!saleLive) return "Sales start on 15 Sep 2025";
+                        if (parseFloat(tokenBalances?.fsxBalance || 0) < 20) return "Insufficient Token Supply";
+                        return `Buy with ${
+                          activeTab === "buyWithBNB"
+                            ? "BNB"
+                            : activeTab === "buyWithUSDT"
+                            ? "USDT"
+                            : activeTab === "buyWithUSDC"
+                            ? "USDC"
+                            : activeTab === "buyWithETH"
+                            ? "ETH"
+                            : activeTab === "buyWithBTC"
+                            ? "BTC"
+                            : "SOL"
+                        }`;
+                      })()}
                     </button>
                   </form>
                 )}
