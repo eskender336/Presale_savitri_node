@@ -17,7 +17,8 @@
     "deploy-prod-bsc": "hardhat run scripts/deploy.prod.js --network bsc",
     "deploy-bscTestnet": "hardhat run scripts/deploy.mocks.js --network bscTestnet",
     "deploy-prod-holesky": "hardhat run scripts/deploy.prod.js --network holesky",
-    "deploy-prod-ethereum": "hardhat run scripts/deploy.prod.js --network ethereum"
+    "deploy-prod-ethereum": "hardhat run scripts/deploy.prod.js --network ethereum",
+    "notify:watch": "node scripts/telegram-notifier.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",

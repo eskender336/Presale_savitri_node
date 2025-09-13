@@ -131,6 +131,17 @@ cp web3/.env.example web3/.env
 
 Then update the newly created files with your own credentials.
 
+## Telegram Notifier (PM2)
+
+Run the purchase notifications bot with PM2 so it stays alive after SSH closes:
+
+```bash
+cd web3
+pm2 start scripts/telegram-notifier.js --name presale-notifier --time
+```
+
+Make sure `web3/.env` (or `web3/.env.main`) includes `NETWORK_RPC_URL`/`RPC_WS_URL`, `CONTRACT_ADDRESS` (or `NEXT_PUBLIC_TOKEN_ICO_ADDRESS`), `TELEGRAM_BOT_TOKEN`, and `TELEGRAM_CHAT_ID`.
+
 ## Important Links
 
 - [Get Pro Blockchain Developer Course](https://www.theblockchaincoders.com/pro-nft-marketplace)
