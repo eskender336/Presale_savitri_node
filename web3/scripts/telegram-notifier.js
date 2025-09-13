@@ -17,7 +17,7 @@ const https = require('https');
 
 const RPC_WS_URL = process.env.RPC_WS_URL || '';
 const NETWORK_RPC_URL = process.env.NETWORK_RPC_URL || '';
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS;
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.CONTRACT_ADDRESS;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const NETWORK_NAME = process.env.NETWORK_NAME || 'network';
@@ -26,13 +26,24 @@ const EXPLORER_TX_URL = process.env.EXPLORER_TX_URL || '';
 const BLOCK_CONFIRMATIONS = parseInt(process.env.BLOCK_CONFIRMATIONS || '2', 10);
 const POLL_MAX_BLOCK_SPAN = parseInt(process.env.POLL_MAX_BLOCK_SPAN || '1', 10); // public BSC RPCs are strict
 const POLL_MIN_DELAY_MS = parseInt(process.env.POLL_MIN_DELAY_MS || '750', 10); // rate-limit friendly
+const DRY_RUN = /^1|true$/i.test(String(process.env.DRY_RUN || ''));
+const FORCE_HTTP = /^1|true$/i.test(String(process.env.FORCE_HTTP || ''));
+const LOG_VERBOSE = /^1|true$/i.test(String(process.env.LOG_VERBOSE || ''));
+const LOG_EVENTS = /^1|true$/i.test(String(process.env.LOG_EVENTS || ''));
+const POLLING_INTERVAL_MS = parseInt(process.env.POLLING_INTERVAL_MS || '1000', 10);
+const WS_PROBE_TIMEOUT_MS = parseInt(process.env.WS_PROBE_TIMEOUT_MS || '12000', 10);
+const WAIT_TIMEOUT_MS = parseInt(process.env.WAIT_TIMEOUT_MS || '60000', 10);
 
-if (!CONTRACT_ADDRESS || !TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-  console.error('Missing required env. Please set CONTRACT_ADDRESS (or NEXT_PUBLIC_TOKEN_ICO_ADDRESS), TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID');
+if (!CONTRACT_ADDRESS) {
+  console.error('Missing required env CONTRACT_ADDRESS (or NEXT_PUBLIC_TOKEN_ICO_ADDRESS)');
+  process.exit(1);
+}
+if (!DRY_RUN && (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID)) {
+  console.error('Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID. Set DRY_RUN=1 for console-only testing.');
   process.exit(1);
 }
 if (!RPC_WS_URL && !NETWORK_RPC_URL) {
-  console.error('Missing RPC endpoint. Provide RPC_WS_URL (wss://) or NETWORK_RPC_URL (wss:// or https://)');
+  console.error('Missing RPC endpoint. Provide RPC_WS_URL (ws:// or wss://) or NETWORK_RPC_URL (ws://, wss:// or http://)');
   process.exit(1);
 }
 
@@ -87,6 +98,10 @@ function formatAmount(amountBN, decimals) {
 }
 
 function postToTelegram(text) {
+  if (DRY_RUN) {
+    console.log('[notifier][DRY_RUN] Would send to Telegram:\n' + text);
+    return Promise.resolve();
+  }
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML', disable_web_page_preview: true });
     const options = {
@@ -112,8 +127,10 @@ function postToTelegram(text) {
 
 async function run() {
   let provider;
-  const rpcWsLooksValid = RPC_WS_URL && RPC_WS_URL.startsWith('wss://');
-  const netWsLooksValid = NETWORK_RPC_URL && NETWORK_RPC_URL.startsWith('wss://');
+  const isWsUrl = (u) => typeof u === 'string' && (u.startsWith('ws://') || u.startsWith('wss://'));
+  const isHttpUrl = (u) => typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'));
+  const rpcWsLooksValid = isWsUrl(RPC_WS_URL);
+  const netWsLooksValid = isWsUrl(NETWORK_RPC_URL);
 
   async function withTimeout(promise, ms, label) {
     let to;
@@ -133,8 +150,12 @@ async function run() {
     const wsProvider = new ethers.providers.WebSocketProvider(url);
     try {
       // Force an initial request to verify the WS endpoint is actually an EVM JSON-RPC
-      await withTimeout(wsProvider.getBlockNumber(), 7000, `${label} getBlockNumber`);
+      await withTimeout(wsProvider.getBlockNumber(), WS_PROBE_TIMEOUT_MS, `${label} getBlockNumber`);
       console.log(`[notifier] Using WebSocket provider from ${label}`);
+      if (wsProvider._websocket) {
+        wsProvider._websocket.on('open', () => LOG_VERBOSE && console.log('[notifier] WS open'));
+        wsProvider._websocket.on('error', (e) => console.warn('[notifier] WS error during probe:', e && e.message || e));
+      }
       return wsProvider;
     } catch (e) {
       // Clean up socket if it opened
@@ -143,23 +164,34 @@ async function run() {
           wsProvider._websocket.close();
         }
       } catch (_) { /* noop */ }
+      console.warn(`[notifier] WS probe failed for ${label}:`, e && (e.message || e));
       throw e;
     }
   }
 
   // Decide and build provider with graceful fallback
   try {
-    if (rpcWsLooksValid) {
-      provider = await tryWebSocket(RPC_WS_URL, 'RPC_WS_URL');
-    } else if (netWsLooksValid) {
-      provider = await tryWebSocket(NETWORK_RPC_URL, 'NETWORK_RPC_URL');
-    } else {
+    if (!FORCE_HTTP) {
+      if (rpcWsLooksValid) {
+        provider = await tryWebSocket(RPC_WS_URL, 'RPC_WS_URL');
+      } else if (netWsLooksValid) {
+        provider = await tryWebSocket(NETWORK_RPC_URL, 'NETWORK_RPC_URL');
+      }
+    }
+    if (!provider) {
+      const httpUrl = isHttpUrl(NETWORK_RPC_URL) ? NETWORK_RPC_URL : NETWORK_RPC_URL || '';
+      if (!httpUrl) throw new Error('No HTTP URL provided in NETWORK_RPC_URL');
       console.log('[notifier] Using HTTP JSON-RPC provider from NETWORK_RPC_URL');
-      provider = new ethers.providers.JsonRpcProvider(NETWORK_RPC_URL);
+      provider = new ethers.providers.JsonRpcProvider(httpUrl);
+      provider.polling = true;
+      provider.pollingInterval = POLLING_INTERVAL_MS;
     }
   } catch (e) {
-    console.warn(`[notifier] WebSocket connect failed: ${e.message}. Falling back to HTTP polling.`);
-    provider = new ethers.providers.JsonRpcProvider(NETWORK_RPC_URL);
+    console.warn(`[notifier] Provider setup failed: ${e.message}. Falling back to HTTP polling.`);
+    const httpUrl = isHttpUrl(NETWORK_RPC_URL) ? NETWORK_RPC_URL : NETWORK_RPC_URL || '';
+    provider = new ethers.providers.JsonRpcProvider(httpUrl);
+    provider.polling = true;
+    provider.pollingInterval = POLLING_INTERVAL_MS;
   }
 
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
@@ -173,7 +205,8 @@ async function run() {
     // ignore; keep default
   }
 
-  console.log(`[notifier] Connected. Subscribing to TokensPurchased on ${NETWORK_NAME} at ${CONTRACT_ADDRESS}`);
+  const mode = provider._websocket ? 'websocket' : 'http-polling';
+  console.log(`[notifier] Connected (${mode}). Subscribing to TokensPurchased on ${NETWORK_NAME} at ${CONTRACT_ADDRESS}`);
 
   async function handlePurchase(buyer, paymentMethod, amountPaid, tokensBought, timestamp, event) {
     try {
@@ -182,7 +215,19 @@ async function run() {
       const bought = formatAmount(tokensBought, saleTokenMeta.decimals);
       const when = timestamp && timestamp.toNumber ? new Date(timestamp.toNumber() * 1000) : new Date();
       const txUrl = EXPLORER_TX_URL ? `${EXPLORER_TX_URL}${event.transactionHash}` : event.transactionHash;
-
+      if (LOG_EVENTS) {
+        console.log('[notifier][TokensPurchased]', {
+          tx: event.transactionHash,
+          block: event.blockNumber,
+          buyer,
+          paymentMethod,
+          amountPaid: amountPaid.toString(),
+          tokensBought: tokensBought.toString(),
+          time: when.toISOString(),
+          paymentSymbol: paymentMeta.symbol,
+          saleSymbol: saleTokenMeta.symbol,
+        });
+      }
       const text = [
         `New Purchase on <b>${NETWORK_NAME}</b> 🎉`,
         `Buyer: <code>${buyer}</code>`,
@@ -200,6 +245,7 @@ async function run() {
   }
 
   const isWs = !!(provider._websocket && provider._websocket.on);
+  console.log('isWs', isWs);
   const filter = contract.filters.TokensPurchased();
 
   if (isWs) {
@@ -207,10 +253,17 @@ async function run() {
     contract.on(filter, async (buyer, paymentMethod, amountPaid, tokensBought, timestamp, event) => {
       try {
         // Wait for BLOCK_CONFIRMATIONS before notifying (confirmed only)
-        await provider.waitForTransaction(event.transactionHash, BLOCK_CONFIRMATIONS);
+        if (BLOCK_CONFIRMATIONS > 0) {
+          try {
+            await withTimeout(provider.waitForTransaction(event.transactionHash, BLOCK_CONFIRMATIONS), WAIT_TIMEOUT_MS, 'waitForTransaction');
+          } catch (timeoutErr) {
+            console.warn('[notifier] waitForTransaction timeout; proceeding without full confirmations');
+          }
+        }
         const key = `${event.transactionHash}-${event.logIndex}`;
         if (seenWs.has(key)) return;
         seenWs.add(key);
+        if (LOG_VERBOSE) console.log('[notifier] WS event received at block', event.blockNumber);
         await handlePurchase(buyer, paymentMethod, amountPaid, tokensBought, timestamp, event);
       } catch (err) {
         console.error('[notifier] WS handler error:', err);
@@ -228,13 +281,14 @@ async function run() {
       process.exit(1);
     });
   } else {
-    console.log('[notifier] Using HTTP polling mode');
+    console.log(`[notifier] Using HTTP polling mode (interval ${provider.pollingInterval}ms)`);
     const seen = new Set();
     let lastProcessed = Math.max(0, (await provider.getBlockNumber()) - BLOCK_CONFIRMATIONS - 1);
 
     function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
     provider.on('block', async (bn) => {
+      if (LOG_VERBOSE) console.log(`[notifier] New block ${bn}`);
       const target = bn - BLOCK_CONFIRMATIONS;
       if (target <= lastProcessed) return;
 
@@ -242,6 +296,7 @@ async function run() {
       while (from <= target) {
         const span = Math.max(1, POLL_MAX_BLOCK_SPAN);
         const to = Math.min(from + span - 1, target);
+        if (LOG_VERBOSE) console.log(`[notifier] Query range ${from}-${to}`);
         let attempt = 0;
         let success = false;
         while (!success) {
