@@ -12,7 +12,7 @@ async function main() {
   const ethers = hre.ethers;
 
   const to    = env("TO");
-  const token = env("TOKEN", process.env.NEXT_PUBLIC_SAV_ADDRESS);
+  const token = env("TOKEN", process.env.SAV_ADDRESS);
   const amt   = env("AMOUNT", "1000");
 
   const isAddress = ethers.utils?.isAddress ?? ethers.isAddress;

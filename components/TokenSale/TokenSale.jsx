@@ -286,32 +286,7 @@ const TokenSale = ({ isDarkMode }) => {
   return (
     <>
       <Header theme={theme} title="Token Sale" />
-      {/* Sale start notice */}
-      {(() => {
-        const fallbackStart = parseInt(
-          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
-          10
-        );
-        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
-        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
-        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
-        const saleLive = nowTs >= saleStartTs;
-        if (saleLive) return null;
-        const startIso = formatDMY(saleStartTs);
-        return (
-          <div className={`mb-4 px-4`}>
-            <div className={`rounded-lg p-4 ${theme.cardBg} border ${theme.border} flex items-start gap-3`}>
-              <FaInfoCircle className="text-yellow-400 mt-1" />
-              <div className={theme.text}>
-                <div className="font-semibold">Token sale not started</div>
-                <div className={theme.textSecondary}>
-                  Buying is disabled. The sale opens on {startIso}.
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Sale start notice removed: always allow buying */}
       {boundReferrer && (
         <div className={`mb-4 px-4 ${theme.text}`}>
           Referrer: {formatAddress(boundReferrer)}
@@ -760,31 +735,13 @@ const TokenSale = ({ isDarkMode }) => {
                     {/* Purchase Button */}
                     <button
                       type="submit"
-                      disabled={(function () {
-                        const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
-                          10
-                        );
-                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
-                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
-                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
-                        const saleLive = nowTs >= saleStartTs;
+    disabled={(function () {
                         return (
                           isLoading ||
-                          parseFloat(tokenBalances?.fsxBalance || 0) < 20 ||
-                          !saleLive
+                          parseFloat(tokenBalances?.fsxBalance || 0) < 20
                         );
                       })()}
                       className={`w-full ${(() => {
-                        const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
-                          10
-                        );
-                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
-                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
-                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
-                        const saleLive = nowTs >= saleStartTs;
-                        if (!saleLive) return isDarkMode ? "bg-gray-700 cursor-not-allowed" : "bg-gray-300 cursor-not-allowed text-gray-500";
                         return parseFloat(tokenBalances?.fsxBalance || 0) < 20
                           ? isDarkMode
                             ? "bg-gray-700 cursor-not-allowed"
@@ -793,19 +750,7 @@ const TokenSale = ({ isDarkMode }) => {
                       })()} text-white font-medium py-4 rounded-lg transition-colors`}
                     >
                       {(() => {
-                        const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
-                          10
-                        );
-                        const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
-                        const rawFromState = (contractInfo && contractInfo.saleStartTime) || fallbackStart;
-                        const saleStartTs = envOverride > 0 ? envOverride : parseInt(rawFromState, 10);
-                        const saleLive = nowTs >= saleStartTs;
                         if (isLoading) return "Processing...";
-                        if (!saleLive) {
-                          const dateStr = formatDMY(saleStartTs);
-                          return `Sales start on ${dateStr}`;
-                        }
                         if (parseFloat(tokenBalances?.fsxBalance || 0) < 20) return "Insufficient Token Supply";
                         return `Buy with ${
                           activeTab === "buyWithBNB"

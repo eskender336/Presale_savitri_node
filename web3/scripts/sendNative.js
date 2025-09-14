@@ -1,6 +1,10 @@
-// Usage:
-// TOKEN=0x... TO=0x... AMOUNT=100000 npx hardhat run scripts/sendERC20.js --network localhost
-// If your token has mint(address,uint256) and you want to mint instead of transfer: add MINT=1
+// scripts/sendNative.js
+// Send native coin (ETH/BNB/etc.)
+// Usage examples:
+//   TO=0x... AMOUNT=0.5 npx hardhat run scripts/sendNative.js --network localhost
+//   TO=0x... AMOUNT=100000 UNIT=wei npx hardhat run scripts/sendNative.js --network localhost
+// Optional overrides:
+//   GAS_PRICE_GWEI=3  GAS_LIMIT=21000
 
 const hre = require("hardhat");
 
@@ -9,52 +13,66 @@ function env(name, fallback) { return process.env[name] ?? fallback; }
 async function main() {
   const { ethers } = hre;
 
-  const tokenAddr   = env("TOKEN");
-  const to          = env("TO");
-  const amountHuman = env("AMOUNT");            // e.g. "100000" (100k)
-  const doMint      = env("MINT","0") === "1";  // optional
+  const to           = env("TO");
+  const amountHuman  = env("AMOUNT"); // string, e.g. "0.5" or "100000"
+  const unitRaw      = env("UNIT", "ether");
+  let unit           = String(unitRaw || "ether").toLowerCase(); // wei|gwei|ether|aliases
+  const gasPriceGwei = env("GAS_PRICE_GWEI");
+  const gasLimit     = env("GAS_LIMIT");
 
-  if (!tokenAddr || !ethers.utils.isAddress(tokenAddr)) throw new Error(`Bad TOKEN: ${tokenAddr}`);
-  if (!to || !ethers.utils.isAddress(to)) throw new Error(`Bad TO: ${to}`);
+  const isAddress   = ethers.utils?.isAddress ?? ethers.isAddress;
+  const parseUnits  = ethers.utils?.parseUnits ?? ethers.parseUnits;
+  const formatEther = ethers.utils?.formatEther ?? ethers.formatEther;
+
+  if (!to || !isAddress(to)) throw new Error(`Bad TO: ${to}`);
   if (!amountHuman) throw new Error("AMOUNT is required");
 
   const [signer] = await ethers.getSigners();
 
-  const erc20Abi = [
-    "function name() view returns (string)",
-    "function symbol() view returns (string)",
-    "function decimals() view returns (uint8)",
-    "function balanceOf(address) view returns (uint256)",
-    "function transfer(address,uint256) returns (bool)",
-    "function mint(address,uint256)" // may not exist; we'll try if MINT=1
-  ];
+  // Build tx overrides
+  const overrides = {};
+  if (gasPriceGwei) overrides.gasPrice = parseUnits(gasPriceGwei, "gwei");
+  if (gasLimit) overrides.gasLimit = ethers.BigNumber?.from?.(gasLimit) ?? BigInt(gasLimit);
 
-  const token = new ethers.Contract(tokenAddr, erc20Abi, signer);
-  const [sym, dec] = await Promise.all([
-    token.symbol().catch(() => ""),
-    token.decimals()
+  // Normalize common aliases and support numeric decimals in UNIT
+  const etherAliases = new Set([
+    "eth", "bnb", "matic", "avax", "ftm", "op", "arb", "bsc", "native", "ether"
   ]);
-  const amountWei = ethers.utils.parseUnits(amountHuman, dec);
+  const isNumericUnit = /^\d+$/.test(String(unitRaw));
+  if (etherAliases.has(unit)) unit = "ether";
 
-  const before = await token.balanceOf(to);
-  console.log(`Sender:   ${signer.address}`);
-  console.log(`Token:    ${sym} (${tokenAddr}) dec=${dec}`);
-  console.log(`Recipient ${to}`);
-  console.log(`Balance before: ${ethers.utils.formatUnits(before, dec)} ${sym}`);
-
-  let tx;
-  if (doMint && typeof token.mint === "function") {
-    console.log(`Minting ${amountHuman} ${sym} to recipient...`);
-    tx = await token.mint(to, amountWei);
-  } else {
-    console.log(`Transferring ${amountHuman} ${sym} to recipient...`);
-    tx = await token.transfer(to, amountWei);
+  // Parse value in the requested unit (default: ether)
+  let value;
+  try {
+    if (isNumericUnit) {
+      // Treat UNIT as number of decimals, e.g. UNIT=18
+      const decimals = parseInt(String(unitRaw), 10);
+      value = parseUnits(amountHuman, decimals);
+    } else {
+      value = unit === "ether"
+        ? (ethers.utils?.parseEther ? ethers.utils.parseEther(amountHuman) : ethers.parseEther(amountHuman))
+        : parseUnits(amountHuman, unit);
+    }
+  } catch (e) {
+    throw new Error(`Failed to parse AMOUNT='${amountHuman}' as ${unit}: ${e.message || e}`);
   }
+
+  const balSenderBefore = await ethers.provider.getBalance(signer.address);
+  const balToBefore = await ethers.provider.getBalance(to).catch(() => null);
+
+  console.log("Network:", (await ethers.provider.getNetwork()).chainId);
+  console.log("Sender:", signer.address);
+  console.log("Recipient:", to);
+  console.log("Sender balance:", formatEther(balSenderBefore), "native");
+  if (balToBefore != null) console.log("Recipient balance (before):", formatEther(balToBefore), "native");
+  console.log(`Sending: ${amountHuman} ${isNumericUnit ? unitRaw+"-decimals" : unit} (${formatEther(value)} native)`);
+
+  const tx = await signer.sendTransaction({ to, value, ...overrides });
   console.log("tx:", tx.hash);
   await tx.wait();
 
-  const after = await token.balanceOf(to);
-  console.log(`✅ Balance after:  ${ethers.utils.formatUnits(after, dec)} ${sym}`);
+  const balToAfter = await ethers.provider.getBalance(to).catch(() => null);
+  if (balToAfter != null) console.log("✅ Recipient balance (after):", formatEther(balToAfter), "native");
 }
 
 main().catch((e) => { console.error("❌", e); process.exit(1); });

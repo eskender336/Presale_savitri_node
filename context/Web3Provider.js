@@ -132,7 +132,8 @@ export const Web3Provider = ({ children }) => {
     return 1757894400;
   };
 
-  const isSaleLive = () => Math.floor(Date.now() / 1000) >= getSaleStartTs();
+  // Disable frontend date gating: always consider sale live
+  const isSaleLive = () => true;
 
   useEffect(() => {
     if (!isConnected) return;
@@ -285,12 +286,7 @@ export const Web3Provider = ({ children }) => {
       return null;
     }
 
-    // Frontend gate: block before sale start
-    if (!isSaleLive()) {
-      const ts = getSaleStartTs();
-      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-      return null;
-    }
+    // Frontend gate removed: allow purchases regardless of date
 
     if (!boundReferrer) {
       await handleReferralRegistration();
@@ -464,11 +460,7 @@ export const Web3Provider = ({ children }) => {
   
   const buyWithUSDT = async (usdtAmount) => {
   if (!contract || !address) return null;
-  if (!isSaleLive()) {
-    const ts = getSaleStartTs();
-    showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-    return null;
-  }
+  // Frontend gate removed: allow purchases regardless of date
   if (!boundReferrer) {
     await handleReferralRegistration();
   }
@@ -607,11 +599,7 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithUSDC = async (usdcAmount) => {
     if (!contract || !address) return null;
-    if (!isSaleLive()) {
-      const ts = getSaleStartTs();
-      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-      return null;
-    }
+    // Frontend gate removed: allow purchases regardless of date
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -746,11 +734,7 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithETH = async (ethAmount) => {
     if (!contract || !address) return null;
-    if (!isSaleLive()) {
-      const ts = getSaleStartTs();
-      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-      return null;
-    }
+    // Frontend gate removed: allow purchases regardless of date
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -849,11 +833,7 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithBTC = async (btcAmount) => {
     if (!contract || !address) return null;
-    if (!isSaleLive()) {
-      const ts = getSaleStartTs();
-      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-      return null;
-    }
+    // Frontend gate removed: allow purchases regardless of date
     if (!boundReferrer) {
       await handleReferralRegistration();
     }
@@ -954,11 +934,7 @@ export const Web3Provider = ({ children }) => {
 
   const buyWithSOL = async (solAmount) => {
     if (!contract || !address) return null;
-    if (!isSaleLive()) {
-      const ts = getSaleStartTs();
-      showInfo(`Token sale opens on ${new Date(ts * 1000).toLocaleString()}`);
-      return null;
-    }
+    // Frontend gate removed: allow purchases regardless of date
     if (!boundReferrer) {
       await handleReferralRegistration();
     }

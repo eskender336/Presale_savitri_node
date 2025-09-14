@@ -502,16 +502,7 @@ useEffect(() => {
 
   // Determine button state message
   const getButtonMessage = () => {
-    const startDateStr = (() => {
-      if (!saleStartTs) return "";
-      const d = new Date(saleStartTs * 1000);
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const yyyy = d.getFullYear();
-      return `${dd}.${mm}.${yyyy}`;
-    })();
-    const saleLive = nowTs >= saleStartTs && saleStartTs > 0;
-    if (!saleLive) return `STARTS ON ${startDateStr}`.toUpperCase();
+    // Frontend gating removed: do not block on saleStartTs
     if (parseFloat(contractInfo?.fsxBalance || "0") < 20) {
       return "INSUFFICIENT TOKEN SUPPLY";
     }
@@ -1023,15 +1014,15 @@ useEffect(() => {
                 {isConnected ? (
                   <button
                     onClick={executePurchase}
-                    disabled={!hasSufficientBalance || (saleStartTs > 0 && nowTs < saleStartTs)}
+                    disabled={!hasSufficientBalance}
                     className={`w-full ${
-                      hasSufficientBalance && !(saleStartTs > 0 && nowTs < saleStartTs)
+                      hasSufficientBalance
                         ? `bg-gradient-to-r ${primaryGradient} hover:${primaryGradientHover}`
                         : isDarkMode
                         ? "bg-gray-700/70 cursor-not-allowed"
                         : "bg-gray-300 cursor-not-allowed"
                     } text-white rounded-lg py-4 mb-4 flex items-center justify-center transition-all duration-300 font-medium shadow-lg ${
-                      hasSufficientBalance && !(saleStartTs > 0 && nowTs < saleStartTs)
+                      hasSufficientBalance
                         ? "hover:shadow-indigo-500/20 hover:scale-[1.01]"
                         : ""
                     }`}
