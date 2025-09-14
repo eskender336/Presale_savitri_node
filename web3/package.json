@@ -18,7 +18,11 @@
     "deploy-bscTestnet": "hardhat run scripts/deploy.mocks.js --network bscTestnet",
     "deploy-prod-holesky": "hardhat run scripts/deploy.prod.js --network holesky",
     "deploy-prod-ethereum": "hardhat run scripts/deploy.prod.js --network ethereum",
-    "notify:watch": "node scripts/telegram-notifier.js"
+    "notify:watch": "node scripts/telegram-notifier.js",
+    "update-pricing": "node scripts/update-pricing.js",
+    "bonus:watch": "node scripts/bonus-distributor.js --live",
+    "bonus:backfill": "node scripts/bonus-distributor.js --from-block 0",
+    "check:balances": "node scripts/check-sale-balances.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
