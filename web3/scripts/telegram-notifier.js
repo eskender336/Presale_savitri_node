@@ -16,13 +16,19 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 try { require('dotenv').config({ path: __dirname + '/../../.env.local' }); } catch (_) {}
 const { ethers } = require('ethers');
 const https = require('https');
+const fs = require('fs');
 const path = require('path');
 
 const RPC_WS_URL = process.env.RPC_WS_URL || '';
 const NETWORK_RPC_URL = process.env.NETWORK_RPC_URL || '';
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.CONTRACT_ADDRESS;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+// Multi-recipient support and auto-discovery
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID; // single fallback
+const TELEGRAM_CHAT_IDS = process.env.TELEGRAM_CHAT_IDS; // comma/space-separated or JSON array
+const TELEGRAM_CHAT_IDS_FILE = process.env.TELEGRAM_CHAT_IDS_FILE; // optional path to ids list
+const TELEGRAM_RECIPIENTS_FILE = process.env.TELEGRAM_RECIPIENTS_FILE || path.join(__dirname, '../.telegram.recipients.json');
+const TELEGRAM_UPDATES_OFFSET_FILE = process.env.TELEGRAM_UPDATES_OFFSET_FILE || path.join(__dirname, '../.telegram.updates.offset');
 const NETWORK_NAME = process.env.NETWORK_NAME || 'network';
 const NATIVE_SYMBOL = process.env.NATIVE_SYMBOL || 'NATIVE';
 const EXPLORER_TX_URL = process.env.EXPLORER_TX_URL || '';
@@ -48,8 +54,8 @@ if (!CONTRACT_ADDRESS) {
   console.error('Missing required env CONTRACT_ADDRESS (or NEXT_PUBLIC_TOKEN_ICO_ADDRESS)');
   process.exit(1);
 }
-if (!DRY_RUN && (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID)) {
-  console.error('Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID. Set DRY_RUN=1 for console-only testing.');
+if (!DRY_RUN && !TELEGRAM_BOT_TOKEN) {
+  console.error('Missing TELEGRAM_BOT_TOKEN. Set DRY_RUN=1 for console-only testing.');
   process.exit(1);
 }
 if (!RPC_WS_URL && !NETWORK_RPC_URL) {
@@ -75,6 +81,135 @@ const erc20Abi = [
 ];
 
 const tokenMetaCache = new Map();
+
+// ----- Telegram recipients management -----
+function parseChatIds(raw) {
+  if (!raw) return [];
+  const s = String(raw).trim();
+  if (!s) return [];
+  // Try JSON array first
+  if ((s.startsWith('[') && s.endsWith(']')) || (s.startsWith('"') && s.endsWith('"'))) {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) return arr.map((x) => String(x).trim()).filter(Boolean);
+      return [String(arr).trim()].filter(Boolean);
+    } catch (_) { /* fallthrough */ }
+  }
+  return s.split(/[\s,]+/).map((x) => x.trim()).filter(Boolean);
+}
+
+function readJsonSafe(file, def) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (_) { return def; }
+}
+
+function writeJsonSafe(file, obj) {
+  try { fs.writeFileSync(file, JSON.stringify(obj, null, 2)); } catch (_) { /* ignore */ }
+}
+
+function loadRecipientsFromFile() {
+  try {
+    const data = fs.readFileSync(TELEGRAM_RECIPIENTS_FILE, 'utf8');
+    const parsed = JSON.parse(data);
+    if (Array.isArray(parsed)) return parsed.map((x) => String(x).trim()).filter(Boolean);
+    if (parsed && Array.isArray(parsed.ids)) return parsed.ids.map((x) => String(x).trim()).filter(Boolean);
+  } catch (_) { /* ignore */ }
+  return [];
+}
+
+function saveRecipientsToFile(ids) {
+  const unique = Array.from(new Set(ids.map((x) => String(x).trim()).filter(Boolean)));
+  writeJsonSafe(TELEGRAM_RECIPIENTS_FILE, unique);
+  return unique;
+}
+
+function loadChatIds() {
+  let ids = [];
+  // 1) Env list
+  ids = ids.concat(parseChatIds(TELEGRAM_CHAT_IDS));
+  // 2) Single env fallback
+  if (!ids.length && TELEGRAM_CHAT_ID) ids.push(String(TELEGRAM_CHAT_ID).trim());
+  // 3) External IDs file via env
+  if (TELEGRAM_CHAT_IDS_FILE) {
+    try {
+      const data = fs.readFileSync(TELEGRAM_CHAT_IDS_FILE, 'utf8');
+      let more = [];
+      try { const parsed = JSON.parse(data); more = Array.isArray(parsed) ? parsed : [parsed]; }
+      catch (_) { more = data.split(/\r?\n/); }
+      ids = ids.concat(more.map((x) => String(x).trim()).filter(Boolean));
+    } catch (e) {
+      console.warn('[notifier] Could not read TELEGRAM_CHAT_IDS_FILE:', e && e.message || e);
+    }
+  }
+  // 4) Recipients file
+  ids = ids.concat(loadRecipientsFromFile());
+  // dedupe
+  ids = Array.from(new Set(ids));
+  return ids;
+}
+
+function httpGetJson(hostname, pathStr) {
+  return new Promise((resolve, reject) => {
+    const req = https.request({ hostname, port: 443, path: pathStr, method: 'GET' }, (res) => {
+      let buf = '';
+      res.on('data', (d) => { buf += d; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(buf)); } catch (e) { reject(new Error('Invalid JSON: ' + buf)); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function discoverRecipientsFromUpdates() {
+  if (!TELEGRAM_BOT_TOKEN) return [];
+  let offset = 0;
+  try { offset = parseInt(fs.readFileSync(TELEGRAM_UPDATES_OFFSET_FILE, 'utf8').trim(), 10) || 0; } catch (_) {}
+  // Also allow "chat_member" (e.g., promotions/demotions) for broader coverage
+  const allowed = encodeURIComponent(JSON.stringify(["message","channel_post","my_chat_member","chat_member"]));
+  const pathStr = `/bot${TELEGRAM_BOT_TOKEN}/getUpdates?timeout=1&allowed_updates=${allowed}` + (offset ? `&offset=${offset}` : '');
+  try {
+    const resp = await httpGetJson('api.telegram.org', pathStr);
+    if (!resp || !resp.ok || !Array.isArray(resp.result)) return [];
+    const ids = [];
+    let maxUpdateId = offset;
+    for (const upd of resp.result) {
+      maxUpdateId = Math.max(maxUpdateId, upd.update_id || 0);
+      const chats = [];
+      if (upd.message && upd.message.chat) chats.push(upd.message.chat);
+      if (upd.channel_post && upd.channel_post.chat) chats.push(upd.channel_post.chat);
+      if (upd.my_chat_member && upd.my_chat_member.chat) chats.push(upd.my_chat_member.chat);
+      if (upd.chat_member && upd.chat_member.chat) chats.push(upd.chat_member.chat);
+      for (const ch of chats) {
+        if (!ch) continue;
+        const id = (typeof ch.id !== 'undefined') ? String(ch.id) : (ch.username ? '@' + ch.username : null);
+        if (id) ids.push(id);
+      }
+    }
+    if (maxUpdateId > offset) {
+      try { fs.writeFileSync(TELEGRAM_UPDATES_OFFSET_FILE, String(maxUpdateId + 1)); } catch (_) {}
+    }
+    return Array.from(new Set(ids));
+  } catch (e) {
+    console.warn('[notifier] getUpdates discovery failed:', e && e.message || e);
+    return [];
+  }
+}
+
+// Keep a runtime list of recipients and ensure we have some
+let RECIPIENT_CHAT_IDS = loadChatIds();
+async function ensureRecipients() {
+  if (RECIPIENT_CHAT_IDS.length) return RECIPIENT_CHAT_IDS;
+  const discovered = await discoverRecipientsFromUpdates();
+  if (discovered.length) {
+    // Merge with any pre-existing IDs and persist
+    RECIPIENT_CHAT_IDS = saveRecipientsToFile(Array.from(new Set(discovered.concat(RECIPIENT_CHAT_IDS))));
+    console.log(`[notifier] Discovered ${RECIPIENT_CHAT_IDS.length} Telegram recipient(s)`);
+  } else {
+    console.warn('[notifier] No Telegram recipients found yet. Invite the bot to your group/channel and send a message to register.');
+  }
+  return RECIPIENT_CHAT_IDS;
+}
 
 async function getTokenMeta(provider, address, fallbackSymbol) {
   if (!address || address === ethers.constants.AddressZero) {
@@ -108,12 +243,16 @@ function formatAmount(amountBN, decimals) {
 }
 
 function postToTelegram(text) {
+  const targets = (RECIPIENT_CHAT_IDS && RECIPIENT_CHAT_IDS.length)
+    ? RECIPIENT_CHAT_IDS
+    : (TELEGRAM_CHAT_ID ? [TELEGRAM_CHAT_ID] : []);
   if (DRY_RUN) {
-    console.log('[notifier][DRY_RUN] Would send to Telegram:\n' + text);
+    if (!targets.length) console.log('[notifier][DRY_RUN] No recipients configured.');
+    targets.forEach((id) => console.log(`[notifier][DRY_RUN] Would send to ${id}:\n` + text));
     return Promise.resolve();
   }
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML', disable_web_page_preview: true });
+  const makeReq = (chatId) => new Promise((resolve, reject) => {
+    const data = JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true });
     const options = {
       hostname: 'api.telegram.org',
       port: 443,
@@ -125,13 +264,20 @@ function postToTelegram(text) {
       let resp = '';
       res.on('data', (d) => { resp += d; });
       res.on('end', () => {
-        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) return resolve(resp);
-        reject(new Error(`Telegram API ${res.statusCode}: ${resp}`));
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) return resolve({ chatId, resp });
+        reject(new Error(`Telegram API ${res.statusCode} for ${chatId}: ${resp}`));
       });
     });
-    req.on('error', reject);
+    req.on('error', (e) => reject(new Error(`Request error for ${chatId}: ${e && e.message || e}`)));
     req.write(data);
     req.end();
+  });
+  return Promise.allSettled(targets.map(makeReq)).then((results) => {
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length) {
+      console.warn('[notifier] Some Telegram sends failed:', failures.map((f) => f.reason && f.reason.message || f.reason));
+    }
+    return results;
   });
 }
 
@@ -205,6 +351,25 @@ async function run() {
   }
 
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+
+  // Ensure recipients are known (auto-discover via getUpdates if none configured)
+  try { await ensureRecipients(); } catch (_) {}
+  // Periodically re-scan for newly invited chats (e.g., every 60s)
+  setInterval(async () => {
+    try {
+      const before = new Set(RECIPIENT_CHAT_IDS);
+      const newly = await discoverRecipientsFromUpdates();
+      if (newly.length) {
+        const merged = Array.from(new Set([...before, ...newly]));
+        if (merged.length !== RECIPIENT_CHAT_IDS.length) {
+          RECIPIENT_CHAT_IDS = saveRecipientsToFile(merged);
+          console.log(`[notifier] Recipients updated (${RECIPIENT_CHAT_IDS.length} total)`);
+        }
+      }
+    } catch (e) {
+      LOG_VERBOSE && console.warn('[notifier] Periodic discovery error:', e && e.message || e);
+    }
+  }, 60000);
 
   // Cache sale token meta for formatting tokensBought
   let saleTokenMeta = { symbol: 'SALE', decimals: 18 };

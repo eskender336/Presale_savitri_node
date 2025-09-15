@@ -128,8 +128,8 @@ export const Web3Provider = ({ children }) => {
       const fromState = contractInfo?.saleStartTime;
       if (fromState) return parseInt(fromState, 10);
     } catch {}
-    // Default: 2025-09-15 00:00:00 UTC
-    return 1757894400;
+    // Default: 2025-09-15 12:00:00 Astana (UTC+5) = 07:00:00 UTC
+    return 1757919600;
   };
 
   const isSaleLive = () => Math.floor(Date.now() / 1000) >= getSaleStartTs();

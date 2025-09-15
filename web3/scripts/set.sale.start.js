@@ -1,5 +1,5 @@
 // scripts/set.sale.start.js
-// Sets TokenICO.saleStartTime to a target timestamp (default: 2025-09-15 00:00:00 UTC)
+// Sets TokenICO.saleStartTime to a target timestamp (default: 2025-09-15 06:00:00 UTC)
 // and verifies the current price equals the initial price until that date.
 //
 // Env vars:
@@ -14,8 +14,8 @@
 //
 // Examples:
 //   npx hardhat run scripts/set.sale.start.js --network bsc
-//   npx hardhat run scripts/set.sale.start.js --network bsc --timestamp 1757894400
-//   npx hardhat run scripts/set.sale.start.js --network bsc --date "2025-09-15 00:00:00Z"
+//   npx hardhat run scripts/set.sale.start.js --network bsc --timestamp 1757919600
+//   npx hardhat run scripts/set.sale.start.js --network bsc --date "2025-09-15 12:00:00+05:00"
 
 const hre = require("hardhat");
 require("dotenv").config();
@@ -89,8 +89,8 @@ async function main() {
   } else if (argv.date) {
     targetTs = parseDateToTimestamp(argv.date);
   } else {
-    // Default: 2025-09-15 00:00:00 UTC
-    targetTs = 1757894400;
+    // Default: 2025-09-15 12:00:00 Astana (UTC+5) = 07:00:00 UTC
+    targetTs = 1757919600;
   }
 
   console.log("Signer:", signer.address);
@@ -145,4 +145,3 @@ main().then(() => process.exit(0)).catch((err) => {
   console.error("❌ set.sale.start failed:", err);
   process.exit(1);
 });
-

@@ -151,6 +151,9 @@ const FAQComponent = ({ isDarkMode }) => {
     </svg>
   );
 
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'eskender.k@prometeochain.io';
+  const mailtoHref = `mailto:${supportEmail}?subject=${encodeURIComponent('Support Request')}`;
+
   return (
     <div className={`w-full py-20 ${bgGradient}`} id="faq">
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
@@ -251,7 +254,17 @@ const FAQComponent = ({ isDarkMode }) => {
             out to our support team.
           </p>
           <a
-              href="#contact"
+              href={mailtoHref}
+              onClick={(e) => {
+                // Ensure navigation even if the browser blocks default
+                try {
+                  // Some environments ignore anchor default for mailto
+                  e.preventDefault();
+                  window.location.href = mailtoHref;
+                } catch (_) {
+                  // noop
+                }
+              }}
               className="inline-flex items-center px-6 py-3 rounded-full font-medium shadow-lg shadow-indigo-500/20 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30 text-light-gradient"
             >
               <svg

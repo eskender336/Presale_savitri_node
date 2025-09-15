@@ -313,7 +313,7 @@ const TokenSale = ({ isDarkMode }) => {
       {/* Sale start notice */}
       {(() => {
         const fallbackStart = parseInt(
-          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+          process.env.NEXT_PUBLIC_SALE_START_TS || "1757919600",
           10
         );
         const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
@@ -810,7 +810,7 @@ const TokenSale = ({ isDarkMode }) => {
                       type="submit"
                       disabled={(function () {
                         const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757919600",
                           10
                         );
                         const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
@@ -825,7 +825,7 @@ const TokenSale = ({ isDarkMode }) => {
                       })()}
                       className={`w-full ${(() => {
                         const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757919600",
                           10
                         );
                         const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
@@ -842,7 +842,7 @@ const TokenSale = ({ isDarkMode }) => {
                     >
                       {(() => {
                         const fallbackStart = parseInt(
-                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757894400",
+                          process.env.NEXT_PUBLIC_SALE_START_TS || "1757919600",
                           10
                         );
                         const envOverride = parseInt(process.env.NEXT_PUBLIC_SALE_START_TS || "0", 10) || 0;
