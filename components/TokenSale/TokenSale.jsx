@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FaEthereum,
   FaInfoCircle,
@@ -59,11 +59,13 @@ const TokenSale = ({ isDarkMode }) => {
   const [btcAmount, setBtcAmount] = useState("");
   const [solAmount, setSolAmount] = useState("");
   const [calculatedTokens, setCalculatedTokens] = useState("0");
+  const [calculatedTokensRaw, setCalculatedTokensRaw] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [percentage, setPercentage] = useState(0);
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [bonusPct, setBonusPct] = useState(0);
   const [nowTs, setNowTs] = useState(Math.floor(Date.now() / 1000));
   const formatDMY = (tsSec) => {
     if (!tsSec) return "";
@@ -142,7 +144,7 @@ const TokenSale = ({ isDarkMode }) => {
     let intervalId;
     const load = async () => {
       try {
-        const [current, next] = await contract.getPriceInfo(
+        const [current, next, stageBN] = await contract.getPriceInfo(
           account || ethers.constants.AddressZero
         );
         setCurrentUsdPrice(
@@ -151,6 +153,12 @@ const TokenSale = ({ isDarkMode }) => {
         setNextUsdPrice(
           parseFloat(ethers.utils.formatUnits(next, 6)).toFixed(3)
         );
+        try {
+          const st = stageBN?.toNumber ? stageBN.toNumber() : Number(stageBN || 0);
+          setBonusPct(Math.max(0, 20 - 2 * st));
+        } catch (_) {
+          setBonusPct(0);
+        }
       } catch (err) {
         console.error("price fetch failed", err);
       }
@@ -168,26 +176,33 @@ const TokenSale = ({ isDarkMode }) => {
       const tokens =
         parseFloat(bnbAmount) * parseFloat(contractInfo.bnbRatio);
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else if (activeTab === "buyWithUSDT" && usdtAmount && usdPrice) {
       const tokens = parseFloat(usdtAmount) / usdPrice;
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else if (activeTab === "buyWithUSDC" && usdcAmount && usdPrice) {
       const tokens = parseFloat(usdcAmount) / usdPrice;
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else if (activeTab === "buyWithETH" && ethAmount) {
       const tokens =
         parseFloat(ethAmount) * parseFloat(contractInfo.ethRatio);
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else if (activeTab === "buyWithBTC" && btcAmount) {
       const tokens =
         parseFloat(btcAmount) * parseFloat(contractInfo.btcRatio);
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else if (activeTab === "buyWithSOL" && solAmount) {
       const tokens =
         parseFloat(solAmount) * parseFloat(contractInfo.solRatio);
       setCalculatedTokens(tokens.toLocaleString());
+      setCalculatedTokensRaw(isFinite(tokens) ? tokens : 0);
     } else {
       setCalculatedTokens("0");
+      setCalculatedTokensRaw(0);
     }
   }, [
     activeTab,
@@ -203,6 +218,15 @@ const TokenSale = ({ isDarkMode }) => {
     contractInfo.solRatio,
     currentUsdPrice,
   ]);
+
+  const bonusTokens = useMemo(() => {
+    const b = Number(calculatedTokensRaw) || 0;
+    return b * (bonusPct / 100);
+  }, [calculatedTokensRaw, bonusPct]);
+
+  const totalWithBonus = useMemo(() => {
+    return (Number(calculatedTokensRaw) || 0) + (Number(bonusTokens) || 0);
+  }, [calculatedTokensRaw, bonusTokens]);
 
   // Function to handle token purchase
   const handlePurchase = async (e) => {
@@ -579,6 +603,9 @@ const TokenSale = ({ isDarkMode }) => {
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -609,6 +636,9 @@ const TokenSale = ({ isDarkMode }) => {
                             1 / parseFloat(currentUsdPrice || 1)
                           ).toLocaleString()} {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -646,6 +676,9 @@ const TokenSale = ({ isDarkMode }) => {
                             1 / parseFloat(currentUsdPrice || 1)
                           ).toLocaleString()} {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -678,6 +711,9 @@ const TokenSale = ({ isDarkMode }) => {
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -710,6 +746,9 @@ const TokenSale = ({ isDarkMode }) => {
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -742,6 +781,9 @@ const TokenSale = ({ isDarkMode }) => {
                           ).toLocaleString()}{" "}
                           {TOKEN_SYMBOL}
                         </p>
+                        {bonusPct > 0 && (
+                          <p className={`text-xs ${theme.textSecondary} mt-1`}>Bonus now: +{bonusPct}%</p>
+                        )}
                       </div>
                     )}
 
@@ -755,6 +797,12 @@ const TokenSale = ({ isDarkMode }) => {
                           {calculatedTokens} {TOKEN_SYMBOL}
                         </span>
                       </div>
+                      {bonusPct > 0 && (
+                        <div className="flex justify-between mt-1 text-sm">
+                          <span className={theme.textSecondary}>Bonus (+{bonusPct}%):</span>
+                          <span className={`${theme.text}`}>{(Number(bonusTokens) || 0).toLocaleString()} {TOKEN_SYMBOL}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Purchase Button */}

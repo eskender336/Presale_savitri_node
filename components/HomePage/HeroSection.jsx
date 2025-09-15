@@ -75,6 +75,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
   const [nextUsdPrice, setNextUsdPrice] = useState("0");
+  const [bonusPct, setBonusPct] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
@@ -288,6 +289,17 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return calculatedAmount.toFixed(6);
   };
 
+  const bonusTokens = useMemo(() => {
+    const base = parseFloat(calculateTokenAmount(inputAmount, selectedToken)) || 0;
+    return (base * (bonusPct / 100)).toFixed(6);
+  }, [inputAmount, selectedToken, bonusPct, prices, contractInfo]);
+
+  const totalWithBonus = useMemo(() => {
+    const base = parseFloat(calculateTokenAmount(inputAmount, selectedToken)) || 0;
+    const bonus = parseFloat(bonusTokens) || 0;
+    return (base + bonus).toFixed(6);
+  }, [inputAmount, selectedToken, bonusTokens, prices, contractInfo]);
+
   const formatTime = (seconds) => {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
@@ -325,12 +337,19 @@ useEffect(() => {
           contract.stablecoinDecimals(),
         ]);
 
-      const [current, next] = priceInfo;
+      const [current, next, stageBN] = priceInfo;
 
       setIsWaitlisted(isWl);
 
       setCurrentUsdPrice(ethers.utils.formatUnits(current, decimals));
       setNextUsdPrice(ethers.utils.formatUnits(next, decimals));
+      try {
+        const st = stageBN?.toNumber ? stageBN.toNumber() : Number(stageBN || 0);
+        const pct = Math.max(0, 20 - 2 * st);
+        setBonusPct(pct);
+      } catch (_) {
+        setBonusPct(0);
+      }
 
       const net = await contract.provider.getNetwork();
       console.log("chainId =", net.chainId); // должен быть 56 для BSC mainnet
@@ -871,6 +890,11 @@ useEffect(() => {
                       ${parseFloat(currentUsdPrice).toFixed(2)}
                     </span>
                   </div>
+                  {bonusPct > 0 && (
+                    <span className="text-sm font-semibold text-teal-400">
+                      +{bonusPct}% bonus
+                    </span>
+                  )}
                 </div>
 
                 {/* Token selection */}
@@ -996,27 +1020,33 @@ useEffect(() => {
                     >
                       Receive {TOKEN_SYMBOL}
                     </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={tokenAmount}
-                        readOnly
-                        className={`w-full ${inputBg} rounded-lg border px-4 py-3 ${textColor}`}
-                      />
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                        <span className={`text-xs ${secondaryTextColor}`}>
-                          {TOKEN_SYMBOL}
-                        </span>
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <img
-                            src="/Savitri.png"
-                            alt={TOKEN_SYMBOL}
-                            className="w-5 h-5"
-                          />
-                        </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={tokenAmount}
+                      readOnly
+                      className={`w-full ${inputBg} rounded-lg border px-4 py-3 ${textColor}`}
+                    />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                      <span className={`text-xs ${secondaryTextColor}`}>
+                        {TOKEN_SYMBOL}
+                      </span>
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        <img
+                          src="/Savitri.png"
+                          alt={TOKEN_SYMBOL}
+                          className="w-5 h-5"
+                        />
                       </div>
                     </div>
                   </div>
+                  {bonusPct > 0 && (
+                    <div className="mt-2 text-xs">
+                      <span className="text-teal-400 font-semibold">Bonus +{bonusPct}%:</span>
+                      <span className={`ml-2 ${textColor}`}>{bonusTokens} {TOKEN_SYMBOL}</span>
+                    </div>
+                  )}
+                </div>
                 </div>
 
                 {/* Action button */}

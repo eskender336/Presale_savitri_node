@@ -12,8 +12,11 @@
 */
 
 require('dotenv').config({ path: __dirname + '/../.env' });
+// Also load project-level env (for NEXT_PUBLIC_ vars like prices/domain), if present
+try { require('dotenv').config({ path: __dirname + '/../../.env.local' }); } catch (_) {}
 const { ethers } = require('ethers');
 const https = require('https');
+const path = require('path');
 
 const RPC_WS_URL = process.env.RPC_WS_URL || '';
 const NETWORK_RPC_URL = process.env.NETWORK_RPC_URL || '';
@@ -33,6 +36,13 @@ const LOG_EVENTS = /^1|true$/i.test(String(process.env.LOG_EVENTS || ''));
 const POLLING_INTERVAL_MS = parseInt(process.env.POLLING_INTERVAL_MS || '1000', 10);
 const WS_PROBE_TIMEOUT_MS = parseInt(process.env.WS_PROBE_TIMEOUT_MS || '12000', 10);
 const WAIT_TIMEOUT_MS = parseInt(process.env.WAIT_TIMEOUT_MS || '60000', 10);
+
+// Optional presentation/config vars
+const TOKEN_SYMBOL = (process.env.TOKEN_SYMBOL || process.env.NEXT_PUBLIC_TOKEN_SYMBOL || '').trim() || 'SAV';
+const PER_TOKEN_USD_PRICE = parseFloat(String(process.env.PER_TOKEN_USD_PRICE || process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE || '0')) || 0;
+// Prefer explicit LAUNCH price; otherwise use NEXT stage price if provided
+const LAUNCH_USD_PRICE = parseFloat(String(process.env.LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE || '0')) || 0;
+const BUY_URL = (process.env.BUY_URL || process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL || '').trim();
 
 if (!CONTRACT_ADDRESS) {
   console.error('Missing required env CONTRACT_ADDRESS (or NEXT_PUBLIC_TOKEN_ICO_ADDRESS)');
@@ -228,14 +238,33 @@ async function run() {
           saleSymbol: saleTokenMeta.symbol,
         });
       }
-      const text = [
-        `New Purchase on <b>${NETWORK_NAME}</b> 🎉`,
-        `Buyer: <code>${buyer}</code>`,
-        `Paid: <b>${paid}</b> ${paymentMeta.symbol}`,
-        `Bought: <b>${bought}</b> ${saleTokenMeta.symbol}`,
-        `Tx: ${txUrl}`,
-        `Time: ${when.toISOString()}`
-      ].join('\n');
+      // Compute USD totals if price provided
+      let totalUsd = null;
+      if (PER_TOKEN_USD_PRICE && !Number.isNaN(PER_TOKEN_USD_PRICE)) {
+        try {
+          const boughtFloat = parseFloat(bought.replace(/,/g, ''));
+          if (!Number.isNaN(boughtFloat)) totalUsd = boughtFloat * PER_TOKEN_USD_PRICE;
+        } catch (_) { /* noop */ }
+      }
+
+      // Telegram message in the requested style
+      const lines = [];
+      lines.push('🚨 Presale Purchase Alert!🚨');
+      lines.push('');
+      lines.push(`  Amount: <b>${paid}</b> ${paymentMeta.symbol} 💥`);
+      lines.push(`  Coin Amount: <b>${bought}</b> ${TOKEN_SYMBOL} 💰`);
+      if (totalUsd !== null) lines.push(`  Purchase Total: $${totalUsd.toFixed(2)} 💵`);
+      if (PER_TOKEN_USD_PRICE) lines.push(`  Price Per Coin: $${PER_TOKEN_USD_PRICE.toFixed(3)} 📈`);
+      if (LAUNCH_USD_PRICE) lines.push(`  Launch Price: $${LAUNCH_USD_PRICE.toFixed(3)} 🚀`);
+      lines.push('');
+      if (BUY_URL) {
+        lines.push(`  🔵 Buy ${TOKEN_SYMBOL}: ${BUY_URL}`);
+      } else {
+        lines.push(`  🔵 Buy ${TOKEN_SYMBOL}:`);
+      }
+      // No Tx/Time lines per request
+
+      const text = lines.join('\n');
 
       await postToTelegram(text);
       console.log(`[notifier] Sent: ${event.transactionHash}`);

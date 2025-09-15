@@ -14,6 +14,8 @@
 //   NEXT_PUBLIC_TOKEN_ICO_ADDRESS / ICO_ADDRESS - ICO address
 //   EXPLORER_TX_URL        - Optional, link prefix for logs
 //   DRY_RUN=1              - If set, do not send real transfers
+//   AUTO_WITHDRAW=1        - If set, auto-withdraw shortfall from ICO to owner/admin
+//   BONUS_CONFIRMATIONS    - Wait N confirmations before sending bonus (default 0)
 //   BONUS_STATE_FILE       - Optional path to JSON state file (default ./.bonus.sent.json)
 //   BONUS_MIN_SEND         - Minimum bonus token amount to send (default 0.000001 tokens)
 //
@@ -73,7 +75,11 @@ function bonusPercentForStage(stage) {
 }
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(RPC);
+  // Choose provider based on URL scheme
+  const isWs = /^wss?:\/\//i.test(RPC);
+  const provider = isWs
+    ? new ethers.providers.WebSocketProvider(RPC)
+    : new ethers.providers.JsonRpcProvider(RPC);
   const wallet = new ethers.Wallet(PK, provider);
   const ico = new ethers.Contract(ICO_ADDR, icoAbi, wallet);
 
@@ -86,6 +92,7 @@ async function main() {
   const saleDecimals = await saleToken.decimals();
   const saleSymbol = await saleToken.symbol().catch(() => 'SALE');
 
+  console.log('[bonus] RPC mode:', isWs ? 'websocket' : 'http');
   console.log('[bonus] Network', (await provider.getNetwork()).chainId);
   console.log('[bonus] ICO', ICO_ADDR);
   console.log('[bonus] SALE', saleTokenAddr, saleSymbol, 'decimals', saleDecimals);
