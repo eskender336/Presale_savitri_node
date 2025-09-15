@@ -153,3 +153,27 @@ Make sure `web3/.env` (or `web3/.env.main`) includes `NETWORK_RPC_URL`/`RPC_WS_U
 - [@theblockchaincoders.com](https://www.theblockchaincoders.com/)
 - [@consultancy](https://www.theblockchaincoders.com/consultancy)
 - [@youtube](https://www.youtube.com/@daulathussain)
+## Contact
+
+- Email: eskender.k@prometeochain.io
+- Telegram: https://t.me/your_channel
+- Response window: We reply within 24 hours, Mon–Fri.
+- Scope: Purchases, wallet issues, KYC, listing and general questions.
+- Security: Never share your seed phrase or private keys.
+
+Link formats:
+
+- Telegram group/channel: https://t.me/your_group_or_channel
+- Telegram direct: https://t.me/your_username
+- Email: mailto:support@yourdomain.com?subject=Support%20Request
+- GitHub issues (optional): https://github.com/yourorg/yourrepo/issues
+
+Configuration via environment variables:
+
+- `NEXT_PUBLIC_SUPPORT_EMAIL` (default: eskender.k@prometeochain.io)
+- `NEXT_PUBLIC_SUPPORT_TELEGRAM` (default: https://t.me/your_channel)
+
+UI placements:
+
+- Homepage hero: small "Contact Support" block
+- Dashboard: link block at bottom of the page

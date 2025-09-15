@@ -23,6 +23,7 @@ import TokenCalculator from "./TokenCalculator/TokenCalculator";
 import StablecoinPurchase from "./StablecoinPurchase/StablecoinPurchase";
 import Staking from "./Staking/Staking";
 import KYCForm from "./KYCForm/KYCForm";
+import ContactSupport from "./ContactSupport/ContactSupport";
 
 export {
   MobileHeader,
@@ -47,4 +48,5 @@ export {
   StablecoinPurchase,
   Staking,
   KYCForm,
+  ContactSupport,
 };

@@ -21,6 +21,7 @@ import {
   FaArrowUp,
 } from "react-icons/fa";
 import { useWeb3 } from "../context/Web3Provider";
+import { ContactSupport } from "../components";
 
 import { MdDashboard } from "react-icons/md";
 import { BiImport } from "react-icons/bi";
@@ -123,6 +124,10 @@ export default function Home() {
             ) : (
               ""
             )}
+            {/* Contact Support block at bottom of dashboard */}
+            <div className="mt-8 max-w-4xl">
+              <ContactSupport isDarkMode={isDarkMode} />
+            </div>
           </>
         ) : (
           <WalletConnect isDarkMode={isDarkMode} />

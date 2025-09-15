@@ -6,6 +6,7 @@ import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { BsFillInfoCircleFill, BsCurrencyDollar } from "react-icons/bs";
 import { RiUsdCircleFill } from "react-icons/ri";
 import { CustomConnectButton } from "../index";
+import { ContactSupport } from "../index";
 import { useWeb3 } from "../../context/Web3Provider";
 import { ethers } from "ethers";
 
@@ -83,7 +84,7 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
 
   // keep a local ticking clock for UI gating texts
   useEffect(() => {
-    const id = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 60_000);
+    const id = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -802,7 +803,7 @@ useEffect(() => {
                   className={`text-center text-sm ${secondaryTextColor} mb-4`}
                 >
                   {nowTs < saleStartTs && saleStartTs > 0
-                    ? `Countdown starts ${(() => { const d=new Date(saleStartTs*1000); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}.${mm}.${yyyy}`; })()}`
+                    ? `Presale starts in ${formatTime(saleStartTs - nowTs)}`
                     : timeRemaining > 0
                     ? `Next price in ${formatTime(timeRemaining)}`
                     : "Until price increase"}
@@ -1209,6 +1210,11 @@ useEffect(() => {
   </button>
 </div>
 
+
+      {/* Contact Support */}
+      <div className="max-w-5xl mx-auto px-4">
+        <ContactSupport isDarkMode={isDarkMode} />
+      </div>
 
       {/* CSS for animations */}
       <style jsx>{`
