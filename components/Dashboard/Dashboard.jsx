@@ -53,6 +53,7 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
   } = useWeb3();
   const [allTransaction, setAllTransaction] = useState([]);
   const [currentUsdPrice, setCurrentUsdPrice] = useState("0");
+  const EXTRA_SOLD_TOKENS = parseFloat(process.env.NEXT_PUBLIC_EXTRA_SOLD_TOKENS || '0');
 
   useEffect(() => {
     const fetchContractInfo = async () => {
@@ -153,15 +154,16 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
-            {formatLargeNumber(contractInfo?.fsxBalance)} {TOKEN_SYMBOL}
+            {formatLargeNumber(contractInfo?.ownerBalance || contractInfo?.fsxBalance)} {TOKEN_SYMBOL}
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {contractInfo?.fsxBalance && currentUsdPrice
-              ? (
-                  Number(contractInfo.fsxBalance) * Number(currentUsdPrice)
-                ).toFixed(2)
-              : "0.00"}
+            {(() => {
+              const base = Number(contractInfo?.ownerBalance || contractInfo?.fsxBalance || 0);
+              const price = Number(currentUsdPrice || 0);
+              const val = base * price;
+              return val > 0 ? val.toFixed(2) : '0.00';
+            })()}
           </p>
           <p className={theme.textSecondary}>Token Available For Sale</p>
         </div>
@@ -174,15 +176,16 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
             </div>
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>
-            {formatLargeNumber(contractInfo?.totalSold)} {TOKEN_SYMBOL}
+            {formatLargeNumber(contractInfo?.totalSupply || tokenBalances?.fsxSupply)} {TOKEN_SYMBOL}
           </h2>
           <p className={`text-sm mb-4 ${theme.textSecondary}`}>
             Estimated USD valuation: $
-            {contractInfo?.totalSold && currentUsdPrice
-              ? (
-                  Number(contractInfo?.totalSold) * Number(currentUsdPrice)
-                ).toFixed(2)
-              : "0.00"}
+            {(() => {
+              const supply = Number(contractInfo?.totalSupply || tokenBalances?.fsxSupply || 0);
+              const price = Number(currentUsdPrice || 0);
+              const val = supply * price;
+              return val > 0 ? val.toFixed(2) : '0.00';
+            })()}
           </p>
           <p className={theme.textSecondary}>
             Total {TOKEN_SYMBOL} Token Supply
@@ -203,14 +206,12 @@ const Dashboard = ({ isDarkMode, setIsComponen }) => {
                 <p className={`text-lg ${theme.text}`}>Total Raised</p>
                 <p className={theme.textSecondary}>
                   $ &nbsp;
-                  {parseFloat(contractInfo?.totalSold || 0) *
-                    parseFloat(currentUsdPrice || 0) >
-                  0
-                    ? (
-                        parseFloat(contractInfo?.totalSold || 0) *
-                        parseFloat(currentUsdPrice || 0)
-                      ).toFixed(2)
-                    : "0"}
+                  {(() => {
+                    const soldUsd = (parseFloat(contractInfo?.totalSold || 0) + EXTRA_SOLD_TOKENS) * Number(currentUsdPrice || 0);
+                    const estUsd = parseFloat(contractInfo?.estimatedUsdRaised || '0');
+                    const val = Math.max(soldUsd || 0, estUsd || 0);
+                    return val > 0 ? val.toFixed(2) : '0.00';
+                  })()}
                 </p>
               </div>
             </div>
