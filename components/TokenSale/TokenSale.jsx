@@ -15,6 +15,7 @@ import { ethers } from "ethers";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
+const EXTRA_SOLD_TOKENS = parseFloat(process.env.NEXT_PUBLIC_EXTRA_SOLD_TOKENS || '0');
 //
 const TokenSale = ({ isDarkMode }) => {
   const {
@@ -290,21 +291,24 @@ const TokenSale = ({ isDarkMode }) => {
 
   // Calculate progress percentage based on sold tokens vs total supply
   const calculateProgressPercentage = () => {
-    if (!contractInfo?.totalSold || !contractInfo?.fsxBalance) return 0;
-
-    const availbleSupply =
-      Number(contractInfo?.totalSold) + Number(contractInfo?.fsxBalance);
-
-    const soldAmount = parseFloat(contractInfo.totalSold) || 0;
-    const totalSupply = parseFloat(availbleSupply) || 1; // Prevent division by zero
-
-    // Calculate percentage with a maximum of 100%
-    const percentage = Math.min((soldAmount / totalSupply) * 100, 100);
-
-    console.log(percentage);
-
-    // Return percentage with maximum 2 decimal places
-    return parseFloat(percentage.toFixed(2));
+    try {
+      const fsx = Number(contractInfo?.fsxBalance || 0);
+      const ownerBal = Number(contractInfo?.ownerBalance || 0);
+      const soldAdj = parseFloat(contractInfo?.totalSold || 0);
+      const estDistributed = parseFloat(contractInfo?.estimatedDistributed || 0);
+      const sold = Math.max(
+        Number.isFinite(soldAdj) ? soldAdj : 0,
+        Number.isFinite(estDistributed) ? estDistributed : 0
+      );
+      const baseRemaining = ownerBal > 0 ? ownerBal : fsx;
+      const total = sold + baseRemaining;
+      const pct = total > 0 ? Math.min((sold / total) * 100, 100) : 0;
+      console.log('[TokenSale] progress calc', { soldAdj, estDistributed, sold, ownerBal, fsx, total, pct });
+      return parseFloat(pct.toFixed(2));
+    } catch (e) {
+      console.warn('[TokenSale] progress calc failed', e);
+      return 0;
+    }
   };
 
   return (
@@ -381,10 +385,13 @@ const TokenSale = ({ isDarkMode }) => {
                         ICO Sale Supply:
                       </span>
                       <span className={theme.text}>
-                        {formatLargeNumber(
-                          Number(contractInfo?.fsxBalance) +
-                            Number(contractInfo?.totalSold)
-                        )}
+                        {(() => {
+                          const soldAdj = parseFloat(contractInfo?.totalSold || 0);
+                          const estDistributed = parseFloat(contractInfo?.estimatedDistributed || 0);
+                          const sold = Math.max(isFinite(soldAdj) ? soldAdj : 0, isFinite(estDistributed) ? estDistributed : 0);
+                          const supply = (Number(contractInfo?.fsxBalance || 0) + sold);
+                          return formatLargeNumber(supply);
+                        })()}
                         &nbsp; {TOKEN_SYMBOL}
                       </span>
                     </div>
@@ -430,11 +437,12 @@ const TokenSale = ({ isDarkMode }) => {
                     <div className="flex justify-between">
                       <span className={theme.textSecondary}>Total Raised:</span>
                       <span className={theme.text}>
-                        $
-                        {
-                          (Number(contractInfo?.totalSold) *
-                            Number(currentUsdPrice)).toFixed(2)
-                        }
+                        ${(() => {
+                          const soldUsd = (parseFloat(contractInfo?.totalSold || 0) + EXTRA_SOLD_TOKENS) * Number(currentUsdPrice || 0);
+                          const estUsd = parseFloat(contractInfo?.estimatedUsdRaised || '0');
+                          const val = Math.max(soldUsd || 0, estUsd || 0);
+                          return (val > 0 ? val : 0).toFixed(2);
+                        })()}
                       </span>
                     </div>
                     <div className="flex justify-between">

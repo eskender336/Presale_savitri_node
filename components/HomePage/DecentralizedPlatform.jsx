@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FaPlay } from "react-icons/fa";
+import { useWeb3 } from "../../context/Web3Provider";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const TOKEN_SUPPLY = process.env.NEXT_PUBLIC_TOKEN_SUPPLY;
-const PER_TOKEN_USD_PRICE = process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
 const STABLE_PRICE = process.env.NEXT_PUBLIC_NEXT_STABLE_PRICE;
 
 const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
+  const { contractInfo } = useWeb3();
+  const currentPrice = useMemo(() => {
+    const p = parseFloat(contractInfo?.tokenPriceUSDT || "0");
+    return isFinite(p) ? p.toFixed(2) : "0.00";
+  }, [contractInfo?.tokenPriceUSDT]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = () => {
@@ -141,10 +146,8 @@ const VideoThumbnail = ({ thumbnailSrc, videoSrc, videoTitle, isDarkMode }) => {
                 isDarkMode ? "bg-indigo-400" : "bg-indigo-500"
               }`}
             ></span>
-            <span
-              className={isDarkMode ? "text-indigo-300" : "text-white"}
-            >
-              Current Price: ${PER_TOKEN_USD_PRICE}
+            <span className={isDarkMode ? "text-indigo-300" : "text-white"}>
+              Current Price: $ {currentPrice}
             </span>
           </div>
         </div>

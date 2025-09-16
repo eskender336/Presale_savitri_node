@@ -18,6 +18,8 @@ const TOKEN_DECIMAL = process.env.NEXT_PUBLIC_TOKEN_DECIMAL || 18;
 const TOKEN_LOGO = process.env.NEXT_PUBLIC_TOKEN_LOGO;
 const DOMAIN_URL = process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL;
 const TokenICOAbi = TOKEN_ICO_ABI.abi;
+// Optional: count off-contract distributions in UI totals
+const EXTRA_SOLD_TOKENS = parseFloat(process.env.NEXT_PUBLIC_EXTRA_SOLD_TOKENS || '0');
 
 // Create context
 const Web3Context = createContext(null);
@@ -244,12 +246,69 @@ export const Web3Provider = ({ children }) => {
           ).toFixed(fixedDigits);
 
         // Set contract info with new USDT-based structure
+        // Compute adjusted sold to include optional off-contract distributions (env)
+        // Preserve sufficient precision so small sales don't round to 0
+        const soldOnChain = parseFloat(
+          ethers.utils.formatUnits(info.totalSold.toString(), TOKEN_DECIMAL)
+        );
+        const extraSold = Number.isFinite(EXTRA_SOLD_TOKENS) ? EXTRA_SOLD_TOKENS : 0;
+        const totalSoldAdj = (soldOnChain + extraSold).toFixed(6);
+
+        // Holder-based distribution estimate (owner + ICO balances vs total supply)
+        let estimatedDistributed = '0';
+        let estimatedUsdRaised = '0';
+        try {
+          const ownerAddr = process.env.NEXT_PUBLIC_OWNER_ADDRESS;
+          if (info.tokenAddress && ownerAddr) {
+            const erc20 = new ethers.Contract(
+              info.tokenAddress,
+              [
+                'function totalSupply() view returns (uint256)',
+                'function balanceOf(address) view returns (uint256)'
+              ],
+              currentProvider
+            );
+            const [totalSupplyBN, ownerBalBN, icoBalBN] = await Promise.all([
+              erc20.totalSupply(),
+              erc20.balanceOf(ownerAddr),
+              erc20.balanceOf(CONTRACT_ADDRESS),
+            ]);
+            const distributedBN = totalSupplyBN.sub(ownerBalBN).sub(icoBalBN);
+            const distributed = parseFloat(
+              ethers.utils.formatUnits(distributedBN, TOKEN_DECIMAL)
+            );
+            const priceNow = parseFloat(
+              ethers.utils.formatUnits(info.currentUsdtPrice, 6)
+            );
+            // Show more precision for small values
+            estimatedDistributed = distributed.toFixed(3);
+            estimatedUsdRaised = (distributed * priceNow).toFixed(2);
+
+            // Expose balances for UI calculations
+            var ownerBalanceStr = ethers.utils.formatUnits(ownerBalBN, TOKEN_DECIMAL);
+            var icoBalanceStr = ethers.utils.formatUnits(icoBalBN, TOKEN_DECIMAL);
+
+            // Also expose total supply and mirror to tokenBalances for existing UI
+            var totalSupplyStr = ethers.utils.formatUnits(totalSupplyBN, TOKEN_DECIMAL);
+            setTokenBalances((prev) => ({ ...prev, fsxSupply: totalSupplyStr }));
+            // Attach to contractInfo object as well
+            info.totalSupplyStr = totalSupplyStr;
+          }
+        } catch (e) {
+          console.warn('[Web3Provider] holder-based estimate failed:', e && e.message || e);
+        }
+
         setContractInfo({
           fsxAddress: info.tokenAddress,
           fsxBalance: formatAmount(info.tokenBalance, TOKEN_DECIMAL),
           tokenPriceUSDT: formatAmount(info.currentUsdtPrice, 6, 6), // USDT has 6 decimals
           initialUsdtPrice: formatAmount(info.initialUsdtPrice, 6, 6),
-          totalSold: formatAmount(info.totalSold, TOKEN_DECIMAL),
+          totalSold: totalSoldAdj,
+          estimatedDistributed,
+          estimatedUsdRaised,
+          ownerBalance: ownerBalanceStr || '0',
+          icoBalance: icoBalanceStr || '0',
+          totalSupply: info.totalSupplyStr || '0',
           usdtAddress: info.usdtAddr,
           usdcAddress: info.usdcAddr,
           usdtPriceIncrement: formatAmount(info.usdtPriceIncrementValue, 6, 6),
@@ -2302,6 +2361,50 @@ const updateSOLAddress = async (newAddress) => {
         userStakingInfo = await contract.getUserStakingInfo(address);
       }
   
+      // Holder-based extras (owner/ICO balances, supply) and adjusted sold
+      let ownerBalanceStr = '0';
+      let icoBalanceStr = '0';
+      let totalSupplyStr = '0';
+      let estimatedDistributed = '0';
+      let estimatedUsdRaised = '0';
+      try {
+        const ownerAddr = process.env.NEXT_PUBLIC_OWNER_ADDRESS;
+        const tokenAddr = info.tokenAddress;
+        if (tokenAddr && ownerAddr) {
+          const erc20 = new ethers.Contract(
+            tokenAddr,
+            [
+              'function totalSupply() view returns (uint256)',
+              'function balanceOf(address) view returns (uint256)'
+            ],
+            contract.provider
+          );
+          const [totalSupplyBN, ownerBalBN, icoBalBN] = await Promise.all([
+            erc20.totalSupply(),
+            erc20.balanceOf(ownerAddr),
+            erc20.balanceOf(CONTRACT_ADDRESS),
+          ]);
+          totalSupplyStr = ethers.utils.formatUnits(totalSupplyBN, 18);
+          ownerBalanceStr = ethers.utils.formatUnits(ownerBalBN, 18);
+          icoBalanceStr = ethers.utils.formatUnits(icoBalBN, 18);
+          const distributedBN = totalSupplyBN.sub(ownerBalBN).sub(icoBalBN);
+          const distributed = parseFloat(
+            ethers.utils.formatUnits(distributedBN, 18)
+          );
+          const priceNow = parseFloat(
+            ethers.utils.formatUnits(info.currentUsdtPrice, 6)
+          );
+          estimatedDistributed = distributed.toFixed(3);
+          estimatedUsdRaised = (distributed * priceNow).toFixed(2);
+        }
+      } catch (e) {
+        console.warn('[getContractInfo] holder extras failed:', e && e.message || e);
+      }
+
+      // Adjust tokensSold with optional EXTRA_SOLD_TOKENS and keep precision
+      const soldOnChain = parseFloat(ethers.utils.formatUnits(info.totalSold, 18));
+      const totalSoldAdj = (soldOnChain + (Number.isFinite(EXTRA_SOLD_TOKENS) ? EXTRA_SOLD_TOKENS : 0)).toFixed(6);
+
       // Return combined data with NEW USDT-BASED STRUCTURE
       return {
         // Updated contract info - USDT BASED
@@ -2309,7 +2412,7 @@ const updateSOLAddress = async (newAddress) => {
         fsxBalance: ethers.utils.formatUnits(info.tokenBalance, 18),
         tokenPriceUSDT: ethers.utils.formatUnits(info.currentUsdtPrice, 6), // USDT has 6 decimals
         initialUsdtPrice: ethers.utils.formatUnits(info.initialUsdtPrice, 6),
-        totalSold: ethers.utils.formatUnits(info.totalSold, 18),
+        totalSold: totalSoldAdj,
         usdtAddress: info.usdtAddr,
         usdcAddress: info.usdcAddr,
         usdtPriceIncrement: ethers.utils.formatUnits(info.usdtPriceIncrementValue, 6),
@@ -2325,6 +2428,12 @@ const updateSOLAddress = async (newAddress) => {
         ethRatio: ethers.utils.formatUnits(ethRatio, 18),
         btcRatio: ethers.utils.formatUnits(btcRatio, 18),
         solRatio: ethers.utils.formatUnits(solRatio, 18),
+        // Extras for UI calculations
+        estimatedDistributed,
+        estimatedUsdRaised,
+        ownerBalance: ownerBalanceStr,
+        icoBalance: icoBalanceStr,
+        totalSupply: totalSupplyStr,
   
         // Staking info (unchanged)
         baseAPY: stakingInfo ? stakingInfo.baseApyRate.toString() : "12",

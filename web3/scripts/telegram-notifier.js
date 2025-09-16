@@ -30,7 +30,8 @@ const TELEGRAM_CHAT_IDS_FILE = process.env.TELEGRAM_CHAT_IDS_FILE; // optional p
 const TELEGRAM_RECIPIENTS_FILE = process.env.TELEGRAM_RECIPIENTS_FILE || path.join(__dirname, '../.telegram.recipients.json');
 const TELEGRAM_UPDATES_OFFSET_FILE = process.env.TELEGRAM_UPDATES_OFFSET_FILE || path.join(__dirname, '../.telegram.updates.offset');
 const NETWORK_NAME = process.env.NETWORK_NAME || 'network';
-const NATIVE_SYMBOL = process.env.NATIVE_SYMBOL || 'NATIVE';
+// Optional override for native coin symbol (e.g., BNB for BSC)
+const ENV_NATIVE_SYMBOL = (process.env.NATIVE_SYMBOL || '').trim();
 const EXPLORER_TX_URL = process.env.EXPLORER_TX_URL || '';
 const BLOCK_CONFIRMATIONS = parseInt(process.env.BLOCK_CONFIRMATIONS || '2', 10);
 const POLL_MAX_BLOCK_SPAN = parseInt(process.env.POLL_MAX_BLOCK_SPAN || '1', 10); // public BSC RPCs are strict
@@ -45,10 +46,45 @@ const WAIT_TIMEOUT_MS = parseInt(process.env.WAIT_TIMEOUT_MS || '60000', 10);
 
 // Optional presentation/config vars
 const TOKEN_SYMBOL = (process.env.TOKEN_SYMBOL || process.env.NEXT_PUBLIC_TOKEN_SYMBOL || '').trim() || 'SAV';
-const PER_TOKEN_USD_PRICE = parseFloat(String(process.env.PER_TOKEN_USD_PRICE || process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE || '0')) || 0;
-// Prefer explicit LAUNCH price; otherwise use NEXT stage price if provided
-const LAUNCH_USD_PRICE = parseFloat(String(process.env.LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE || '0')) || 0;
+// Dynamic pricing support (shared with airdrop)
+const TOKEN_PRICE_FILE = process.env.TOKEN_PRICE_FILE || process.env.PRICE_FILE || path.join(__dirname, '../price.config.json');
+function loadPerTokenUsdPrice() {
+  try {
+    const txt = fs.readFileSync(TOKEN_PRICE_FILE, 'utf8');
+    const j = JSON.parse(txt);
+    const v = Number(j.perTokenUsd ?? j.tokenUsd ?? j.price ?? j.current);
+    if (Number.isFinite(v) && v > 0) return v;
+  } catch (_) {}
+  const envVal = parseFloat(String(process.env.PER_TOKEN_USD_PRICE || process.env.NEXT_PUBLIC_PER_TOKEN_USD_PRICE || '0.2'));
+  return Number.isFinite(envVal) && envVal > 0 ? envVal : 0.2;
+}
+function loadLaunchUsdPrice() {
+  const envVal = parseFloat(String(process.env.LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_LAUNCH_USD_PRICE || process.env.NEXT_PUBLIC_NEXT_PER_TOKEN_USD_PRICE || '0'));
+  if (Number.isFinite(envVal) && envVal > 0) return envVal;
+  try {
+    const txt = fs.readFileSync(TOKEN_PRICE_FILE, 'utf8');
+    const j = JSON.parse(txt);
+    const v = Number(j.launchUsd ?? j.launchPrice);
+    if (Number.isFinite(v) && v > 0) return v;
+  } catch (_) {}
+  return 0;
+}
+let PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
+let LAUNCH_USD_PRICE = loadLaunchUsdPrice();
 const BUY_URL = (process.env.BUY_URL || process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL || '').trim();
+// Telegram media (GIF) support
+let DEFAULT_GIF_URL = '';
+try {
+  if (BUY_URL) {
+    const u = new URL(BUY_URL);
+    // Ensure path ends without trailing slash and append public asset path
+    const basePath = (u.pathname || '/').replace(/\/+$/, '');
+    u.pathname = basePath + '/telegrambot.gif';
+    DEFAULT_GIF_URL = u.toString();
+  }
+} catch (_) { /* noop */ }
+const TELEGRAM_GIF_URL = (process.env.TELEGRAM_GIF_URL || DEFAULT_GIF_URL).trim();
+const TELEGRAM_INCLUDE_GIF = /^1|true$/i.test(String(process.env.TELEGRAM_INCLUDE_GIF || (TELEGRAM_GIF_URL ? '1' : '')));
 
 if (!CONTRACT_ADDRESS) {
   console.error('Missing required env CONTRACT_ADDRESS (or NEXT_PUBLIC_TOKEN_ICO_ADDRESS)');
@@ -213,7 +249,7 @@ async function ensureRecipients() {
 
 async function getTokenMeta(provider, address, fallbackSymbol) {
   if (!address || address === ethers.constants.AddressZero) {
-    return { symbol: fallbackSymbol || NATIVE_SYMBOL, decimals: 18 };
+    return { symbol: fallbackSymbol || ENV_NATIVE_SYMBOL || 'NATIVE', decimals: 18 };
   }
   const key = address.toLowerCase();
   if (tokenMetaCache.has(key)) return tokenMetaCache.get(key);
@@ -276,6 +312,56 @@ function postToTelegram(text) {
     const failures = results.filter((r) => r.status === 'rejected');
     if (failures.length) {
       console.warn('[notifier] Some Telegram sends failed:', failures.map((f) => f.reason && f.reason.message || f.reason));
+    }
+    return results;
+  });
+}
+
+// Send a GIF (animation) with caption instead of a plain text message
+function postToTelegramWithGif(captionText) {
+  const targets = (RECIPIENT_CHAT_IDS && RECIPIENT_CHAT_IDS.length)
+    ? RECIPIENT_CHAT_IDS
+    : (TELEGRAM_CHAT_ID ? [TELEGRAM_CHAT_ID] : []);
+  if (DRY_RUN) {
+    if (!targets.length) console.log('[notifier][DRY_RUN] No recipients configured.');
+    targets.forEach((id) => console.log(`[notifier][DRY_RUN] Would send GIF to ${id}: ${TELEGRAM_GIF_URL}\nCaption:\n` + captionText));
+    return Promise.resolve();
+  }
+  if (!TELEGRAM_GIF_URL) {
+    // Fallback to text if no GIF URL configured
+    return postToTelegram(captionText);
+  }
+  const makeReq = (chatId) => new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      chat_id: chatId,
+      animation: TELEGRAM_GIF_URL, // Telegram fetches by URL
+      caption: captionText,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    });
+    const options = {
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${TELEGRAM_BOT_TOKEN}/sendAnimation`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+    };
+    const req = https.request(options, (res) => {
+      let resp = '';
+      res.on('data', (d) => { resp += d; });
+      res.on('end', () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) return resolve({ chatId, resp });
+        reject(new Error(`Telegram API ${res.statusCode} for ${chatId}: ${resp}`));
+      });
+    });
+    req.on('error', (e) => reject(new Error(`Request error for ${chatId}: ${e && e.message || e}`)));
+    req.write(payload);
+    req.end();
+  });
+  return Promise.allSettled(targets.map(makeReq)).then((results) => {
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length) {
+      console.warn('[notifier] Some Telegram GIF sends failed:', failures.map((f) => f.reason && f.reason.message || f.reason));
     }
     return results;
   });
@@ -352,6 +438,25 @@ async function run() {
 
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
 
+  // Resolve a sensible default native symbol from chainId, overridable via env
+  function nativeSymbolFor(chainId) {
+    switch (Number(chainId)) {
+      case 56: case 97: return 'BNB';
+      case 1: case 5: case 11155111: case 17000: return 'ETH';
+      case 137: case 80002: return 'MATIC';
+      case 42161: return 'ETH';
+      case 8453: case 84532: return 'ETH';
+      default: return 'NATIVE';
+    }
+  }
+  let DEFAULT_NATIVE_SYMBOL = 'NATIVE';
+  try {
+    const nw = await provider.getNetwork();
+    DEFAULT_NATIVE_SYMBOL = ENV_NATIVE_SYMBOL || nativeSymbolFor(nw.chainId);
+  } catch (_) {
+    DEFAULT_NATIVE_SYMBOL = ENV_NATIVE_SYMBOL || 'NATIVE';
+  }
+
   // Ensure recipients are known (auto-discover via getUpdates if none configured)
   try { await ensureRecipients(); } catch (_) {}
   // Periodically re-scan for newly invited chats (e.g., every 60s)
@@ -385,7 +490,7 @@ async function run() {
 
   async function handlePurchase(buyer, paymentMethod, amountPaid, tokensBought, timestamp, event) {
     try {
-      const paymentMeta = await getTokenMeta(provider, paymentMethod, NATIVE_SYMBOL);
+      const paymentMeta = await getTokenMeta(provider, paymentMethod, DEFAULT_NATIVE_SYMBOL);
       const paid = formatAmount(amountPaid, paymentMeta.decimals);
       const bought = formatAmount(tokensBought, saleTokenMeta.decimals);
       const when = timestamp && timestamp.toNumber ? new Date(timestamp.toNumber() * 1000) : new Date();
@@ -419,6 +524,9 @@ async function run() {
       lines.push(`  Amount: <b>${paid}</b> ${paymentMeta.symbol} 💥`);
       lines.push(`  Coin Amount: <b>${bought}</b> ${TOKEN_SYMBOL} 💰`);
       if (totalUsd !== null) lines.push(`  Purchase Total: $${totalUsd.toFixed(2)} 💵`);
+      // Refresh dynamic prices at message time
+      PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
+      LAUNCH_USD_PRICE = loadLaunchUsdPrice();
       if (PER_TOKEN_USD_PRICE) lines.push(`  Price Per Coin: $${PER_TOKEN_USD_PRICE.toFixed(3)} 📈`);
       if (LAUNCH_USD_PRICE) lines.push(`  Launch Price: $${LAUNCH_USD_PRICE.toFixed(3)} 🚀`);
       lines.push('');
@@ -431,7 +539,11 @@ async function run() {
 
       const text = lines.join('\n');
 
-      await postToTelegram(text);
+      if (TELEGRAM_INCLUDE_GIF) {
+        await postToTelegramWithGif(text);
+      } else {
+        await postToTelegram(text);
+      }
       console.log(`[notifier] Sent: ${event.transactionHash}`);
     } catch (err) {
       console.error('[notifier] Handler error:', err);

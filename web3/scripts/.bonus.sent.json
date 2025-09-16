@@ -1,0 +1,12 @@
+{
+  "processed": {
+    "0xcd2a1f866efa173605440f7a4314d48bba2506db90a448732ae93555914631b6-4": {
+      "buyer": "0xd9448b5A23981958B665F95173b911eBCA0dc634",
+      "stage": 0,
+      "bonusPct": 20,
+      "bonus": "9280533500000",
+      "tx": "0xcd2a1f866efa173605440f7a4314d48bba2506db90a448732ae93555914631b6",
+      "sentTx": null
+    }
+  }
+}

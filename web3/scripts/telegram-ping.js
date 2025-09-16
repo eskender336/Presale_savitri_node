@@ -10,12 +10,13 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 const https = require('https');
 
 function parseArgs(argv) {
-  const args = { text: 'Telegram notifier ping ✅', chatId: undefined, token: undefined };
+  const args = { text: 'Telegram notifier ping ✅', chatId: undefined, token: undefined, gifUrl: undefined };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--text') args.text = argv[++i];
     else if (a === '--chat-id') args.chatId = argv[++i];
     else if (a === '--token') args.token = argv[++i];
+    else if (a === '--gif-url') args.gifUrl = argv[++i];
   }
   return args;
 }
@@ -46,10 +47,47 @@ function postToTelegram(token, chatId, text) {
   });
 }
 
+function postGifToTelegram(token, chatId, gifUrl, caption) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify({ chat_id: chatId, animation: gifUrl, caption, parse_mode: 'HTML', disable_web_page_preview: true });
+    const options = {
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${token}/sendAnimation`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+    };
+    const req = https.request(options, (res) => {
+      let resp = '';
+      res.on('data', (d) => { resp += d; });
+      res.on('end', () => {
+        const ok = res.statusCode && res.statusCode >= 200 && res.statusCode < 300;
+        if (ok) return resolve(resp);
+        const err = new Error(`Telegram API ${res.statusCode}: ${resp}`);
+        return reject(err);
+      });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+}
+
 async function main() {
-  const { text, chatId: cliChatId, token: cliToken } = parseArgs(process.argv);
+  const { text, chatId: cliChatId, token: cliToken, gifUrl: cliGifUrl } = parseArgs(process.argv);
   const token = cliToken || process.env.TELEGRAM_BOT_TOKEN;
   const chatId = cliChatId || process.env.TELEGRAM_CHAT_ID;
+  const baseUrl = (process.env.BUY_URL || process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL || '').trim();
+  let defaultGifUrl = '';
+  try {
+    if (baseUrl) {
+      const u = new URL(baseUrl);
+      const basePath = (u.pathname || '/').replace(/\/+$/, '');
+      u.pathname = basePath + '/telegrambot.gif';
+      defaultGifUrl = u.toString();
+    }
+  } catch (_) {}
+  const gifUrl = (cliGifUrl || process.env.TELEGRAM_GIF_URL || defaultGifUrl || '').trim();
 
   console.log('Token:', token);
   console.log('Chat ID:', chatId);
@@ -65,8 +103,9 @@ async function main() {
 
   console.log('Sending Telegram ping...');
   console.log('Chat ID:', chatId);
+  if (gifUrl) console.log('GIF URL:', gifUrl);
   try {
-    const resp = await postToTelegram(token, chatId, text);
+    const resp = gifUrl ? await postGifToTelegram(token, chatId, gifUrl, text) : await postToTelegram(token, chatId, text);
     console.log('Sent. Response:', resp);
   } catch (e) {
     console.error('Failed to send:', e.message);
@@ -78,4 +117,3 @@ async function main() {
 }
 
 main();
-

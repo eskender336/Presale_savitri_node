@@ -13,6 +13,11 @@ import { ethers } from "ethers";
 const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_TOKEN_SYMBOL;
 const CURRENCY = process.env.NEXT_PUBLIC_CURRENCY;
+const EXTRA_SOLD_TOKENS = parseFloat(
+  process.env.NEXT_PUBLIC_EXTRA_SOLD_TOKENS || "0"
+);
+const SAV_ADDRESS = process.env.NEXT_PUBLIC_SAV_ADDRESS;
+const EXPLORER_TOKEN_URL = process.env.NEXT_PUBLIC_EXPLORER_TOKEN_URL;
 
 const toPosSec = (bn, fallback) => {
   try {
@@ -81,6 +86,32 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [nowTs, setNowTs] = useState(Math.floor(Date.now() / 1000));
+  const [copiedAddress, setCopiedAddress] = useState(false);
+
+  const formatSavAddress = (address) => {
+    if (!address) return "";
+    return `${address.substring(0, 12)}...${address.substring(
+      address.length - 12
+    )}`;
+  };
+
+  const copySavToClipboard = () => {
+    if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(SAV_ADDRESS ?? "");
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = SAV_ADDRESS ?? "";
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
 
   // keep a local ticking clock for UI gating texts
   useEffect(() => {
@@ -88,20 +119,34 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return () => clearInterval(id);
   }, []);
 
-  // Calculate progress percentage based on sold tokens vs total supply
+  // Calculate progress percentage using owner balance as remaining supply when available
   const calculateProgressPercentage = () => {
-    if (!contractInfo?.totalSold || !contractInfo?.fsxBalance) return 0;
-
-    const availbleSupply =
-      Number(contractInfo?.totalSold) + Number(contractInfo?.fsxBalance);
-    const soldAmount = parseFloat(contractInfo.totalSold) || 0;
-    const totalSupply = parseFloat(availbleSupply) || 1; // Prevent division by zero
-
-    // Calculate percentage with a maximum of 100%
-    const percentage = Math.min((soldAmount / totalSupply) * 100, 100);
-
-    // Return percentage with maximum 2 decimal places
-    return parseFloat(percentage.toFixed(2));
+    try {
+      const ownerBal = Number(contractInfo?.ownerBalance || 0);
+      const fsx = Number(contractInfo?.fsxBalance || 0);
+      const soldAdj = parseFloat(contractInfo?.totalSold || 0);
+      const estDistrib = parseFloat(contractInfo?.estimatedDistributed || 0);
+      const sold = Math.max(
+        Number.isFinite(soldAdj) ? soldAdj : 0,
+        Number.isFinite(estDistrib) ? estDistrib : 0
+      );
+      const baseRemaining = ownerBal > 0 ? ownerBal : fsx;
+      const total = sold + baseRemaining;
+      const pct = total > 0 ? Math.min((sold / total) * 100, 100) : 0;
+      console.log('[HeroSection] progress calc', {
+        soldAdj,
+        estDistrib,
+        sold,
+        ownerBal,
+        fsx,
+        total,
+        pct,
+      });
+      return parseFloat(pct.toFixed(2));
+    } catch (e) {
+      console.warn('[HeroSection] progress calc failed', e);
+      return 0;
+    }
   };
 
   // Derived token ratios based on current price and contract info
@@ -740,6 +785,86 @@ useEffect(() => {
               <p className="text-center mt-4 text-white">
                 Join the network. Claim your stake. Build what’s next.
               </p>
+
+              {/* SAV Token Contract Address */}
+              <div className="mt-4 flex flex-col items-center">
+                <p className={`${secondaryTextColor} text-sm mb-2`}>
+                  Savitri Token Address
+                </p>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full shadow-md ${
+                      isDarkMode ? "bg-[#181320]" : "bg-white"
+                    }`}
+                  >
+                    <span
+                      className={`${
+                        isDarkMode ? "text-teal-300" : "text-indigo-600"
+                      } text-sm font-mono`}
+                    >
+                      {formatSavAddress(SAV_ADDRESS)}
+                    </span>
+                    <button
+                      onClick={copySavToClipboard}
+                      className={`group relative ${
+                        isDarkMode
+                          ? "text-teal-400 hover:text-teal-300"
+                          : "text-indigo-500 hover:text-indigo-400"
+                      } transition-colors`}
+                      aria-label="Copy address"
+                      title={copiedAddress ? "Copied!" : "Copy address"}
+                    >
+                      {copiedAddress ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">
+                  Always verify the contract address before interacting
+                </p>
+                <a
+                  href={`${EXPLORER_TOKEN_URL}${SAV_ADDRESS}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 rounded-full text-white font-medium shadow-lg bg-gradient-to-r from-teal-400 to-indigo-500 hover:from-teal-500 hover:to-indigo-600 transition-transform duration-200 hover:scale-105"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  View Contract
+                </a>
+              </div>
             </div>
 
 
@@ -851,14 +976,20 @@ useEffect(() => {
                     Total Raised:{" "}
                     <span className={`${textColor} font-medium`}>
                       ${" "}
-                      {parseFloat(contractInfo?.totalSold || 0) *
-                        parseFloat(currentUsdPrice || 0) >
+                      {(() => {
+                        const soldUsd =
+                          (parseFloat(contractInfo?.totalSold || 0) +
+                            EXTRA_SOLD_TOKENS) *
+                          parseFloat(currentUsdPrice || 0);
+                        const estUsd = parseFloat(
+                          contractInfo?.estimatedUsdRaised || '0'
+                        );
+                        const val = Math.max(soldUsd || 0, estUsd || 0);
+                        return val >
                       0
-                        ? (
-                            parseFloat(contractInfo?.totalSold || 0) *
-                            parseFloat(currentUsdPrice || 0)
-                          ).toFixed(2)
-                        : "0"}
+                        ? val.toFixed(2)
+                        : '0';
+                      })()}
                     </span>
                   </div>
                   <div className={`${secondaryTextColor} font-medium`}>
@@ -1210,11 +1341,6 @@ useEffect(() => {
   </button>
 </div>
 
-
-      {/* Contact Support */}
-      <div className="max-w-5xl mx-auto px-4">
-        <ContactSupport isDarkMode={isDarkMode} />
-      </div>
 
       {/* CSS for animations */}
       <style jsx>{`

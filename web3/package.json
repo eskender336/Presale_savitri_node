@@ -22,7 +22,10 @@
     "update-pricing": "node scripts/update-pricing.js",
     "bonus:watch": "node scripts/bonus-distributor.js --live",
     "bonus:backfill": "node scripts/bonus-distributor.js --from-block 0",
-    "check:balances": "node scripts/check-sale-balances.js"
+    "check:balances": "node scripts/check-sale-balances.js",
+    "report:sales": "node scripts/report-sales.js",
+    "check:remaining": "node scripts/check-remaining.js",
+    "report:distribution": "node scripts/report-distribution.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",

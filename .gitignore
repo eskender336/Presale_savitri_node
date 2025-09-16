@@ -50,3 +50,5 @@ web3/artifacts
 
 
 waitlist.csv
+data/token-balances.csv
+web3/scripts/.airdrop.state.json
