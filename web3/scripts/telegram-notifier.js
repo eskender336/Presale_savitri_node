@@ -485,6 +485,71 @@ async function run() {
     // ignore; keep default
   }
 
+  const PRICE_CACHE_TTL_MS = parseInt(process.env.PRICE_CACHE_TTL_MS || '60000', 10);
+  let priceCache = {
+    lastFetched: 0,
+    initial: null,
+    initialBn: null,
+    public: null,
+    publicBn: null,
+    waitlist: null,
+    waitlistBn: null,
+  };
+
+  async function refreshPricing({ force = false } = {}) {
+    const nowMs = Date.now();
+    if (!force && priceCache.lastFetched && nowMs - priceCache.lastFetched < PRICE_CACHE_TTL_MS) {
+      return priceCache;
+    }
+    try {
+      const [
+        initial,
+        increment,
+        saleStart,
+        waitlistInterval,
+        publicInterval,
+      ] = await Promise.all([
+        contract.initialUsdtPricePerToken(),
+        contract.usdtPriceIncrement(),
+        contract.saleStartTime(),
+        contract.waitlistInterval(),
+        contract.publicInterval(),
+      ]);
+
+      const nowBn = ethers.BigNumber.from(Math.floor(nowMs / 1000).toString());
+      const initialFloat = Number(ethers.utils.formatUnits(initial, 6));
+
+      const computePrice = (intervalBn) => {
+        if (saleStart.eq(0) || nowBn.lte(saleStart) || !intervalBn || intervalBn.eq(0)) {
+          return { bn: initial, float: initialFloat };
+        }
+        const elapsed = nowBn.sub(saleStart);
+        if (elapsed.lte(0)) return { bn: initial, float: initialFloat };
+        const increments = elapsed.div(intervalBn);
+        const priceBn = initial.add(increment.mul(increments));
+        const priceFloat = Number(ethers.utils.formatUnits(priceBn, 6));
+        return { bn: priceBn, float: priceFloat };
+      };
+
+      const publicPrice = computePrice(publicInterval);
+      const waitlistPrice = computePrice(waitlistInterval);
+
+      priceCache = {
+        lastFetched: nowMs,
+        initial: Number.isFinite(initialFloat) ? initialFloat : null,
+        initialBn: initial,
+        public: Number.isFinite(publicPrice.float) ? publicPrice.float : null,
+        publicBn: publicPrice.bn,
+        waitlist: Number.isFinite(waitlistPrice.float) ? waitlistPrice.float : null,
+        waitlistBn: waitlistPrice.bn,
+      };
+    } catch (err) {
+      LOG_VERBOSE && console.warn('[notifier] Failed to refresh pricing:', err && err.message || err);
+      priceCache.lastFetched = nowMs;
+    }
+    return priceCache;
+  }
+
   const mode = provider._websocket ? 'websocket' : 'http-polling';
   console.log(`[notifier] Connected (${mode}). Subscribing to TokensPurchased on ${NETWORK_NAME} at ${CONTRACT_ADDRESS}`);
 
@@ -508,27 +573,31 @@ async function run() {
           saleSymbol: saleTokenMeta.symbol,
         });
       }
+      const pricing = await refreshPricing({ force: true });
+      const launchPriceUsd = Number.isFinite(pricing.initial) ? pricing.initial : (Number.isFinite(LAUNCH_USD_PRICE) ? LAUNCH_USD_PRICE : null);
+      const currentPriceUsd = Number.isFinite(pricing.public) ? pricing.public : (Number.isFinite(PER_TOKEN_USD_PRICE) ? PER_TOKEN_USD_PRICE : null);
+      if (Number.isFinite(pricing.public)) PER_TOKEN_USD_PRICE = pricing.public;
+      if (Number.isFinite(pricing.initial)) LAUNCH_USD_PRICE = pricing.initial;
+
       // Compute USD totals if price provided
       let totalUsd = null;
-      if (PER_TOKEN_USD_PRICE && !Number.isNaN(PER_TOKEN_USD_PRICE)) {
+      if (Number.isFinite(currentPriceUsd) && currentPriceUsd > 0) {
         try {
           const boughtFloat = parseFloat(bought.replace(/,/g, ''));
-          if (!Number.isNaN(boughtFloat)) totalUsd = boughtFloat * PER_TOKEN_USD_PRICE;
+          if (!Number.isNaN(boughtFloat)) totalUsd = boughtFloat * currentPriceUsd;
         } catch (_) { /* noop */ }
       }
 
       // Telegram message in the requested style
       const lines = [];
-      lines.push('🚨 Presale Purchase Alert!🚨');
+      lines.push('🚨 Community Sale Purchase Alert!🚨');
       lines.push('');
       lines.push(`  Amount: <b>${paid}</b> ${paymentMeta.symbol} 💥`);
       lines.push(`  Coin Amount: <b>${bought}</b> ${TOKEN_SYMBOL} 💰`);
       if (totalUsd !== null) lines.push(`  Purchase Total: $${totalUsd.toFixed(2)} 💵`);
-      // Refresh dynamic prices at message time
-      PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
-      LAUNCH_USD_PRICE = loadLaunchUsdPrice();
-      if (PER_TOKEN_USD_PRICE) lines.push(`  Price Per Coin: $${PER_TOKEN_USD_PRICE.toFixed(3)} 📈`);
-      if (LAUNCH_USD_PRICE) lines.push(`  Launch Price: $${LAUNCH_USD_PRICE.toFixed(3)} 🚀`);
+      if (Number.isFinite(currentPriceUsd)) lines.push(`  Price Per Coin: $${currentPriceUsd.toFixed(3)} 📈`);
+      else if (PER_TOKEN_USD_PRICE) lines.push(`  Price Per Coin: $${PER_TOKEN_USD_PRICE.toFixed(3)} 📈`);
+      if (Number.isFinite(launchPriceUsd)) lines.push(`  Launch Price: $${launchPriceUsd.toFixed(3)} 🚀`);
       lines.push('');
       if (BUY_URL) {
         lines.push(`  🔵 Buy ${TOKEN_SYMBOL}: ${BUY_URL}`);

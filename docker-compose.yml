@@ -3,7 +3,7 @@ services:
     image: mongo:7
     container_name: mongo
     restart: unless-stopped
-    ports: ["27017:27017"]
+    ports: ["127.0.0.1:27017:27017"]  # Only accessible from localhost, not internet
     env_file:
       - .env
     environment:

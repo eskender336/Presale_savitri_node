@@ -14,6 +14,7 @@
 //   ICO_ADDRESS or NEXT_PUBLIC_TOKEN_ICO_ADDRESS - If set and SALE_TOKEN_ADDRESS not provided, will read saleToken() from ICO
 //   CSV_PATH                        - Path to CSV (default ../../data/token-balances.csv)
 //   AIRDROP_STATE_FILE             - State file path (default ./.airdrop.state.json)
+//   CHAIN_ID                        - Optional: skip RPC network detection (recommended for unstable RPCs)
 //   MAX_CHUNK_TOKENS               - Max tokens per tx (default 5000)
 //   MIN_CHUNK_TOKENS               - Min tokens per tx (default 100)
 //   CHUNK_PER_TX_USD               - Optional: if set and PER_TOKEN_USD_PRICE>0, MAX_CHUNK_TOKENS = floor(CHUNK_PER_TX_USD / PER_TOKEN_USD_PRICE)
@@ -28,7 +29,18 @@ const path = require('path');
 const https = require('https');
 const { ethers } = require('ethers');
 
-const RPC = process.env.RPC_WS_URL || process.env.NETWORK_RPC_URL;
+const RPC_WS_URL = (process.env.RPC_WS_URL || '').trim();
+const RPC_HTTP_URL = (process.env.NETWORK_RPC_URL || '').trim();
+const EXTRA_RPC_URLS = String(process.env.RPC_FALLBACKS || process.env.RPC_URLS || '')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean);
+const RPC_ENDPOINTS = [];
+if (RPC_WS_URL) RPC_ENDPOINTS.push(RPC_WS_URL);
+if (RPC_HTTP_URL && !RPC_ENDPOINTS.includes(RPC_HTTP_URL)) RPC_ENDPOINTS.push(RPC_HTTP_URL);
+for (const url of EXTRA_RPC_URLS) {
+  if (!RPC_ENDPOINTS.includes(url)) RPC_ENDPOINTS.push(url);
+}
 const PK = process.env.PRIVATE_KEY;
 const ICO_ADDR = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS || '';
 const TOKEN_ADDR_ENV = process.env.SALE_TOKEN_ADDRESS || process.env.SAV_ADDRESS || process.env.NEXT_PUBLIC_SAV_ADDRESS || '';
@@ -42,6 +54,8 @@ const FAST_START_MS = process.env.FAST_START_MS ? Math.max(0, parseInt(process.e
 const AIRDROP_DURATION_DAYS = process.env.AIRDROP_DURATION_DAYS ? Math.max(1, parseInt(process.env.AIRDROP_DURATION_DAYS, 10)) : null; // if set, pace over N days
 const DAILY_TX_CAP = process.env.DAILY_TX_CAP ? Math.max(1, parseInt(process.env.DAILY_TX_CAP, 10)) : null; // hard cap override
 const TOKEN_SYMBOL = (process.env.TOKEN_SYMBOL || process.env.NEXT_PUBLIC_TOKEN_SYMBOL || 'SAV').trim() || 'SAV';
+const CHAIN_ID_ENV = parseInt(String(process.env.CHAIN_ID || process.env.NETWORK_CHAIN_ID || process.env.NEXT_PUBLIC_CHAIN_ID || '').trim(), 10);
+const PROVIDER_NETWORK = Number.isFinite(CHAIN_ID_ENV) && CHAIN_ID_ENV > 0 ? { chainId: CHAIN_ID_ENV, name: networkNameFromChainId(CHAIN_ID_ENV) } : null;
 // Dynamic pricing support
 const TOKEN_PRICE_FILE = process.env.TOKEN_PRICE_FILE || process.env.PRICE_FILE || path.join(__dirname, '../price.config.json');
 function loadPerTokenUsdPrice() {
@@ -68,9 +82,9 @@ function loadLaunchUsdPrice() {
   } catch (_) {}
   return 0;
 }
-// Hardcoded prices as requested
-let PER_TOKEN_USD_PRICE = 0.2; // USD per token
-let LAUNCH_USD_PRICE = 0.2;    // Launch price USD per token
+let PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice(); // USD per token (waitlist price)
+let PUBLIC_SALE_USD_PRICE = null;
+let LAUNCH_USD_PRICE = loadLaunchUsdPrice();    // Launch price USD per token
 const BUY_URL = (process.env.BUY_URL || process.env.NEXT_PUBLIC_NEXT_DOMAIN_URL || '').trim();
 // Derive chunk tokens from USD, if requested
 const CHUNK_PER_TX_USD = parseFloat(String(process.env.CHUNK_PER_TX_USD || process.env.MAX_CHUNK_USD || ''));
@@ -102,12 +116,13 @@ const GAS_PRICE_GWEI = parseFloat(String(process.env.GAS_PRICE_GWEI || '0'));
 const FORCE_LEGACY_TX = /^1|true|yes$/i.test(String(process.env.FORCE_LEGACY_TX || '0'));
 
 // Delay profile overrides (random delay between txs)
-const DELAY_DAY_MIN_SEC = Math.max(1, parseInt(process.env.DELAY_DAY_MIN_SEC || '60', 10));
-const DELAY_DAY_MAX_SEC = Math.max(DELAY_DAY_MIN_SEC, parseInt(process.env.DELAY_DAY_MAX_SEC || '180', 10));
-const DELAY_NIGHT_MIN_SEC = Math.max(1, parseInt(process.env.DELAY_NIGHT_MIN_SEC || '60', 10));
-const DELAY_NIGHT_MAX_SEC = Math.max(DELAY_NIGHT_MIN_SEC, parseInt(process.env.DELAY_NIGHT_MAX_SEC || '240', 10));
+// Defaults: Day 5–10 minutes, Night 6–14 minutes (Asia/Almaty)
+const DELAY_DAY_MIN_SEC = Math.max(1, parseInt(process.env.DELAY_DAY_MIN_SEC || '300', 10)); // 5 min
+const DELAY_DAY_MAX_SEC = Math.max(DELAY_DAY_MIN_SEC, parseInt(process.env.DELAY_DAY_MAX_SEC || '600', 10)); // 10 min
+const DELAY_NIGHT_MIN_SEC = Math.max(1, parseInt(process.env.DELAY_NIGHT_MIN_SEC || '360', 10)); // 6 min
+const DELAY_NIGHT_MAX_SEC = Math.max(DELAY_NIGHT_MIN_SEC, parseInt(process.env.DELAY_NIGHT_MAX_SEC || '840', 10)); // 14 min
 
-if (!RPC) throw new Error('Missing RPC (RPC_WS_URL or NETWORK_RPC_URL)');
+if (RPC_ENDPOINTS.length === 0) throw new Error('Missing RPC (RPC_WS_URL, NETWORK_RPC_URL or RPC_FALLBACKS)');
 if (!PK) throw new Error('Missing PRIVATE_KEY');
 
 const erc20Abi = [
@@ -135,6 +150,19 @@ function randInt(minIncl, maxIncl) {
   return Math.floor(Math.random() * (maxIncl - minIncl + 1)) + minIncl;
 }
 
+function networkNameFromChainId(chainId) {
+  switch (chainId) {
+    case 1: return 'homestead';
+    case 5: return 'goerli';
+    case 56: return 'bsc';
+    case 97: return 'bsc-testnet';
+    case 137: return 'polygon';
+    case 59144: return 'linea';
+    default:
+      return `chain-${chainId}`;
+  }
+}
+
 // Delay profile: return [minSec, maxSec] based on Astana hour
 function delayWindowByHour(hour) {
   // Night (before 09:00 Astana) vs Day (09:00+), values configurable via env
@@ -148,6 +176,46 @@ function nextDelayMs() {
   const sec = randInt(minS, maxS);
   console.log(`[schedule] ${iso} Asia/Almaty -> next in ${sec}s`);
   return sec * 1000;
+}
+
+async function createProvider() {
+  let lastErr = null;
+  for (const url of RPC_ENDPOINTS) {
+    const isWs = /^wss?:\/\//i.test(url);
+    const provider = isWs
+      ? new ethers.providers.WebSocketProvider(url, PROVIDER_NETWORK || undefined)
+      : new ethers.providers.StaticJsonRpcProvider(url, PROVIDER_NETWORK || undefined);
+    if (PROVIDER_NETWORK && isWs) {
+      provider._networkPromise = Promise.resolve(PROVIDER_NETWORK);
+      provider._network = PROVIDER_NETWORK;
+      provider.detectNetwork = async () => PROVIDER_NETWORK;
+    }
+    try {
+      const network = await provider.getNetwork();
+      console.log('[airdrop] RPC connected:', url, 'chainId', network.chainId);
+      return { provider, network };
+    } catch (err) {
+      lastErr = err;
+      const code = err && err.code ? `${err.code}: ` : '';
+      const msg = err && err.message ? err.message : err;
+      console.warn('[airdrop] RPC connection failed for', url + ':', code + msg);
+      try {
+        if (isWs) {
+          const ws = provider._websocket;
+          if (ws && typeof ws.terminate === 'function') {
+            ws.terminate();
+          } else if (typeof provider.destroy === 'function') {
+            provider.destroy();
+          }
+        } else if (typeof provider.destroy === 'function') {
+          provider.destroy();
+        }
+      } catch (_) { /* noop */ }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+  const errMsg = lastErr && lastErr.message ? lastErr.message : String(lastErr || 'Unknown RPC connection error');
+  throw new Error(`Failed to connect to any RPC endpoint (${RPC_ENDPOINTS.join(', ') || 'none'}): ${errMsg}`);
 }
 
 function msUntilNextAstanaMidnight() {
@@ -198,9 +266,78 @@ async function ensureTokenContract(wallet) {
   return new ethers.Contract(t, erc20Abi, wallet);
 }
 
+const PRICE_CACHE_TTL_MS = parseInt(process.env.PRICE_CACHE_TTL_MS || '60000', 10);
+let priceCache = {
+  lastFetched: 0,
+  initial: null,
+  initialBn: null,
+  public: null,
+  publicBn: null,
+  waitlist: null,
+  waitlistBn: null,
+};
+
+async function refreshPriceCache(icoContract, { force = false } = {}) {
+  if (!icoContract) return priceCache;
+  const nowMs = Date.now();
+  if (!force && priceCache.lastFetched && nowMs - priceCache.lastFetched < PRICE_CACHE_TTL_MS) {
+    return priceCache;
+  }
+  try {
+    const [
+      initial,
+      increment,
+      saleStart,
+      waitlistInterval,
+      publicInterval,
+    ] = await Promise.all([
+      icoContract.initialUsdtPricePerToken(),
+      icoContract.usdtPriceIncrement(),
+      icoContract.saleStartTime(),
+      icoContract.waitlistInterval(),
+      icoContract.publicInterval(),
+    ]);
+
+    const nowBn = ethers.BigNumber.from(Math.floor(nowMs / 1000).toString());
+    const initialFloat = Number(ethers.utils.formatUnits(initial, 6));
+
+    const computePrice = (intervalBn) => {
+      if (saleStart.eq(0) || nowBn.lte(saleStart) || !intervalBn || intervalBn.eq(0)) {
+        return { bn: initial, float: initialFloat };
+      }
+      const elapsed = nowBn.sub(saleStart);
+      if (elapsed.lte(0)) return { bn: initial, float: initialFloat };
+      const increments = elapsed.div(intervalBn);
+      const priceBn = initial.add(increment.mul(increments));
+      const priceFloat = Number(ethers.utils.formatUnits(priceBn, 6));
+      return { bn: priceBn, float: priceFloat };
+    };
+
+    const publicPrice = computePrice(publicInterval);
+    const waitlistPrice = computePrice(waitlistInterval);
+
+    priceCache = {
+      lastFetched: nowMs,
+      initial: Number.isFinite(initialFloat) ? initialFloat : null,
+      initialBn: initial,
+      public: Number.isFinite(publicPrice.float) ? publicPrice.float : null,
+      publicBn: publicPrice.bn,
+      waitlist: Number.isFinite(waitlistPrice.float) ? waitlistPrice.float : null,
+      waitlistBn: waitlistPrice.bn,
+    };
+
+    if (Number.isFinite(priceCache.waitlist)) PER_TOKEN_USD_PRICE = priceCache.waitlist;
+    if (Number.isFinite(priceCache.public)) PUBLIC_SALE_USD_PRICE = priceCache.public;
+    if (Number.isFinite(priceCache.initial)) LAUNCH_USD_PRICE = priceCache.initial;
+  } catch (err) {
+    console.warn('[airdrop] Failed to refresh pricing:', err && err.message || err);
+    priceCache.lastFetched = nowMs;
+  }
+  return priceCache;
+}
+
 async function main() {
-  const isWs = /^wss?:\/\//i.test(RPC);
-  const provider = isWs ? new ethers.providers.WebSocketProvider(RPC) : new ethers.providers.JsonRpcProvider(RPC);
+  const { provider, network } = await createProvider();
   const wallet = new ethers.Wallet(PK, provider);
   const token = await ensureTokenContract(wallet);
   const ico = ICO_ADDR ? new ethers.Contract(ICO_ADDR, icoAbi, wallet) : null;
@@ -208,7 +345,11 @@ async function main() {
   const symbol = await token.symbol().catch(() => 'TOKEN');
   const sender = await wallet.getAddress();
 
-  console.log('[airdrop] Network', (await provider.getNetwork()).chainId);
+  await refreshPriceCache(ico, { force: true });
+  if (!Number.isFinite(PER_TOKEN_USD_PRICE) || PER_TOKEN_USD_PRICE <= 0) PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
+  if (!Number.isFinite(LAUNCH_USD_PRICE) || LAUNCH_USD_PRICE <= 0) LAUNCH_USD_PRICE = loadLaunchUsdPrice();
+
+  console.log('[airdrop] Network', network.chainId);
   console.log('[airdrop] Token', token.address, symbol, 'decimals', decimals);
   console.log('[airdrop] Sender', sender);
   if (PER_TOKEN_USD_PRICE) console.log('[airdrop] Price per token (USD):', PER_TOKEN_USD_PRICE);
@@ -234,11 +375,27 @@ async function main() {
   // Build totals from CSV
   const csvText = fs.readFileSync(CSV_PATH, 'utf8');
   const totals = parseCsvTotals(csvText);
-  state.totals = totals;
-  // Initialize remaining if first run
+
+  // Merge CSV totals into state in an idempotent way:
+  // - On first run (no remaining), seed remaining from totals
+  // - On subsequent runs, add any new addresses from CSV
+  // - If an address's total increased in CSV, top up its remaining by the delta
+  const prevTotals = state.totals || {};
   if (!state.remaining || Object.keys(state.remaining).length === 0) {
     state.remaining = { ...totals };
+  } else {
+    for (const [addr, totalNowStr] of Object.entries(totals)) {
+      const totalNow = BigInt(totalNowStr || 0);
+      const totalPrev = BigInt(prevTotals[addr] || 0);
+      const remPrev = BigInt(state.remaining[addr] || 0);
+      // Amount already sent so far based on previous total and remaining
+      const sentSoFar = totalPrev > 0n ? (totalPrev - (remPrev > totalPrev ? 0n : remPrev)) : 0n;
+      const newRemaining = totalNow > sentSoFar ? (totalNow - sentSoFar) : 0n;
+      state.remaining[addr] = newRemaining.toString();
+    }
+    // Keep any other existing entries in remaining as-is (e.g., addresses removed from CSV)
   }
+  state.totals = totals;
   saveState(state);
 
   const addresses = Object.keys(state.remaining);
@@ -299,7 +456,9 @@ async function main() {
       if (candidates.length === 0) candidates = nonZero; // allow repeat if single option
       const to = candidates[randInt(0, candidates.length - 1)];
       const leftTokens = BigInt(state.remaining[to]);
-      // Price-driven chunk size (uses hardcoded price)
+      if (ico) await refreshPriceCache(ico);
+      if (!Number.isFinite(PER_TOKEN_USD_PRICE) || PER_TOKEN_USD_PRICE <= 0) PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
+      // Price-driven chunk size (uses current waitlist price)
       const dynamicMax = (!Number.isNaN(CHUNK_PER_TX_USD) && CHUNK_PER_TX_USD > 0 && PER_TOKEN_USD_PRICE > 0)
         ? Math.max(1, Math.floor(CHUNK_PER_TX_USD / PER_TOKEN_USD_PRICE))
         : MAX_CHUNK_TOKENS;
@@ -370,7 +529,7 @@ async function main() {
         else await tx.wait();
         if (AIRDROP_NOTIFY && TELEGRAM_BOT_TOKEN) {
           const lines = [];
-          lines.push('🚨 Presale Purchase Alert!🚨');
+          lines.push('🚨 Private Sale Purchase Alert!🚨');
           lines.push('');
           const totalUsd = PER_TOKEN_USD_PRICE ? (Number(sendTokens) * PER_TOKEN_USD_PRICE) : null;
           if (totalUsd !== null) lines.push(`  Amount: <b>$${totalUsd.toFixed(2)}</b> 💵`);

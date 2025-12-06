@@ -223,10 +223,10 @@ const ContactUs = ({ isDarkMode }) => {
                     <div>
                       <h3 className={theme.text + " font-medium"}>Email</h3>
                       <a
-                        href="mailto:support@lightchain.com"
+                        href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@savitrinetwork.com'}`}
                         className={`${theme.textSecondary} hover:text-purple-400 transition-colors`}
                       >
-                        support@lightchain.com
+                        {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@savitrinetwork.com'}
                       </a>
                     </div>
                   </div>
@@ -266,7 +266,7 @@ const ContactUs = ({ isDarkMode }) => {
                   </a>
 
                   <a
-                    href="https://t.me/lightchain"
+                    href="https://t.me/Savitri_Community"
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-3 p-3 ${theme.socialBg} rounded-lg ${theme.hoverTelegram} transition-colors`}

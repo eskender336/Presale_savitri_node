@@ -8,7 +8,14 @@ const { ethers } = require('ethers');
 
 async function main() {
   const RPC = process.env.NETWORK_RPC_URL;
-  const PK = process.env.PRIVATE_KEY;
+  // Load private key securely (encrypted storage with fallback to env)
+let PK;
+try {
+  const { loadPrivateKeySync } = require("./load-secure-key");
+  PK = loadPrivateKeySync({ allowFallback: true });
+} catch (e) {
+  PK = process.env.PRIVATE_KEY;
+}
   const ICO = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS;
   if (!RPC) throw new Error('NETWORK_RPC_URL missing in web3/.env');
   if (!PK) throw new Error('PRIVATE_KEY missing in web3/.env');

@@ -19,43 +19,43 @@ const FAQComponent = ({ isDarkMode }) => {
       id: "why-bep20",
       question: "Why is Savi coin made in BEP20?",
       answer:
-        "During the pre-sale and ICO phases, Savi Token will be released as a BEP20 token on the BNB Smart Chain. This temporary version is essential to manage the token sale efficiently and ensure broad compatibility with popular wallets and platforms. After the ICO ends, holders of the BEP20 Savi Token will be able to claim the native SAVI COIN on our own Layer 1 blockchain. This two-step approach ensures a smooth launch experience while preparing for full migration to the Savitri mainnet."
+        "During the community sale and ICO phases, Savi Token will be released as a BEP20 token on the BNB Smart Chain. This temporary version is essential to manage the token sale efficiently and ensure broad compatibility with popular wallets and platforms. After the ICO ends, holders of the BEP20 Savi Token will be able to claim the native SAVI COIN on our own Layer 1 blockchain. This two-step approach ensures a smooth launch experience while preparing for full migration to the Savitri mainnet."
     },
     {
-      id: "participate-pre-sale",
-      question: "How can I participate in the pre-sale?",
+      id: "participate-community-sale",
+      question: "How can I participate in the community sale?",
       answer:
-        "Joining the Savi Coin pre-sale is simple and secure. Just follow these steps:\n1. Connect your wallet (e.g., Trust Wallet, MetaMask, WalletConnect)\n2. Access the Token Sale page\n3. Select the cryptocurrency you want to use (BNB, USDT, etc.)\n4. Enter the amount of Savi Coins you want to buy\n5. Confirm the transaction via your wallet\nYour Savi Token (BEP20) will be sent directly to your wallet. These tokens will later be used to claim the native SAVI COIN after the ICO."
+        "Joining the Savi Coin community sale is simple and secure. Just follow these steps:\n1. Connect your wallet (e.g., Trust Wallet, MetaMask, WalletConnect)\n2. Access the Token Sale page\n3. Select the cryptocurrency you want to use (BNB, USDT, etc.)\n4. Enter the amount of Savi Coins you want to buy\n5. Confirm the transaction via your wallet\nYour Savi Token (BEP20) will be sent directly to your wallet. These tokens will later be used to claim the native SAVI COIN after the ICO."
     },
     {
-      id: "token-price-pre-sale",
-      question: "What is the token price during pre-sale?",
+      id: "token-price-community-sale",
+      question: "What is the token price during the community sale?",
       answer:
-        "The initial price of Savi Coin during the pre-sale starts at $0.35 per token. With each new round, the price will gradually increase, rewarding early supporters with the best entry point. Secure your Savi Coins early to maximize your value before the price goes up!"
+        "The initial price of Savi Coin during the community sale starts at $0.35 per token. With each new round, the price will gradually increase, rewarding early supporters with the best entry point. Secure your Savi Coins early to maximize your value before the price goes up!"
     },
     {
       id: "vesting-lockup",
       question: "Is there a vesting or lock-up period?",
       answer:
-        "To ensure a fair and sustainable launch, Savi Coin follows a simple and transparent vesting model:\n- 20% of the purchased tokens will be distributed immediately at the end of the pre-sale.\n- The remaining 80% will be released in monthly installments of 20%, completing the full vesting over four months.\n🎁 Loyalty Rewards: Users who hold their tokens throughout the vesting period or actively participate in the project’s governance may become eligible for additional rewards, including early unlocks, bonus tokens, or exclusive NFTs."
+        "To ensure a fair and sustainable launch, Savi Coin follows a simple and transparent vesting model:\n- 20% of the purchased tokens will be distributed immediately at the end of the community sale.\n- The remaining 80% will be released in monthly installments of 20%, completing the full vesting over four months.\n🎁 Loyalty Rewards: Users who hold their tokens throughout the vesting period or actively participate in the project’s governance may become eligible for additional rewards, including early unlocks, bonus tokens, or exclusive NFTs."
     },
     {
-      id: "presale-start",
-      question: "When the Pre-sale will start?",
+      id: "community-sale-start",
+      question: "When will the community sale start?",
       answer:
-        "The Pre-Sale begins in the 1st week of August and ends in the 4th week of October. The Public ICO is tentatively planned for November to January — but the exact timeline depends on the outcome of the Pre-Sale. If we successfully reach our fundraising milestones, we will proceed with the public launch and token distribution as scheduled. Otherwise, the roadmap may adjust to reflect resource realities and community feedback. We believe in transparency and responsible growth — and we’ll keep our community fully updated throughout each stage."
+        "The Community Sale begins in the 1st week of August and ends in the 4th week of October. The Public ICO is tentatively planned for November to January — but the exact timeline depends on the outcome of the Community Sale. If we successfully reach our fundraising milestones, we will proceed with the public launch and token distribution as scheduled. Otherwise, the roadmap may adjust to reflect resource realities and community feedback. We believe in transparency and responsible growth — and we’ll keep our community fully updated throughout each stage."
     },
     {
       id: "kyc-required",
       question: "Is KYC required to participate?",
       answer:
-        "No KYC is required to participate in the pre-sale. You can purchase Savi Tokens freely by connecting your wallet. However, KYC will be mandatory at the time of claiming the native SAVI COIN after the ICO ends. This ensures compliance with regulations and helps protect the long-term integrity of the project."
+        "No KYC is required to participate in the community sale. You can purchase Savi Tokens freely by connecting your wallet. However, KYC will be mandatory at the time of claiming the native SAVI COIN after the ICO ends. This ensures compliance with regulations and helps protect the long-term integrity of the project."
     },
     {
       id: "smart-contract-audit",
       question: "Is the smart contract audited?",
       answer:
-        "The audit will be provided during the pre-sale."
+        "The audit will be provided during the community sale."
     },
     {
       id: "supported-wallets",
@@ -67,7 +67,7 @@ const FAQComponent = ({ isDarkMode }) => {
       id: "receive-tokens",
       question: "Where will I receive my tokens?",
       answer:
-        "Your Savi Tokens (BEP20) will be automatically sent to the same wallet you used to complete the purchase. There’s no need for manual claiming during the pre-sale — tokens are delivered instantly after each transaction."
+        "Your Savi Tokens (BEP20) will be automatically sent to the same wallet you used to complete the purchase. There’s no need for manual claiming during the community sale — tokens are delivered instantly after each transaction."
     },
     {
       id: "goals-2025-2026",
@@ -91,7 +91,7 @@ const FAQComponent = ({ isDarkMode }) => {
       id: "run-node-stake",
       question: "Can I run a node or stake my tokens?",
       answer:
-        "Yes! After the 5th round of the pre-sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up.",
+        "Yes! After the 5th round of the community sale, users will be able to stake their SAVI Tokens directly through the purchase platform and start earning rewards. Additionally, once the testnet and SDK (Software Development Kit) are released, anyone will be able to run a node — whether on a smartphone, personal computer, or server. Savi is designed to be open, accessible, and community-powered from the ground up.",
     },
   ],
   []
@@ -151,7 +151,7 @@ const FAQComponent = ({ isDarkMode }) => {
     </svg>
   );
 
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'eskender.k@prometeochain.io';
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@savitrinetwork.com';
   const mailtoHref = `mailto:${supportEmail}?subject=${encodeURIComponent('Support Request')}`;
 
   return (
@@ -287,6 +287,25 @@ const FAQComponent = ({ isDarkMode }) => {
               </svg>
               Contact Support
             </a>
+
+            {/* Support email + copy */}
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
+                {supportEmail}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(supportEmail);
+                    alert('Email copied to clipboard');
+                  } catch (_) {}
+                }}
+                className="px-3 py-1 rounded-md text-xs border border-indigo-400/40 hover:bg-indigo-500/10 text-light-gradient"
+              >
+                Copy
+              </button>
+            </div>
 
 
 

@@ -8,7 +8,48 @@ export const config = {
   },
 };
 
+// Simple rate limiting
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 5; // Lower limit for voucher endpoint
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
+  
+  if (now > userLimit.resetTime) {
+    userLimit.count = 0;
+    userLimit.resetTime = now + RATE_LIMIT_WINDOW;
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+  
+  userLimit.count++;
+  rateLimitMap.set(ip, userLimit);
+  return true;
+}
+
+function getClientIP(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0] || 
+         req.headers['x-real-ip'] || 
+         req.connection?.remoteAddress || 
+         'unknown';
+}
+
 export default async function handler(req, res) {
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Rate limiting
+  const clientIP = getClientIP(req);
+  if (!checkRateLimit(clientIP)) {
+    return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+  }
+  
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: "Method not allowed" });

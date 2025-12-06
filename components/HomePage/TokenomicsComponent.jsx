@@ -47,7 +47,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
         <div className="text-center mb-16">
           <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-4">
             <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
-              Presale Token Allocation
+              Community Sale Token Allocation
             </p>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent text-light-gradient mb-6">
@@ -75,7 +75,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
           <div className="w-full mx-auto mb-12">
             <div className="relative w-full aspect-[16/9]">
               <Image
-                src={isDarkMode ? "/tokenomics.png" : "/tokenomics-light.png"}
+                src={"/tokenomics.jpg"}
                 alt="Savitri Network Tokenomics Chart"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 800px"
@@ -154,7 +154,7 @@ const TokenomicsComponent = ({ isDarkMode }) => {
               </div>
               <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}>Total Supply</h3>
               <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
-                1,000,000,000 tokens with deflationary mechanisms to ensure long-term value
+                2,000,000,000 tokens with deflationary mechanisms to ensure long-term value
               </p>
             </div>
 

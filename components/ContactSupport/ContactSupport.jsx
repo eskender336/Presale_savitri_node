@@ -1,8 +1,8 @@
 import React from "react";
 import { FaEnvelope, FaTelegramPlane, FaShieldAlt } from "react-icons/fa";
 
-const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "eskender.k@prometeochain.io";
-const telegram = process.env.NEXT_PUBLIC_SUPPORT_TELEGRAM || "https://t.me/your_channel";
+const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@savitrinetwork.com";
+const telegram = process.env.NEXT_PUBLIC_SUPPORT_TELEGRAM || "https://t.me/Savitri_Community";
 
 export default function ContactSupport({ isDarkMode }) {
   const theme = {
@@ -27,7 +27,6 @@ export default function ContactSupport({ isDarkMode }) {
         <li>
           <a href={telegram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-light-gradient hover:from-teal-500 hover:to-indigo-600">
             <FaTelegramPlane />
-            <span>Telegram: Join/DM</span>
           </a>
         </li>
       </ul>
@@ -39,4 +38,3 @@ export default function ContactSupport({ isDarkMode }) {
     </div>
   );
 }
-

@@ -124,7 +124,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
             <div className="w-full md:w-2/3 text-left">
               <div className="inline-block p-1.5 px-3 rounded-full text-light-gradient mb-6">
                 <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
-                  Presale Now Live
+                  Community Sale Now Live
                 </p>
               </div>
 
@@ -138,7 +138,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
                 className={`${textSecondary} text-base md:text-lg mb-8 max-w-2xl leading-relaxed`}
               >
                 Be at the forefront of technological evolution with Lightchain
-                AI's presale. Secure exclusive access to discounted tokens and
+                AI's community sale. Secure exclusive access to discounted tokens and
                 groundbreaking features like PoI Consensus and AIVM. Join a
                 community driving intelligent, decentralized solutions and
                 redefining blockchain innovation. Your journey into the future
@@ -227,7 +227,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Join Presale
+                  Join Community Sale
                 </button>
                 <button
                   className={`border-2 ${
@@ -253,7 +253,7 @@ const HeroCTAComponent = ({ isDarkMode }) => {
               <div className="mt-8 pt-6 border-t border-gray-800/10">
                 <div className="flex justify-between items-center mb-2">
                   <span className={`text-sm ${textSecondary}`}>
-                    Presale Progress
+                    Community Sale Progress
                   </span>
                   <span className="text-sm font-bold bg-clip-text text-transparent text-light-gradient">
                     64% Complete

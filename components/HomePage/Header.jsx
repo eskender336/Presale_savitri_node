@@ -190,7 +190,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             {
               icon: <FiFileText className="text-teal-400" />,
               label: "Whitepaper",
-              href: "/dashboard",
+              href: "https://savitrinetwork.com/wp-content/uploads/2025/09/White-Paper-Savitri.pdf",
             },
             {
               icon: <FiMap className="text-indigo-500" />,
@@ -277,7 +277,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
             {/* Marquee text content */}
             <div className={`animate-marquee inline-block whitespace-nowrap relative z-10 ${isDarkMode ? "text-white" : "text-black"}`}>
               <span className="mx-4 text-sm md:text-base">
-                🚀 {TOKEN_NAME} {TOKEN_SYMBOL} Presale is NOW LIVE! Be part of
+                🚀 {TOKEN_NAME} {TOKEN_SYMBOL} Community Sale is NOW LIVE! Be part of
                 the future—claim your discounted tokens and exclusive access to
                 revolutionary AI-blockchain technology.
                 <span className="mx-1">🌐</span>
@@ -472,7 +472,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
               </a>
 
               <a
-                href="https://t.me/savitri_group"
+                href="https://t.me/Savitri_Community"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-2 px-3 py-1 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
@@ -797,7 +797,7 @@ const Header = ({ isDarkMode, toggleDarkMode }) => {
                 </a>
 
                 <a
-                  href="https://t.me/savitri_group"
+                  href="https://t.me/Savitri_Community"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-4 border-b flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 transition-colors"

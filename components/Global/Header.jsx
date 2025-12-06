@@ -15,7 +15,7 @@ const Header = ({ theme, title }) => {
       </h1>
       <div className=" gap-6 hidden lg:flex">
         <a
-          href="https://savitrinetwork.com/wp-content/uploads/2025/08/White-Paper-Savitri.pdf"
+          href="https://savitrinetwork.com/wp-content/uploads/2025/09/White-Paper-Savitri.pdf"
           target="_blank"
           rel="noopener noreferrer"
           className={`${theme.textSecondary} hover:${theme.text}`}

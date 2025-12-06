@@ -69,7 +69,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
           </div>
           <div className={`${theme.cardBg} rounded-xl p-6`}>
             <h3 className={`${theme.textSecondary} mb-2`}>Total Supply</h3>
-            <p className={theme.text}>1,000,000,000 PRJ</p>
+            <p className={theme.text}>2,000,000,000 PRJ</p>
           </div>
           <div className={`${theme.cardBg} rounded-xl p-6`}>
             <h3 className={`${theme.textSecondary} mb-2`}>Initial Price</h3>
@@ -88,7 +88,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className={theme.textSecondary}>Presale Allocation</span>
+                <span className={theme.textSecondary}>Community Sale Allocation</span>
                 <span className={theme.text}>40%</span>
               </div>
               <div className="flex items-center justify-between">
@@ -151,7 +151,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
         <div>
           <h3 className="text-xl text-[#9761F4] mb-4">Phase 2 - Q2 2024</h3>
           <ul className={`space-y-2 ${theme.textSecondary}`}>
-            <li>• Token presale launch</li>
+            <li>• Community sale launch</li>
             <li>• DEX listing and liquidity pool creation</li>
             <li>• Marketing campaign rollout</li>
           </ul>
@@ -204,7 +204,7 @@ const TokenDocumentation = ({ onClose, isDarkMode }) => {
             <h3 className={`${theme.text} text-lg`}>Connect Wallet</h3>
           </div>
           <p className={theme.textSecondary}>
-            Visit our presale website and connect your wallet by clicking the
+            Visit our community sale website and connect your wallet by clicking the
             "Connect Wallet" button.
           </p>
         </div>

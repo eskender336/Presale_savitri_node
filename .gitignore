@@ -52,3 +52,10 @@ web3/artifacts
 waitlist.csv
 data/token-balances.csv
 web3/scripts/.airdrop.state.json
+
+# Security: Don't commit private keys or account files
+HardhatAccounts.txt
+*.key
+*.pem
+*.p12
+*.pfx

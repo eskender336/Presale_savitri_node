@@ -138,7 +138,7 @@ const Footer = ({ isDarkMode }) => {
               <FaLinkedin />
             </a>
             <a
-              href="https://t.me/savitri_group"
+              href="https://t.me/Savitri_Community"
               target="_blank"
               rel="noopener noreferrer"
             >

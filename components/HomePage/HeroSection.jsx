@@ -168,6 +168,13 @@ const HeroSection = ({ isDarkMode, setIsReferralPopupOpen }) => {
     return { usdtRatio, usdcRatio, ethRatio, btcRatio, solRatio };
   }, [contractInfo, currentUsdPrice]);
 
+  const formatUsdPrice = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return "0.000";
+    const normalized = num.toFixed(6);
+    return parseFloat(normalized).toString();
+  };
+
   // Start loading effect when component mounts
   useEffect(() => {
     setIsLoading(true);
@@ -710,7 +717,7 @@ useEffect(() => {
             {/* Header content */}
             <div className="inline-block p-2 px-4 rounded-full text-light-gradient mb-6">
               <p className="text-sm font-medium bg-clip-text text-transparent text-light-gradient">
-                Presale Now Live
+                Community Sale Now Live
               </p>
             </div>
 
@@ -928,7 +935,7 @@ useEffect(() => {
                   className={`text-center text-sm ${secondaryTextColor} mb-4`}
                 >
                   {nowTs < saleStartTs && saleStartTs > 0
-                    ? `Presale starts in ${formatTime(saleStartTs - nowTs)}`
+                    ? `Community sale starts in ${formatTime(saleStartTs - nowTs)}`
                     : timeRemaining > 0
                     ? `Next price in ${formatTime(timeRemaining)}`
                     : "Until price increase"}
@@ -940,7 +947,7 @@ useEffect(() => {
                   <div className={`${secondaryTextColor} flex flex-col`}>
                     <span className="text-xs mb-1">Current Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {parseFloat(currentUsdPrice).toFixed(2)}
+                      $ {formatUsdPrice(currentUsdPrice)}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-500/20 to-transparent"></div>
@@ -949,7 +956,7 @@ useEffect(() => {
                   >
                     <span className="text-xs mb-1">Next Stage Price</span>
                     <span className={`${textColor} font-medium`}>
-                      $ {parseFloat(nextUsdPrice).toFixed(2)}
+                      $ {formatUsdPrice(nextUsdPrice)}
                     </span>
                   </div>
                 </div>
@@ -1019,7 +1026,7 @@ useEffect(() => {
                   </span>
                   <div className="px-3 py-1 rounded-lg text-light-gradient">
                     <span className="text-lg font-bold text-transparent bg-clip-text text-light-gradient">
-                      ${parseFloat(currentUsdPrice).toFixed(2)}
+                      ${formatUsdPrice(currentUsdPrice)}
                     </span>
                   </div>
                   {bonusPct > 0 && (
@@ -1281,7 +1288,7 @@ useEffect(() => {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <a
-                        href="#participate-pre-sale"
+                        href="#participate-community-sale"
                         className={`${secondaryTextColor} hover:${textColor} flex items-center text-xs transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/20`}
                       >
                         <span className="mr-1">•</span>
