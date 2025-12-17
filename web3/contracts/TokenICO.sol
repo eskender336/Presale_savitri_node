@@ -60,6 +60,8 @@ contract TokenICO {
 
     uint256 public constant TOTAL_TOKENS_FOR_SALE = 600_000_000 * 1e18;
     uint256 public constant WAITLIST_ALLOCATION = 2_000_000 * 1e18;
+    uint256 public constant MAX_BATCH_SIZE = 100; // Maximum recipients per batch to prevent DoS
+    uint256 public constant PRICE_FEED_STALENESS_THRESHOLD = 3600; // 1 hour in seconds
 
     // Blocked addresses
     mapping(address => bool) public blockedAddresses;
@@ -71,6 +73,17 @@ contract TokenICO {
     uint256 public waitlistInterval = 14 days; // seconds for waitlisted wallets (2 weeks)
     uint256 public publicInterval = 7 days; // seconds for others (1 week)
     mapping(address => bool) public waitlisted;
+    
+    // Private Sale system
+    uint256 public privateSaleTotalAllocated; // Общий лимит для private sale
+    mapping(address => uint256) public privateSaleAllocation; // Максимум для каждого участника
+    mapping(address => uint256) public privateSaleDistributed; // Уже распределено
+    bool public privateSaleActive;
+    
+    // Pause mechanism
+    bool public paused;
+    event Paused(address account);
+    event Unpaused(address account);
 
     function _updateSales(address buyer, uint256 tokenAmount) internal {
         require(tokensSold + tokenAmount <= TOTAL_TOKENS_FOR_SALE, "Exceeds sale supply");
@@ -91,13 +104,35 @@ contract TokenICO {
         address buyer
     ) internal view returns (uint256) {
         require(address(feed) != address(0), "Feed not set");
-        (, int256 answer,,,) = feed.latestRoundData();
-        require(answer > 0, "Invalid price");
+        
+        // Get all price feed data for validation
+        (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) = feed.latestRoundData();
+        
+        // Validate: negative or zero values
+        require(answer > 0, "Invalid price: negative or zero");
+        
+        // Validate: stale data (price feed not updated recently)
+        require(updatedAt > 0, "Price feed not updated");
+        require(
+            block.timestamp - updatedAt <= PRICE_FEED_STALENESS_THRESHOLD,
+            "Price feed stale"
+        );
+        
+        // Validate: incomplete round data
+        require(answeredInRound >= roundId, "Incomplete round");
+        
         uint8 feedDecimals = feed.decimals();
         uint256 tokenPrice = getCurrentPrice(buyer);
+        uint256 priceInUSD = uint256(answer);
 
         return
-            (amount * uint256(answer) * (10**(stablecoinDecimals + 18 - paymentDecimals))) /
+            (amount * priceInUSD * (10**(stablecoinDecimals + 18 - paymentDecimals))) /
             (tokenPrice * (10**feedDecimals));
     }
 
@@ -181,6 +216,8 @@ contract TokenICO {
         uint256 deadline;
     }
     
+    // Multi-signature events
+    
     // Events
     event TokensPurchased(
         address indexed buyer,
@@ -221,6 +258,12 @@ contract TokenICO {
     event ReferralRewardPaid(address indexed referrer, address indexed referee, uint256 amount);
     event ReferralPercentageUpdated(uint256 oldPercentage, uint256 newPercentage);
     
+    // Private Sale events
+    event PrivateSaleAllocationSet(address indexed recipient, uint256 amount);
+    event PrivateSaleDistributed(address indexed recipient, uint256 amount, string reason);
+    event PrivateSaleBatchDistributed(uint256 recipientsCount, uint256 totalAmount);
+    event PrivateSaleActiveUpdated(bool active);
+    event PrivateSaleTotalAllocatedUpdated(uint256 total);
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner");
         _;
@@ -228,6 +271,11 @@ contract TokenICO {
     
     modifier notBlocked() {
         _ensureNotBlocked(msg.sender);
+        _;
+    }
+    
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
         _;
     }
 
@@ -242,6 +290,7 @@ contract TokenICO {
     constructor() {
         owner = msg.sender;
         signer = msg.sender;
+        
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
@@ -252,7 +301,6 @@ contract TokenICO {
             )
         );
     }
-    
     // Admin Functions
     
     function updateInitialUsdtPrice(uint256 newPrice) external onlyOwner {
@@ -278,7 +326,6 @@ contract TokenICO {
         usdcAddress = newAddress;
     }
 
-    // Set token addresses
     function updateETH(address newAddress) external onlyOwner {
         require(newAddress != address(0), "Invalid address");
         ethAddress = newAddress;
@@ -294,7 +341,6 @@ contract TokenICO {
         solAddress = newAddress;
     }
 
-    // Set price feed addresses
     function setBNBPriceFeed(address feed) external onlyOwner {
         require(feed != address(0), "Invalid feed");
         bnbPriceFeed = AggregatorV3Interface(feed);
@@ -340,7 +386,6 @@ contract TokenICO {
         emit SweeperUpdated(wallet, blocked);
     }
 
-    // Dynamic pricing admin functions
     function setSaleStartTime(uint256 startTime) external onlyOwner {
         saleStartTime = startTime;
     }
@@ -349,10 +394,7 @@ contract TokenICO {
         waitlisted[user] = status;
     }
 
-    function setIntervals(uint256 waitInterval, uint256 publicIntervalSec)
-        external
-        onlyOwner
-    {
+    function setIntervals(uint256 waitInterval, uint256 publicIntervalSec) external onlyOwner {
         waitlistInterval = waitInterval;
         publicInterval = publicIntervalSec;
     }
@@ -386,7 +428,7 @@ contract TokenICO {
     // Referral Admin Functions
     
     function updateReferralPercentage(uint256 newPercentage) external onlyOwner {
-        require(newPercentage <= 20, "Percentage too high"); // Max 20% referral reward
+        require(newPercentage <= 20, "Percentage too high");
         uint256 oldPercentage = referralRewardPercentage;
         referralRewardPercentage = newPercentage;
         emit ReferralPercentageUpdated(oldPercentage, newPercentage);
@@ -394,7 +436,7 @@ contract TokenICO {
     
     // User Functions - Referral Registration
     
-    function registerReferrer(address referrer) external notBlocked {
+    function registerReferrer(address referrer) external notBlocked whenNotPaused {
         require(referrer != address(0), "Invalid referrer address");
         require(referrer != msg.sender, "Cannot refer yourself");
         require(referrers[msg.sender] == address(0), "Already registered with a referrer");
@@ -455,7 +497,7 @@ contract TokenICO {
 
     // User Functions - Buying Tokens
     
-    function buyWithUSDT(uint256 usdtAmount) external {
+    function buyWithUSDT(uint256 usdtAmount) external whenNotPaused {
         require(usdtAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdtAddress != address(0), "USDT not configured");
@@ -492,7 +534,7 @@ contract TokenICO {
         );
     }
     
-    function buyWithUSDC(uint256 usdcAmount) external {
+    function buyWithUSDC(uint256 usdcAmount) external whenNotPaused {
         require(usdcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(usdcAddress != address(0), "USDC not configured");
@@ -529,7 +571,7 @@ contract TokenICO {
         );
     }
 
-    function buyWithBNB() external payable {
+    function buyWithBNB() external payable whenNotPaused {
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
 
@@ -558,7 +600,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
 
-    function buyWithETH(uint256 ethAmount) external {
+    function buyWithETH(uint256 ethAmount) external whenNotPaused {
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(ethAddress != address(0), "ETH not configured");
@@ -590,7 +632,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBTC(uint256 btcAmount) external {
+    function buyWithBTC(uint256 btcAmount) external whenNotPaused {
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(btcAddress != address(0), "BTC not configured");
@@ -622,7 +664,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithSOL(uint256 solAmount) external {
+    function buyWithSOL(uint256 solAmount) external whenNotPaused {
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
         require(solAddress != address(0), "SOL not configured");
@@ -654,7 +696,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable {
+    function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(msg.value > 0, "Must send BNB");
         require(saleToken != address(0), "Sale token not set");
@@ -684,7 +726,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
 
-    function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external {
+    function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(usdtAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -722,7 +764,7 @@ contract TokenICO {
         );
     }
 
-    function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external {
+    function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(usdcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -760,7 +802,7 @@ contract TokenICO {
         );
     }
 
-    function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external {
+    function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(ethAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -793,7 +835,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external {
+    function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(btcAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -826,7 +868,7 @@ contract TokenICO {
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
-    function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external {
+    function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
         require(solAmount > 0, "Amount must be greater than 0");
         require(saleToken != address(0), "Sale token not set");
@@ -878,7 +920,7 @@ contract TokenICO {
     
     // Staking User Functions
     
-    function stakeTokens(uint256 amount, uint256 lockPeriodDays) external notBlocked {
+    function stakeTokens(uint256 amount, uint256 lockPeriodDays) external notBlocked whenNotPaused {
         require(amount >= minStakeAmount, "Amount below minimum stake");
         require(saleToken != address(0), "Sale token not set");
         require(lockPeriodDays == 30 || lockPeriodDays == 90 || lockPeriodDays == 180 || lockPeriodDays == 365, "Invalid lock period");
@@ -1389,7 +1431,9 @@ contract TokenICO {
         return totalPenaltyCollected;
     }
     
-    // Withdraw Function - Only for owner to extract tokens other than staked amounts
+    // Withdraw Function - DEPRECATED: Use withdrawTokensTo instead for security
+    // This function sends tokens to owner address which is a security risk
+    // Kept for backward compatibility but should not be used in production
     
     function withdrawTokens(address _token, uint256 _amount) external onlyOwner {
         if (_token == saleToken) {
@@ -1401,5 +1445,114 @@ contract TokenICO {
             IERC20(_token).transfer(owner, _amount),
             "Transfer failed"
         );
+    }
+    
+    function withdrawTokensTo(address _token, uint256 _amount, address _recipient) external onlyOwner {
+        require(_recipient != address(0), "Invalid recipient address");
+        if (_token == saleToken) {
+            uint256 availableBalance = IERC20(_token).balanceOf(address(this)) - totalStaked;
+            require(_amount <= availableBalance, "Cannot withdraw staked tokens");
+        }
+        
+        require(
+            IERC20(_token).transfer(_recipient, _amount),
+            "Transfer failed"
+        );
+    }
+    
+    // Private Sale Admin Functions
+    
+    function setPrivateSaleAllocations(
+        address[] calldata recipients,
+        uint256[] calldata amounts
+    ) external onlyOwner {
+        require(recipients.length == amounts.length, "Length mismatch");
+        require(recipients.length <= MAX_BATCH_SIZE, "Batch too large");
+        
+        for (uint256 i = 0; i < recipients.length; i++) {
+            require(recipients[i] != address(0), "Invalid address");
+            require(amounts[i] > 0, "Invalid amount");
+            
+            privateSaleAllocation[recipients[i]] = amounts[i];
+            emit PrivateSaleAllocationSet(recipients[i], amounts[i]);
+        }
+    }
+    
+    function distributePrivateSaleBatch(
+        address[] calldata recipients,
+        uint256[] calldata amounts,
+        string[] calldata reasons
+    ) external onlyOwner {
+        require(saleToken != address(0), "Sale token not set");
+        require(recipients.length == amounts.length, "Length mismatch");
+        require(recipients.length == reasons.length, "Reasons length mismatch");
+        require(recipients.length <= MAX_BATCH_SIZE, "Batch too large");
+        
+        uint256 totalAmount = 0;
+        
+        // Проверяем все лимиты
+        for (uint256 i = 0; i < recipients.length; i++) {
+            require(recipients[i] != address(0), "Invalid address");
+            require(amounts[i] > 0, "Invalid amount");
+            require(
+                privateSaleDistributed[recipients[i]] + amounts[i] <= privateSaleAllocation[recipients[i]],
+                "Exceeds allocation"
+            );
+            totalAmount += amounts[i];
+        }
+        
+        // Проверяем баланс контракта
+        require(
+            IERC20(saleToken).balanceOf(address(this)) >= totalAmount,
+            "Insufficient balance"
+        );
+        
+        // Распределяем токены
+        for (uint256 i = 0; i < recipients.length; i++) {
+            privateSaleDistributed[recipients[i]] += amounts[i];
+            
+            require(
+                IERC20(saleToken).transfer(recipients[i], amounts[i]),
+                "Transfer failed"
+            );
+            
+            emit PrivateSaleDistributed(recipients[i], amounts[i], reasons[i]);
+        }
+        
+        emit PrivateSaleBatchDistributed(recipients.length, totalAmount);
+    }
+    
+    function setPrivateSaleActive(bool active) external onlyOwner {
+        privateSaleActive = active;
+        emit PrivateSaleActiveUpdated(active);
+    }
+    
+    function setPrivateSaleTotalAllocated(uint256 total) external onlyOwner {
+        privateSaleTotalAllocated = total;
+        emit PrivateSaleTotalAllocatedUpdated(total);
+    }
+    
+    // Pause mechanism
+    function pause() external onlyOwner {
+        require(!paused, "Already paused");
+        paused = true;
+        emit Paused(msg.sender);
+    }
+    
+    function unpause() external onlyOwner {
+        require(paused, "Not paused");
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
+    
+    // View functions for private sale
+    function getPrivateSaleInfo(address participant) external view returns (
+        uint256 allocation,
+        uint256 distributed,
+        uint256 remaining
+    ) {
+        allocation = privateSaleAllocation[participant];
+        distributed = privateSaleDistributed[participant];
+        remaining = allocation > distributed ? allocation - distributed : 0;
     }
 }

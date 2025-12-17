@@ -6,12 +6,16 @@ describe("Blocked buyer can receive but cannot send SAV", function () {
   async function deployAll() {
     const [owner, buyer, other] = await ethers.getSigners();
   
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Sav = await ethers.getContractFactory("SavitriCoin");
-    const sav = await Sav.deploy();
+    const sav = await Sav.deploy(multisigOwners);
     await sav.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
   
     await ico.connect(owner).setSaleToken(sav.address);

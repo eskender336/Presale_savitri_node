@@ -5,12 +5,16 @@ describe("Blocked address purchase", function () {
   it("allows a blocked account to buy tokens but not send them", async function () {
     const [owner, buyer] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Token = await ethers.getContractFactory("SavitriCoin");
-    const token = await Token.deploy();
+    const token = await Token.deploy(multisigOwners);
     await token.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     // Fund ICO and whitelist it for transfers

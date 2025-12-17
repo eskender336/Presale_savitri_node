@@ -9,7 +9,8 @@
 //
 // Env (web3/.env):
 //   NETWORK_RPC_URL or RPC_WS_URL   - RPC endpoint
-//   PRIVATE_KEY                     - Sender private key (must hold SAV)
+//   PRIVATE_KEY_PASSPHRASE          - Passphrase for encrypted private key (required)
+//   PRIVATE_KEY                     - Fallback: plaintext private key (not recommended)
 //   SALE_TOKEN_ADDRESS              - ERC20 token address (optional)
 //   ICO_ADDRESS or NEXT_PUBLIC_TOKEN_ICO_ADDRESS - If set and SALE_TOKEN_ADDRESS not provided, will read saleToken() from ICO
 //   CSV_PATH                        - Path to CSV (default ../../data/token-balances.csv)
@@ -27,7 +28,9 @@ try { require('dotenv').config({ path: __dirname + '/../../.env.local' }); } cat
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const crypto = require('crypto');
 const { ethers } = require('ethers');
+const { loadPrivateKeySync } = require('./load-secure-key');
 
 const RPC_WS_URL = (process.env.RPC_WS_URL || '').trim();
 const RPC_HTTP_URL = (process.env.NETWORK_RPC_URL || '').trim();
@@ -41,14 +44,29 @@ if (RPC_HTTP_URL && !RPC_ENDPOINTS.includes(RPC_HTTP_URL)) RPC_ENDPOINTS.push(RP
 for (const url of EXTRA_RPC_URLS) {
   if (!RPC_ENDPOINTS.includes(url)) RPC_ENDPOINTS.push(url);
 }
-const PK = process.env.PRIVATE_KEY;
+// Load private key from encrypted storage or fallback to env
+let PK;
+try {
+  PK = loadPrivateKeySync({ allowFallback: true });
+} catch (error) {
+  console.error('[airdrop] Failed to load private key:', error.message);
+  throw error;
+}
 const ICO_ADDR = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS || '';
 const TOKEN_ADDR_ENV = process.env.SALE_TOKEN_ADDRESS || process.env.SAV_ADDRESS || process.env.NEXT_PUBLIC_SAV_ADDRESS || '';
 const DRY_RUN = /^1|true|yes$/i.test(String(process.env.DRY_RUN || ''));
 const AUTO_WITHDRAW = /^1|true|yes$/i.test(String(process.env.AUTO_WITHDRAW || ''));
 const EXPLORER_TX_URL = process.env.EXPLORER_TX_URL || '';
 const CONFIRMATIONS = Math.max(0, parseInt(process.env.CONFIRMATIONS || '0', 10));
-const CSV_PATH = process.env.CSV_PATH || path.join(__dirname, '../../data/token-balances.csv');
+// Security: Only allow CSV from trusted location
+const DEFAULT_CSV_PATH = path.join(__dirname, '../../data/token-balances.csv');
+const CSV_PATH = process.env.CSV_PATH || DEFAULT_CSV_PATH;
+// Validate CSV_PATH is within project directory (prevent path traversal)
+const resolvedCsvPath = path.resolve(CSV_PATH);
+const projectRoot = path.resolve(__dirname, '../..');
+if (!resolvedCsvPath.startsWith(projectRoot)) {
+  throw new Error(`CSV_PATH must be within project directory. Got: ${CSV_PATH}`);
+}
 const STATE_FILE = process.env.AIRDROP_STATE_FILE || path.join(__dirname, '.airdrop.state.json');
 const FAST_START_MS = process.env.FAST_START_MS ? Math.max(0, parseInt(process.env.FAST_START_MS, 10)) : null;
 const AIRDROP_DURATION_DAYS = process.env.AIRDROP_DURATION_DAYS ? Math.max(1, parseInt(process.env.AIRDROP_DURATION_DAYS, 10)) : null; // if set, pace over N days
@@ -123,7 +141,7 @@ const DELAY_NIGHT_MIN_SEC = Math.max(1, parseInt(process.env.DELAY_NIGHT_MIN_SEC
 const DELAY_NIGHT_MAX_SEC = Math.max(DELAY_NIGHT_MIN_SEC, parseInt(process.env.DELAY_NIGHT_MAX_SEC || '840', 10)); // 14 min
 
 if (RPC_ENDPOINTS.length === 0) throw new Error('Missing RPC (RPC_WS_URL, NETWORK_RPC_URL or RPC_FALLBACKS)');
-if (!PK) throw new Error('Missing PRIVATE_KEY');
+if (!PK) throw new Error('Missing PRIVATE_KEY. Set PRIVATE_KEY_PASSPHRASE for encrypted key or PRIVATE_KEY for plaintext (not recommended)');
 
 const erc20Abi = [
   'function transfer(address to, uint256 amount) returns (bool)',
@@ -249,8 +267,26 @@ function parseCsvTotals(csvText) {
       console.warn('[csv] Skip invalid address:', rawAddr);
       continue;
     }
-    const amt = BigInt(rawAmt);
-    res[ethers.utils.getAddress(rawAddr)] = (res[ethers.utils.getAddress(rawAddr)] || 0n) + amt;
+    // Security: Validate amount is positive and reasonable
+    let amt;
+    try {
+      amt = BigInt(rawAmt);
+      if (amt <= 0n) {
+        console.warn('[csv] Skip non-positive amount for', rawAddr, ':', rawAmt);
+        continue;
+      }
+      // Security: Prevent extremely large amounts (sanity check: max 1 billion tokens)
+      const MAX_SANE_AMOUNT = BigInt('1000000000') * BigInt('1000000000000000000'); // 1B * 1e18
+      if (amt > MAX_SANE_AMOUNT) {
+        throw new Error(`Security: Amount ${amt.toString()} for ${rawAddr} exceeds maximum sane value`);
+      }
+    } catch (error) {
+      if (error.message.includes('Security:')) throw error;
+      console.warn('[csv] Skip invalid amount for', rawAddr, ':', rawAmt, error.message);
+      continue;
+    }
+    const normalizedAddr = ethers.utils.getAddress(rawAddr);
+    res[normalizedAddr] = (res[normalizedAddr] || 0n) + amt;
   }
   return res; // number of whole tokens per address
 }
@@ -354,6 +390,19 @@ async function main() {
   console.log('[airdrop] Sender', sender);
   if (PER_TOKEN_USD_PRICE) console.log('[airdrop] Price per token (USD):', PER_TOKEN_USD_PRICE);
   if (CHUNK_PER_TX_USD && PER_TOKEN_USD_PRICE) console.log('[airdrop] Max chunk derived from USD:', Math.floor(CHUNK_PER_TX_USD / PER_TOKEN_USD_PRICE), 'tokens (', CHUNK_PER_TX_USD, 'USD)');
+  
+  // Security: Whitelist check (optional, set AIRDROP_WHITELIST env var with comma-separated addresses)
+  const WHITELIST_ENV = (process.env.AIRDROP_WHITELIST || '').trim();
+  const whitelist = WHITELIST_ENV ? WHITELIST_ENV.split(',').map(a => ethers.utils.getAddress(a.trim())).filter(Boolean) : null;
+  if (whitelist && whitelist.length > 0) {
+    console.log('[airdrop] Security: Whitelist enabled with', whitelist.length, 'addresses');
+  }
+  
+  // Security: Maximum tokens per address limit
+  const MAX_TOKENS_PER_ADDRESS = process.env.MAX_TOKENS_PER_ADDRESS ? BigInt(process.env.MAX_TOKENS_PER_ADDRESS) : null;
+  if (MAX_TOKENS_PER_ADDRESS) {
+    console.log('[airdrop] Security: Maximum tokens per address:', MAX_TOKENS_PER_ADDRESS.toString());
+  }
   try {
     const nativeBal = await wallet.getBalance();
     const gasPrice = GAS_PRICE_GWEI > 0 ? ethers.utils.parseUnits(String(GAS_PRICE_GWEI), 'gwei') : await wallet.getGasPrice();
@@ -374,7 +423,38 @@ async function main() {
 
   // Build totals from CSV
   const csvText = fs.readFileSync(CSV_PATH, 'utf8');
+  
+  // Security: Optional CSV hash verification (set CSV_HASH in env to enable)
+  const EXPECTED_CSV_HASH = (process.env.CSV_HASH || '').trim();
+  if (EXPECTED_CSV_HASH) {
+    const actualHash = crypto.createHash('sha256').update(csvText).digest('hex');
+    if (actualHash !== EXPECTED_CSV_HASH.toLowerCase()) {
+      throw new Error(`Security: CSV file integrity check failed. Expected hash: ${EXPECTED_CSV_HASH}, got: ${actualHash}`);
+    }
+    console.log('[airdrop] Security: CSV integrity verified (hash match)');
+  }
+  
   const totals = parseCsvTotals(csvText);
+  
+  // Security: Validate CSV addresses
+  console.log('[airdrop] Security: Validating CSV addresses...');
+  const senderLower = sender.toLowerCase();
+  for (const [addr, amount] of Object.entries(totals)) {
+    const addrLower = addr.toLowerCase();
+    // Prevent sending to sender address
+    if (addrLower === senderLower) {
+      throw new Error(`Security violation: CSV contains sender address ${addr}. Cannot send tokens to self.`);
+    }
+    // Whitelist check
+    if (whitelist && !whitelist.includes(addr)) {
+      throw new Error(`Security violation: Address ${addr} is not in whitelist.`);
+    }
+    // Maximum tokens per address check
+    if (MAX_TOKENS_PER_ADDRESS && BigInt(amount) > MAX_TOKENS_PER_ADDRESS) {
+      throw new Error(`Security violation: Address ${addr} requested ${amount} tokens, exceeds maximum ${MAX_TOKENS_PER_ADDRESS.toString()}`);
+    }
+  }
+  console.log('[airdrop] Security: CSV validation passed');
 
   // Merge CSV totals into state in an idempotent way:
   // - On first run (no remaining), seed remaining from totals
@@ -455,6 +535,25 @@ async function main() {
       let candidates = nonZero.filter((a) => a !== lastAddr);
       if (candidates.length === 0) candidates = nonZero; // allow repeat if single option
       const to = candidates[randInt(0, candidates.length - 1)];
+      
+      // Security: Double-check recipient is not sender
+      if (to.toLowerCase() === sender.toLowerCase()) {
+        console.error('[airdrop] Security: Skipping sender address', to);
+        state.remaining[to] = '0';
+        saveState(state);
+        setTimeout(loop, 1000);
+        return;
+      }
+      
+      // Security: Whitelist check at runtime
+      if (whitelist && !whitelist.includes(to)) {
+        console.error('[airdrop] Security: Address not in whitelist, skipping', to);
+        state.remaining[to] = '0';
+        saveState(state);
+        setTimeout(loop, 1000);
+        return;
+      }
+      
       const leftTokens = BigInt(state.remaining[to]);
       if (ico) await refreshPriceCache(ico);
       if (!Number.isFinite(PER_TOKEN_USD_PRICE) || PER_TOKEN_USD_PRICE <= 0) PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();

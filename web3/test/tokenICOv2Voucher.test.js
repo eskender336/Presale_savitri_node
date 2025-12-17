@@ -6,13 +6,17 @@ describe("TokenICOv2 vouchers", function () {
     const [owner, signer, user, referrer] = await ethers.getSigners();
 
     // deploy sale token
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
     // deploy ICO contract
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);

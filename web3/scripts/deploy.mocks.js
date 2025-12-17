@@ -135,6 +135,22 @@ async function main() {
   // helper to build per-call overrides with gasLimit
   const ov = (g) => ({ ...baseOv, gasLimit: bn.from(g) });
 
+  // Get multisig owners from env or use deployer as default
+  const getMultisigOwners = () => {
+    const owners = [];
+    for (let i = 0; i < 5; i++) {
+      const envKey = `MULTISIG_OWNER_${i + 1}`;
+      const owner = process.env[envKey];
+      if (owner && ethers.utils.isAddress(owner)) {
+        owners.push(owner);
+      } else {
+        // Use deployer as default for testing
+        owners.push(deployer.address);
+      }
+    }
+    return owners;
+  };
+  
   // ---------- ACTUAL DEPLOYMENT ----------
   // 1) Deploy SavitriCoin
   console.log(`[${now()}] STEP 1: Deploy SavitriCoin`);

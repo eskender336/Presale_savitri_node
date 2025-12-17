@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to download presale-notifier-error.log file
 # Usage: ./download_log.sh [port]
+# TEST: This is a test edit to check if user permission is needed
 
 LOG_FILE="$HOME/.pm2/logs/presale-notifier-error.log"
 PORT=${1:-8080}

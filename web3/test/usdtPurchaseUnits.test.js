@@ -6,13 +6,17 @@ describe("TokenICO USDT purchase units", function () {
     const [owner, buyer] = await ethers.getSigners();
 
     // Deploy sale token
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
     // Deploy TokenICO
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     // Configure sale token and supply

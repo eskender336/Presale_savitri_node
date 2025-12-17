@@ -37,6 +37,7 @@ contract MockPriceFeed is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        return (0, _answer, 0, 0, 0);
+        // Return valid data with current timestamp to pass staleness check
+        return (1, _answer, block.timestamp, block.timestamp, 1);
     }
 }

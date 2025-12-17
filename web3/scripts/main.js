@@ -9,6 +9,22 @@ async function main() {
   // Check if we're on Mainnet network
   const network = await hre.ethers.provider.getNetwork();
   if (network.chainId === 1) {
+    // Get multisig owners from env or use deployer as default
+    const getMultisigOwners = () => {
+      const owners = [];
+      for (let i = 0; i < 5; i++) {
+        const envKey = `MULTISIG_OWNER_${i + 1}`;
+        const owner = process.env[envKey];
+        if (owner && hre.ethers.utils.isAddress(owner)) {
+          owners.push(owner);
+        } else {
+          // Use deployer as default for testing
+          owners.push(deployer.address);
+        }
+      }
+      return owners;
+    };
+    
     // Deploy TokenICO Contract
     console.log("\nDeploying TokenICO contract...");
     const TokenICO = await hre.ethers.getContractFactory("TokenICO");

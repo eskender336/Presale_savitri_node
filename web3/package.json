@@ -25,10 +25,15 @@
     "check:balances": "node scripts/check-sale-balances.js",
     "report:sales": "node scripts/report-sales.js",
     "check:remaining": "node scripts/check-remaining.js",
-    "report:distribution": "node scripts/report-distribution.js"
+    "report:distribution": "node scripts/report-distribution.js",
+    "test:multisig": "hardhat run scripts/test-multisig-local.js",
+    "test:multisig:real": "hardhat run scripts/test-multisig-with-real-safe.js",
+    "test:buying": "hardhat run scripts/test-buying-with-multisig.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
+    "@safe-global/safe-core-sdk": "^3.3.5",
+    "@safe-global/safe-ethers-lib": "^1.9.4",
     "dotenv": "^16.0.3",
     "hardhat": "^2.13.0"
   },

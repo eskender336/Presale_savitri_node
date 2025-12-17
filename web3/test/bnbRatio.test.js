@@ -5,12 +5,16 @@ describe("TokenICO BNB ratio update", function () {
   it("updates bnbRatio based on USDT price", async function () {
     const [owner] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);

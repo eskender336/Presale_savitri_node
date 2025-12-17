@@ -1,0 +1,13 @@
+2025-12-07T07:58:27: [secure-key-loader] Failed to load encrypted key: Decryption failed: error:1C800064:Provider routines::bad decrypt
+2025-12-07T07:58:27: [airdrop] Failed to load private key: Unable to load private key. Set PRIVATE_KEY_PASSPHRASE environment variable and ensure encrypted key file exists. Expected location: /home/ubuntu/.secure_keys/private_key.enc
+2025-12-07T07:58:27: Error: Unable to load private key. Set PRIVATE_KEY_PASSPHRASE environment variable and ensure encrypted key file exists. Expected location: /home/ubuntu/.secure_keys/private_key.enc
+2025-12-07T07:58:27:     at loadPrivateKeySync (/home/ubuntu/Presale_savitri_node/Presale_savitri_node/web3/scripts/load-secure-key.js:79:9)
+2025-12-07T07:58:27:     at Object.<anonymous> (/home/ubuntu/Presale_savitri_node/Presale_savitri_node/web3/scripts/airdrop-scheduler.js:50:8)
+2025-12-07T07:58:27:     at Module._compile (node:internal/modules/cjs/loader:1529:14)
+2025-12-07T07:58:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-12-07T07:58:27:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-12-07T07:58:27:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-12-07T07:58:27:     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v20.19.4/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-07T07:58:27:     at Module._compile (node:internal/modules/cjs/loader:1529:14)
+2025-12-07T07:58:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-12-07T07:58:27:     at Module.load (node:internal/modules/cjs/loader:1275:32)

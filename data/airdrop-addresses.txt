@@ -1,0 +1,27 @@
+# Airdrop addresses and balances
+# Format: address,balance (one per line)
+# Replace the placeholder addresses below with the actual full addresses from the image
+# 
+# Group 1: 7 addresses with balance 20
+# 0xc73961f...,20
+# 0x467be40...,20
+# ... (add 5 more addresses with balance 20)
+#
+# Group 2: 8 addresses with balance 12.5
+# 0xf12b291...,12.5
+# ... (add 7 more addresses with balance 12.5)
+#
+# Group 3: 24 addresses with balance 6
+# 0x7f5a17e...,6
+# ... (add 23 more addresses with balance 6)
+#
+# Group 4: 39 addresses with balance 5
+# 0x1d04e42...,5
+# ... (add 38 more addresses with balance 5)
+#
+# Group 5: 40 addresses with balance 3.5
+# 0xbceaede...,3.5
+# ... (add 39 more addresses with balance 3.5)
+
+
+

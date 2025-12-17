@@ -1,0 +1,39 @@
+{
+  "safe": {
+    "address": "0x6e46800c044918944F6b47803fDf03F287F73d9a",
+    "owners": [
+      "0x6e46800c044918944F6b47803fDf03F287F73d9a",
+      "0x9b5985b8062e2CD2893240F2526E4e7B09CC8330",
+      "0xf2F9A37211502F86d12Da23Ed5643cBb7045cED1",
+      "0x4d4375cEe7672b2ff9D484BE519C7096da14ee0E",
+      "0xe66ee721E825a2dbB610e1Be960ade74bF825A12"
+    ]
+  },
+  "contracts": {
+    "savitriCoin": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "tokenICO": "0x9618d9C92D9D65057Bbf48BBe115C8F650692a77",
+    "mockUSDT": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    "mockBNBPriceFeed": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+  },
+  "buyer": {
+    "address": "0x94fC833f20C7A1E597Fffb36E3c7F7acE6239fbd",
+    "tokensReceived": {
+      "fromBNB": "85.714285714285714285",
+      "fromUSDT": "285.714285714285714285",
+      "total": "371.42857142857142857"
+    }
+  },
+  "purchases": {
+    "bnb": {
+      "amount": "0.1",
+      "tokens": "85.714285714285714285",
+      "txHash": "0xb00a821fdc3f05bbf0925e10ffbda5fabee09f420d5148e5d8372709fb8cafdb"
+    },
+    "usdt": {
+      "amount": "0.0001",
+      "tokens": "285.714285714285714285",
+      "txHash": "0x2f3874dc95a34088859ca85d35192536bc27670e3dc8b14649fc09482ad4a947"
+    }
+  },
+  "timestamp": "2025-12-17T05:56:23.564Z"
+}

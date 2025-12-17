@@ -5,12 +5,16 @@ describe("TokenICO dynamic pricing", function () {
   it("increments price in stablecoin-denominated steps", async function () {
     const [owner, user] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -33,12 +37,16 @@ describe("TokenICO dynamic pricing", function () {
   it("provides current and next stage prices", async function () {
     const [owner, user] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -64,12 +72,16 @@ describe("TokenICO dynamic pricing", function () {
   it("delays price increase for waitlisted users", async function () {
     const [owner, user] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -98,12 +110,16 @@ describe("TokenICO dynamic pricing", function () {
   it("lets the owner adjust pricing intervals", async function () {
     const [owner, user] = await ethers.getSigners();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy();
+    const saleToken = await Savitri.deploy(multisigOwners);
     await saleToken.deployed();
 
+    // For tests, use owner address 5 times as multisig owners
+    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy();
+    const ico = await ICO.deploy(multisigOwners);
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);

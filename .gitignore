@@ -59,3 +59,6 @@ HardhatAccounts.txt
 *.pem
 *.p12
 *.pfx
+
+# Multisig test results (contain private keys!)
+web3/scripts/multisig-test-results*.json

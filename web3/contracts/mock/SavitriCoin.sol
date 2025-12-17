@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract SavitriCoin is ERC20, Ownable {
     uint256 private constant INITIAL_SUPPLY = 600_000_000;
 
+
     // Addresses explicitly blocked from sending; blocked users can still receive tokens
     mapping(address => bool) public blockedAddresses;
 
@@ -17,12 +18,14 @@ contract SavitriCoin is ERC20, Ownable {
     bool public transfersEnabled;
 
     event AddressBlocked(address indexed user, bool blocked);
-
+    
     constructor() ERC20("Savitri Coin", "SAV") {
         _mint(msg.sender, INITIAL_SUPPLY * 10 ** decimals());
         allowedSenders[msg.sender] = true; // Owner can distribute tokens
     }
-
+    
+    // Admin Functions
+    
     function setBlockStatus(address user, bool blocked) external onlyOwner {
         blockedAddresses[user] = blocked;
         emit AddressBlocked(user, blocked);
