@@ -27,6 +27,13 @@
     },
     "viaIR": true,
     "evmVersion": "paris",
-    "metadata": {}
+    "metadata": {
+      "bytecodeHash": "ipfs"
+    },
+    "outputSelection": {
+      "*": {
+        "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "evm.methodIdentifiers"]
+      }
+    }
   }
 }
