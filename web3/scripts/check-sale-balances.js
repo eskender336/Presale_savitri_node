@@ -1,12 +1,14 @@
 // Prints sale token info and balances for ICO contract and admin wallet
 require('dotenv').config({ path: __dirname + '/../.env' });
 const { ethers } = require('ethers');
+const { requirePrivateKey } = require('./utils/loadPrivateKey');
 
 async function main() {
   const RPC = process.env.NETWORK_RPC_URL;
-  const PK = process.env.PRIVATE_KEY;
+  // Load private key from secure location (.secrets/private-key or env var)
+  const PK = requirePrivateKey();
   const ICO = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS;
-  if (!RPC || !PK || !ICO) throw new Error('Missing env: NETWORK_RPC_URL / PRIVATE_KEY / ICO_ADDRESS');
+  if (!RPC || !ICO) throw new Error('Missing env: NETWORK_RPC_URL / ICO_ADDRESS');
 
   const provider = new ethers.providers.JsonRpcProvider(RPC);
   const wallet = new ethers.Wallet(PK, provider);

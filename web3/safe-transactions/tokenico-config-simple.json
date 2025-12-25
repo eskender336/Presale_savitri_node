@@ -1,0 +1,29 @@
+{
+  "safe": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+  "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+  "value": "0",
+  "data": null,
+  "operation": 0,
+  "safeTxGas": 500000,
+  "baseGas": 0,
+  "gasPrice": 0,
+  "gasToken": "0x0000000000000000000000000000000000000000",
+  "refundReceiver": "0x0000000000000000000000000000000000000000",
+  "nonce": null,
+  "transactions": [
+    {
+      "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+      "value": "0",
+      "data": "0x6c19e783000000000000000000000000dca5af91a9d0665e96a65712bf38382044edec54",
+      "operation": 0,
+      "description": "setSigner(0xDca5AF91A9d0665e96a65712bF38382044edec54)"
+    },
+    {
+      "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+      "value": "0",
+      "data": "0xa29f481c000000000000000000000000bff00512c08477e9c03de507fcd5c9b087fe6813",
+      "operation": 0,
+      "description": "setSaleToken(0xbfF00512c08477E9c03DE507fCD5C9b087fe6813)"
+    }
+  ]
+}

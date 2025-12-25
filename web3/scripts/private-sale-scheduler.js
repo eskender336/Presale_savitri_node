@@ -14,7 +14,7 @@
 //   SALE_TOKEN_ADDRESS              - ERC20 token address (optional)
 //   ICO_ADDRESS or NEXT_PUBLIC_TOKEN_ICO_ADDRESS - If set and SALE_TOKEN_ADDRESS not provided, will read saleToken() from ICO
 //   CSV_PATH                        - Path to CSV (default ../../data/token-balances.csv)
-//   AIRDROP_STATE_FILE             - State file path (default ./.airdrop.state.json)
+//   PRIVATE_SALE_STATE_FILE             - State file path (default ./.private-sale.state.json)
 //   CHAIN_ID                        - Optional: skip RPC network detection (recommended for unstable RPCs)
 //   MAX_CHUNK_TOKENS               - Max tokens per tx (default 5000)
 //   MIN_CHUNK_TOKENS               - Min tokens per tx (default 100)
@@ -30,7 +30,7 @@ const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
 const { ethers } = require('ethers');
-const { loadPrivateKeySync } = require('./load-secure-key');
+const { requirePrivateKey } = require('./utils/loadPrivateKey');
 
 const RPC_WS_URL = (process.env.RPC_WS_URL || '').trim();
 const RPC_HTTP_URL = (process.env.NETWORK_RPC_URL || '').trim();
@@ -44,14 +44,8 @@ if (RPC_HTTP_URL && !RPC_ENDPOINTS.includes(RPC_HTTP_URL)) RPC_ENDPOINTS.push(RP
 for (const url of EXTRA_RPC_URLS) {
   if (!RPC_ENDPOINTS.includes(url)) RPC_ENDPOINTS.push(url);
 }
-// Load private key from encrypted storage or fallback to env
-let PK;
-try {
-  PK = loadPrivateKeySync({ allowFallback: true });
-} catch (error) {
-  console.error('[airdrop] Failed to load private key:', error.message);
-  throw error;
-}
+// Load private key from secure location (.secrets/private-key or env var)
+const PK = requirePrivateKey();
 const ICO_ADDR = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS || '';
 const TOKEN_ADDR_ENV = process.env.SALE_TOKEN_ADDRESS || process.env.SAV_ADDRESS || process.env.NEXT_PUBLIC_SAV_ADDRESS || '';
 const DRY_RUN = /^1|true|yes$/i.test(String(process.env.DRY_RUN || ''));
@@ -67,9 +61,9 @@ const projectRoot = path.resolve(__dirname, '../..');
 if (!resolvedCsvPath.startsWith(projectRoot)) {
   throw new Error(`CSV_PATH must be within project directory. Got: ${CSV_PATH}`);
 }
-const STATE_FILE = process.env.AIRDROP_STATE_FILE || path.join(__dirname, '.airdrop.state.json');
+const STATE_FILE = process.env.PRIVATE_SALE_STATE_FILE || path.join(__dirname, '.private-sale.state.json');
 const FAST_START_MS = process.env.FAST_START_MS ? Math.max(0, parseInt(process.env.FAST_START_MS, 10)) : null;
-const AIRDROP_DURATION_DAYS = process.env.AIRDROP_DURATION_DAYS ? Math.max(1, parseInt(process.env.AIRDROP_DURATION_DAYS, 10)) : null; // if set, pace over N days
+const PRIVATE_SALE_DURATION_DAYS = process.env.PRIVATE_SALE_DURATION_DAYS ? Math.max(1, parseInt(process.env.PRIVATE_SALE_DURATION_DAYS, 10)) : null; // if set, pace over N days
 const DAILY_TX_CAP = process.env.DAILY_TX_CAP ? Math.max(1, parseInt(process.env.DAILY_TX_CAP, 10)) : null; // hard cap override
 const TOKEN_SYMBOL = (process.env.TOKEN_SYMBOL || process.env.NEXT_PUBLIC_TOKEN_SYMBOL || 'SAV').trim() || 'SAV';
 const CHAIN_ID_ENV = parseInt(String(process.env.CHAIN_ID || process.env.NETWORK_CHAIN_ID || process.env.NEXT_PUBLIC_CHAIN_ID || '').trim(), 10);
@@ -127,7 +121,7 @@ try {
 } catch (_) { /* noop */ }
 const TELEGRAM_GIF_URL = (process.env.TELEGRAM_GIF_URL || DEFAULT_GIF_URL).trim();
 const TELEGRAM_INCLUDE_GIF = /^1|true$/i.test(String(process.env.TELEGRAM_INCLUDE_GIF || (TELEGRAM_GIF_URL ? '1' : '')));
-const AIRDROP_NOTIFY = /^1|true|yes$/i.test(String(process.env.AIRDROP_NOTIFY || '1'));
+const PRIVATE_SALE_NOTIFY = /^1|true|yes$/i.test(String(process.env.PRIVATE_SALE_NOTIFY || '1'));
 // Gas overrides (BSC sometimes needs explicit gas limit)
 const TX_GAS_LIMIT = Math.max(50000, parseInt(process.env.TX_GAS_LIMIT || '120000', 10));
 const GAS_PRICE_GWEI = parseFloat(String(process.env.GAS_PRICE_GWEI || '0'));
@@ -210,13 +204,13 @@ async function createProvider() {
     }
     try {
       const network = await provider.getNetwork();
-      console.log('[airdrop] RPC connected:', url, 'chainId', network.chainId);
+      console.log('[private-sale] RPC connected:', url, 'chainId', network.chainId);
       return { provider, network };
     } catch (err) {
       lastErr = err;
       const code = err && err.code ? `${err.code}: ` : '';
       const msg = err && err.message ? err.message : err;
-      console.warn('[airdrop] RPC connection failed for', url + ':', code + msg);
+      console.warn('[private-sale] RPC connection failed for', url + ':', code + msg);
       try {
         if (isWs) {
           const ws = provider._websocket;
@@ -366,7 +360,7 @@ async function refreshPriceCache(icoContract, { force = false } = {}) {
     if (Number.isFinite(priceCache.public)) PUBLIC_SALE_USD_PRICE = priceCache.public;
     if (Number.isFinite(priceCache.initial)) LAUNCH_USD_PRICE = priceCache.initial;
   } catch (err) {
-    console.warn('[airdrop] Failed to refresh pricing:', err && err.message || err);
+    console.warn('[private-sale] Failed to refresh pricing:', err && err.message || err);
     priceCache.lastFetched = nowMs;
   }
   return priceCache;
@@ -385,36 +379,36 @@ async function main() {
   if (!Number.isFinite(PER_TOKEN_USD_PRICE) || PER_TOKEN_USD_PRICE <= 0) PER_TOKEN_USD_PRICE = loadPerTokenUsdPrice();
   if (!Number.isFinite(LAUNCH_USD_PRICE) || LAUNCH_USD_PRICE <= 0) LAUNCH_USD_PRICE = loadLaunchUsdPrice();
 
-  console.log('[airdrop] Network', network.chainId);
-  console.log('[airdrop] Token', token.address, symbol, 'decimals', decimals);
-  console.log('[airdrop] Sender', sender);
-  if (PER_TOKEN_USD_PRICE) console.log('[airdrop] Price per token (USD):', PER_TOKEN_USD_PRICE);
-  if (CHUNK_PER_TX_USD && PER_TOKEN_USD_PRICE) console.log('[airdrop] Max chunk derived from USD:', Math.floor(CHUNK_PER_TX_USD / PER_TOKEN_USD_PRICE), 'tokens (', CHUNK_PER_TX_USD, 'USD)');
+  console.log('[private-sale] Network', network.chainId);
+  console.log('[private-sale] Token', token.address, symbol, 'decimals', decimals);
+  console.log('[private-sale] Sender', sender);
+  if (PER_TOKEN_USD_PRICE) console.log('[private-sale] Price per token (USD):', PER_TOKEN_USD_PRICE);
+  if (CHUNK_PER_TX_USD && PER_TOKEN_USD_PRICE) console.log('[private-sale] Max chunk derived from USD:', Math.floor(CHUNK_PER_TX_USD / PER_TOKEN_USD_PRICE), 'tokens (', CHUNK_PER_TX_USD, 'USD)');
   
-  // Security: Whitelist check (optional, set AIRDROP_WHITELIST env var with comma-separated addresses)
-  const WHITELIST_ENV = (process.env.AIRDROP_WHITELIST || '').trim();
+  // Security: Whitelist check (optional, set PRIVATE_SALE_WHITELIST env var with comma-separated addresses)
+  const WHITELIST_ENV = (process.env.PRIVATE_SALE_WHITELIST || '').trim();
   const whitelist = WHITELIST_ENV ? WHITELIST_ENV.split(',').map(a => ethers.utils.getAddress(a.trim())).filter(Boolean) : null;
   if (whitelist && whitelist.length > 0) {
-    console.log('[airdrop] Security: Whitelist enabled with', whitelist.length, 'addresses');
+    console.log('[private-sale] Security: Whitelist enabled with', whitelist.length, 'addresses');
   }
   
   // Security: Maximum tokens per address limit
   const MAX_TOKENS_PER_ADDRESS = process.env.MAX_TOKENS_PER_ADDRESS ? BigInt(process.env.MAX_TOKENS_PER_ADDRESS) : null;
   if (MAX_TOKENS_PER_ADDRESS) {
-    console.log('[airdrop] Security: Maximum tokens per address:', MAX_TOKENS_PER_ADDRESS.toString());
+    console.log('[private-sale] Security: Maximum tokens per address:', MAX_TOKENS_PER_ADDRESS.toString());
   }
   try {
     const nativeBal = await wallet.getBalance();
     const gasPrice = GAS_PRICE_GWEI > 0 ? ethers.utils.parseUnits(String(GAS_PRICE_GWEI), 'gwei') : await wallet.getGasPrice();
     const gasLimit = ethers.BigNumber.from(TX_GAS_LIMIT || 120000);
     const estCost = gasPrice.mul(gasLimit);
-    console.log('[airdrop] BNB balance', ethers.utils.formatUnits(nativeBal, 'ether'), 'BNB',
+    console.log('[private-sale] BNB balance', ethers.utils.formatUnits(nativeBal, 'ether'), 'BNB',
       'gasPrice', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei',
       'gasLimit', gasLimit.toString(),
       'estCost', ethers.utils.formatUnits(estCost, 'ether'), 'BNB/tx');
   } catch (_) { /* ignore */ }
-  if (DRY_RUN) console.log('[airdrop] DRY_RUN=1 (no real transfers)');
-  if (AIRDROP_NOTIFY && TELEGRAM_BOT_TOKEN) console.log('[airdrop] Telegram notifications: ON');
+  if (DRY_RUN) console.log('[private-sale] DRY_RUN=1 (no real transfers)');
+  if (PRIVATE_SALE_NOTIFY && TELEGRAM_BOT_TOKEN) console.log('[private-sale] Telegram notifications: ON');
 
   // Load or build state
   const state = loadState();
@@ -431,13 +425,13 @@ async function main() {
     if (actualHash !== EXPECTED_CSV_HASH.toLowerCase()) {
       throw new Error(`Security: CSV file integrity check failed. Expected hash: ${EXPECTED_CSV_HASH}, got: ${actualHash}`);
     }
-    console.log('[airdrop] Security: CSV integrity verified (hash match)');
+    console.log('[private-sale] Security: CSV integrity verified (hash match)');
   }
   
   const totals = parseCsvTotals(csvText);
   
   // Security: Validate CSV addresses
-  console.log('[airdrop] Security: Validating CSV addresses...');
+  console.log('[private-sale] Security: Validating CSV addresses...');
   const senderLower = sender.toLowerCase();
   for (const [addr, amount] of Object.entries(totals)) {
     const addrLower = addr.toLowerCase();
@@ -454,7 +448,7 @@ async function main() {
       throw new Error(`Security violation: Address ${addr} requested ${amount} tokens, exceeds maximum ${MAX_TOKENS_PER_ADDRESS.toString()}`);
     }
   }
-  console.log('[airdrop] Security: CSV validation passed');
+  console.log('[private-sale] Security: CSV validation passed');
 
   // Merge CSV totals into state in an idempotent way:
   // - On first run (no remaining), seed remaining from totals
@@ -490,18 +484,18 @@ async function main() {
   }
   function computeDailyBudget() {
     if (DAILY_TX_CAP) return DAILY_TX_CAP;
-    if (!AIRDROP_DURATION_DAYS) return null;
+    if (!PRIVATE_SALE_DURATION_DAYS) return null;
     const estChunks = Number(estimateChunksRemaining());
-    return Math.max(1, Math.ceil(estChunks / AIRDROP_DURATION_DAYS));
+    return Math.max(1, Math.ceil(estChunks / PRIVATE_SALE_DURATION_DAYS));
   }
-  if (AIRDROP_DURATION_DAYS || DAILY_TX_CAP) {
+  if (PRIVATE_SALE_DURATION_DAYS || DAILY_TX_CAP) {
     state.estDailyBudget = computeDailyBudget();
     const { ymd } = nowAstana();
     if (state.dayKey !== ymd) { state.dayKey = ymd; state.sentToday = 0; }
   }
 
   if (addresses.length === 0) {
-    console.log('[airdrop] No valid recipients found in CSV. Nothing to do.');
+    console.log('[private-sale] No valid recipients found in CSV. Nothing to do.');
     return;
   }
 
@@ -513,14 +507,14 @@ async function main() {
         try { return BigInt(state.remaining[a] || 0n) > 0n; } catch (_) { return false; }
       });
       if (nonZero.length === 0) {
-        console.log('[airdrop] All transfers complete. Exiting.');
+        console.log('[private-sale] All transfers complete. Exiting.');
         return;
       }
 
       // Pacing: stop for today if budget reached
       if (state.estDailyBudget && state.sentToday >= state.estDailyBudget) {
         const ms = msUntilNextAstanaMidnight();
-        console.log(`[airdrop] Daily tx budget reached (${state.estDailyBudget}). Sleeping until next Astana midnight ~ ${Math.round(ms/60000)} min.`);
+        console.log(`[private-sale] Daily tx budget reached (${state.estDailyBudget}). Sleeping until next Astana midnight ~ ${Math.round(ms/60000)} min.`);
         setTimeout(() => {
           const { ymd } = nowAstana();
           state.dayKey = ymd; state.sentToday = 0;
@@ -538,7 +532,7 @@ async function main() {
       
       // Security: Double-check recipient is not sender
       if (to.toLowerCase() === sender.toLowerCase()) {
-        console.error('[airdrop] Security: Skipping sender address', to);
+        console.error('[private-sale] Security: Skipping sender address', to);
         state.remaining[to] = '0';
         saveState(state);
         setTimeout(loop, 1000);
@@ -547,7 +541,7 @@ async function main() {
       
       // Security: Whitelist check at runtime
       if (whitelist && !whitelist.includes(to)) {
-        console.error('[airdrop] Security: Address not in whitelist, skipping', to);
+        console.error('[private-sale] Security: Address not in whitelist, skipping', to);
         state.remaining[to] = '0';
         saveState(state);
         setTimeout(loop, 1000);
@@ -566,7 +560,7 @@ async function main() {
       const sendTokens = BigInt(randInt(Number(minChunk), Number(maxChunk)));
 
       const amount = ethers.utils.parseUnits(sendTokens.toString(), decimals);
-      console.log(`[airdrop] -> ${to} amount=${sendTokens} ${symbol} (left ${leftTokens} tokens)`);
+      console.log(`[private-sale] -> ${to} amount=${sendTokens} ${symbol} (left ${leftTokens} tokens)`);
 
       if (!DRY_RUN) {
         // Ensure native gas balance is sufficient for this tx
@@ -577,8 +571,8 @@ async function main() {
           const nativeBal = await wallet.getBalance();
           if (nativeBal.lt(estCost)) {
             const need = estCost.sub(nativeBal);
-            console.warn('[airdrop] Insufficient native balance for gas. Have', ethers.utils.formatUnits(nativeBal, 'ether'), 'need', ethers.utils.formatUnits(estCost, 'ether'), 'BNB. Pausing until balance is topped up.');
-            if (AIRDROP_NOTIFY && TELEGRAM_BOT_TOKEN) {
+            console.warn('[private-sale] Insufficient native balance for gas. Have', ethers.utils.formatUnits(nativeBal, 'ether'), 'need', ethers.utils.formatUnits(estCost, 'ether'), 'BNB. Pausing until balance is topped up.');
+            if (PRIVATE_SALE_NOTIFY && TELEGRAM_BOT_TOKEN) {
               const txt = `⚠️ Airdrop paused: low BNB for gas\nHave: ${ethers.utils.formatUnits(nativeBal, 'ether')} BNB\nNeed: ${ethers.utils.formatUnits(estCost, 'ether')} BNB`;
               try { await postToTelegram(txt); } catch (_) {}
             }
@@ -603,17 +597,17 @@ async function main() {
             } catch (_) {}
             const toWithdraw = shortfall.lte(available) ? shortfall : available;
             if (toWithdraw.gt(0)) {
-              console.log('[airdrop] Withdrawing', ethers.utils.formatUnits(toWithdraw, decimals), 'from ICO to sender...');
+              console.log('[private-sale] Withdrawing', ethers.utils.formatUnits(toWithdraw, decimals), 'from ICO to sender...');
             const wtxOverrides = {};
             if (TX_GAS_LIMIT) wtxOverrides.gasLimit = TX_GAS_LIMIT;
             if (GAS_PRICE_GWEI > 0) wtxOverrides.gasPrice = ethers.utils.parseUnits(String(GAS_PRICE_GWEI), 'gwei');
             if (FORCE_LEGACY_TX) wtxOverrides.type = 0;
             const wtx = await ico.withdrawTokens(token.address, toWithdraw, wtxOverrides);
-              console.log('[airdrop] withdraw tx:', EXPLORER_TX_URL ? EXPLORER_TX_URL + wtx.hash : wtx.hash);
+              console.log('[private-sale] withdraw tx:', EXPLORER_TX_URL ? EXPLORER_TX_URL + wtx.hash : wtx.hash);
               await wtx.wait();
               bal = await token.balanceOf(sender);
             } else {
-              console.warn('[airdrop] AUTO_WITHDRAW enabled but nothing available to withdraw from ICO');
+              console.warn('[private-sale] AUTO_WITHDRAW enabled but nothing available to withdraw from ICO');
             }
           }
           if (bal.lt(amount)) throw new Error('Sender balance too low for next chunk after optional withdraw');
@@ -623,10 +617,10 @@ async function main() {
         if (GAS_PRICE_GWEI > 0) txOverrides.gasPrice = ethers.utils.parseUnits(String(GAS_PRICE_GWEI), 'gwei');
         if (FORCE_LEGACY_TX) txOverrides.type = 0;
         const tx = await token.transfer(to, amount, txOverrides);
-        console.log('[airdrop] tx:', tx.hash);
+        console.log('[private-sale] tx:', tx.hash);
         if (CONFIRMATIONS > 0) await tx.wait(CONFIRMATIONS);
         else await tx.wait();
-        if (AIRDROP_NOTIFY && TELEGRAM_BOT_TOKEN) {
+        if (PRIVATE_SALE_NOTIFY && TELEGRAM_BOT_TOKEN) {
           const lines = [];
           lines.push('🚨 Private Sale Purchase Alert!🚨');
           lines.push('');
@@ -646,7 +640,7 @@ async function main() {
       state.remaining[to] = (leftTokens - sendTokens).toString();
       state.lastAddr = to;
       state.cursor = 0; // legacy/no-op under random selection
-      if (AIRDROP_DURATION_DAYS || DAILY_TX_CAP) {
+      if (PRIVATE_SALE_DURATION_DAYS || DAILY_TX_CAP) {
         const { ymd } = nowAstana();
         if (state.dayKey !== ymd) { state.dayKey = ymd; state.sentToday = 0; }
         state.sentToday += 1;
@@ -656,19 +650,19 @@ async function main() {
 
       setTimeout(loop, nextDelayMs());
     } catch (e) {
-      console.error('[airdrop] Error during loop:', e && e.message ? e.message : e);
+      console.error('[private-sale] Error during loop:', e && e.message ? e.message : e);
       setTimeout(loop, Math.max(60_000, nextDelayMs()));
     }
   }
 
-  console.log('[airdrop] Recipients:', addresses.length, 'State file:', STATE_FILE);
+  console.log('[private-sale] Recipients:', addresses.length, 'State file:', STATE_FILE);
   const firstDelay = FAST_START_MS !== null ? FAST_START_MS : nextDelayMs();
   if (FAST_START_MS !== null) console.log('[schedule] FAST_START_MS=', FAST_START_MS, 'ms');
   setTimeout(loop, firstDelay);
 }
 
 main().catch((e) => {
-  console.error('[airdrop] Fatal:', e && e.message ? e.message : e);
+  console.error('[private-sale] Fatal:', e && e.message ? e.message : e);
   process.exit(1);
 });
 
@@ -754,7 +748,7 @@ async function ensureChatIds() {
     if (discovered.length) {
       ids = mergeRecipientSources(discovered);
       writeRecipientsFile(ids);
-      console.log(`[airdrop] Telegram autodiscovered recipients: ${ids.join(', ')}`);
+      console.log(`[private-sale] Telegram autodiscovered recipients: ${ids.join(', ')}`);
     }
   }
   return ids;

@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "chainId": "56",
+  "createdAt": 1766569263670,
+  "meta": {
+    "name": "Fund Both Contracts (Simple)",
+    "description": "Transfer 10000000 SAV to TokenICO and 1000000 SAV to PrivateSaleDistribution",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0xa9059cbb0000000000000000000000000d3ac358121ed8e23f80da496a5ccbbd2b209262000000000000000000000000000000000000000000084595161401484a000000",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "to",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "amount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+        "amount": "10000000000000000000000000"
+      },
+      "operation": 0
+    },
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0xa9059cbb00000000000000000000000020d62b0659c25cf27d168e9635234179b22e10a700000000000000000000000000000000000000000000d3c21bcecceda1000000",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "to",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "amount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "to": "0x20d62B0659C25CF27D168E9635234179B22e10A7",
+        "amount": "1000000000000000000000000"
+      },
+      "operation": 0
+    }
+  ]
+}

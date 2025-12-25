@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "chainId": "56",
+  "createdAt": 1766570126962,
+  "meta": {
+    "name": "Transfer Tokens from Deployer to Safe",
+    "description": "Set allowed sender for deployer and transfer 15000000 SAV from deployer to Safe wallet",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0x4b52ffb0000000000000000000000000b18006ab8d4c566f8d682d80b4f54ea5529c307d0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "user",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "allowed",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ],
+        "name": "setAllowedSender",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "user": "0xb18006ab8d4c566f8d682d80b4f54ea5529c307d",
+        "allowed": "true"
+      },
+      "operation": 0
+    },
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0xa9059cbb000000000000000000000000bc08bf77697271f1617728c7cd049b596d13b3ba0000000000000000000000000000000000000000000c685fa11e01ec6f000000",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "to",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "amount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "to": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+        "amount": "15000000000000000000000000"
+      },
+      "operation": 0
+    }
+  ]
+}

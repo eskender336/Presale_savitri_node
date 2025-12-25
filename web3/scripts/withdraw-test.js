@@ -1,5 +1,5 @@
 // Test withdraw: pulls a small amount of sale tokens (SAV) from the ICO
-// into the admin wallet (owner), using PRIVATE_KEY from web3/.env.
+// into the admin wallet (owner), using PRIVATE_KEY from secure location.
 //
 // Usage:
 //   node web3/scripts/withdraw-test.js --amount 1.23
@@ -7,13 +7,14 @@
 //
 require('dotenv').config({ path: __dirname + '/../.env' });
 const { ethers } = require('ethers');
+const { requirePrivateKey } = require('./utils/loadPrivateKey');
 
 async function main() {
   const RPC = process.env.RPC_WS_URL || process.env.NETWORK_RPC_URL;
-  const PK = process.env.PRIVATE_KEY;
+  // Load private key from secure location (.secrets/private-key or env var)
+  const PK = requirePrivateKey();
   const ICO_ADDR = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS;
   if (!RPC) throw new Error('Missing RPC (RPC_WS_URL or NETWORK_RPC_URL)');
-  if (!PK) throw new Error('Missing PRIVATE_KEY');
   if (!ICO_ADDR) throw new Error('Missing ICO address (NEXT_PUBLIC_TOKEN_ICO_ADDRESS or ICO_ADDRESS)');
 
   // Parse args

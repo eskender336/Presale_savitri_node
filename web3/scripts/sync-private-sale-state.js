@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-  Rebuilds .airdrop.state.json so the scheduler knows what is still owed.
+  Rebuilds .private-sale.state.json so the scheduler knows what is still owed.
   - Aggregates CSV totals per wallet (same logic as scheduler)
   - Reads on-chain balances and subtracts them
   - Writes updated totals/remaining into STATE_FILE
@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require('ethers');
 
-const STATE_FILE = process.env.AIRDROP_STATE_FILE || path.join(__dirname, '.airdrop.state.json');
+const STATE_FILE = process.env.PRIVATE_SALE_STATE_FILE || process.env.AIRDROP_STATE_FILE || path.join(__dirname, '.private-sale.state.json');
 const CSV_PATH = process.env.CSV_PATH || path.join(__dirname, '../../data/token-balances.csv');
 const RPC = process.env.NETWORK_RPC_URL || process.env.NEXT_PUBLIC_RPC_URL;
 if (!RPC) throw new Error('NETWORK_RPC_URL is required');
@@ -144,6 +144,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('sync-airdrop-state error:', err);
+  console.error('sync-private-sale-state error:', err);
   process.exit(1);
 });

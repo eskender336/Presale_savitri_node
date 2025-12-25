@@ -5,16 +5,13 @@ describe("TokenICO dynamic pricing", function () {
   it("increments price in stablecoin-denominated steps", async function () {
     const [owner, user] = await ethers.getSigners();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy contracts (no multisig needed)
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy(multisigOwners);
+    const saleToken = await Savitri.deploy();
     await saleToken.deployed();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy(multisigOwners);
+    const ico = await ICO.deploy();
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -37,16 +34,13 @@ describe("TokenICO dynamic pricing", function () {
   it("provides current and next stage prices", async function () {
     const [owner, user] = await ethers.getSigners();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy contracts (no multisig needed)
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy(multisigOwners);
+    const saleToken = await Savitri.deploy();
     await saleToken.deployed();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy(multisigOwners);
+    const ico = await ICO.deploy();
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -72,16 +66,13 @@ describe("TokenICO dynamic pricing", function () {
   it("delays price increase for waitlisted users", async function () {
     const [owner, user] = await ethers.getSigners();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy contracts (no multisig needed)
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy(multisigOwners);
+    const saleToken = await Savitri.deploy();
     await saleToken.deployed();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy(multisigOwners);
+    const ico = await ICO.deploy();
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);
@@ -110,16 +101,13 @@ describe("TokenICO dynamic pricing", function () {
   it("lets the owner adjust pricing intervals", async function () {
     const [owner, user] = await ethers.getSigners();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy contracts (no multisig needed)
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy(multisigOwners);
+    const saleToken = await Savitri.deploy();
     await saleToken.deployed();
 
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy(multisigOwners);
+    const ico = await ICO.deploy();
     await ico.deployed();
 
     await ico.connect(owner).setSaleToken(saleToken.address);

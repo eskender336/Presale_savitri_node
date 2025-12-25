@@ -1,14 +1,48 @@
 // hardhat.config.js
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+
+// Load private key from secure location or environment variable
+function loadPrivateKey() {
+  // First, try environment variable (for CI/CD or explicit override)
+  if (process.env.PRIVATE_KEY) {
+    return process.env.PRIVATE_KEY;
+  }
+  
+  // Then, try secure file location
+  const secretsDir = path.join(__dirname, ".secrets");
+  const privateKeyFile = path.join(secretsDir, "private-key");
+  
+  if (fs.existsSync(privateKeyFile)) {
+    try {
+      const key = fs.readFileSync(privateKeyFile, "utf8").trim();
+      if (key && key.length > 0) {
+        return key;
+      }
+    } catch (error) {
+      console.warn("⚠️  Could not read private key from .secrets/private-key:", error.message);
+    }
+  }
+  
+  // Fallback: try .env (for backward compatibility, but warn)
+  if (process.env.PRIVATE_KEY_FROM_ENV) {
+    console.warn("⚠️  Using PRIVATE_KEY from .env - consider moving to .secrets/private-key");
+    return process.env.PRIVATE_KEY_FROM_ENV;
+  }
+  
+  return null;
+}
 
 const {
   NEXT_PUBLIC_CHAIN_ID,
   NETWORK_RPC_URL,
-  PRIVATE_KEY,
   ETHERSCAN_API_KEY,
   BSCSCAN_API_KEY,
 } = process.env;
+
+const PRIVATE_KEY = loadPrivateKey();
 
 const CHAIN_ID = parseInt(NEXT_PUBLIC_CHAIN_ID || "97", 10); // consider 31337 for local
 
@@ -36,7 +70,21 @@ if (NETWORK_RPC_URL) {
 module.exports = {
   solidity: {
     version: "0.8.19",
-    settings: { optimizer: { enabled: true, runs: 200 }, viaIR: true },
+    settings: { 
+      optimizer: { 
+        enabled: true, 
+        runs: 0  // Minimum size - prioritize bytecode size over gas efficiency
+      }, 
+      viaIR: true,
+      metadata: {
+        bytecodeHash: "none"  // Reduces bytecode size
+      },
+      outputSelection: {
+        "*": {
+          "*": ["abi", "evm.bytecode", "evm.deployedBytecode"]
+        }
+      }
+    },
   },
   networks,
   paths: {
@@ -48,9 +96,8 @@ module.exports = {
   etherscan: {
     apiKey: {
       holesky: ETHERSCAN_API_KEY,
-      // optional if you plan to verify on BSC:
-      // bsc: BSCSCAN_API_KEY,
-      // bscTestnet: BSCSCAN_API_KEY,
+      bsc: BSCSCAN_API_KEY,
+      bscTestnet: BSCSCAN_API_KEY,
     },
     customChains: [
       {
@@ -59,6 +106,14 @@ module.exports = {
         urls: {
           apiURL: "https://api-holesky.etherscan.io/api",
           browserURL: "https://holesky.etherscan.io/",
+        },
+      },
+      {
+        network: "bsc",
+        chainId: 56,
+        urls: {
+          apiURL: "https://api.bscscan.com/api",
+          browserURL: "https://bscscan.com",
         },
       },
     ],

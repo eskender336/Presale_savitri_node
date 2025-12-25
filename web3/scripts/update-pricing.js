@@ -5,20 +5,14 @@
 
 require('dotenv').config({ path: __dirname + '/../.env' });
 const { ethers } = require('ethers');
+const { requirePrivateKey } = require('./utils/loadPrivateKey');
 
 async function main() {
   const RPC = process.env.NETWORK_RPC_URL;
-  // Load private key securely (encrypted storage with fallback to env)
-let PK;
-try {
-  const { loadPrivateKeySync } = require("./load-secure-key");
-  PK = loadPrivateKeySync({ allowFallback: true });
-} catch (e) {
-  PK = process.env.PRIVATE_KEY;
-}
+  // Load private key from secure location (.secrets/private-key or env var)
+  const PK = requirePrivateKey();
   const ICO = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS;
   if (!RPC) throw new Error('NETWORK_RPC_URL missing in web3/.env');
-  if (!PK) throw new Error('PRIVATE_KEY missing in web3/.env');
   if (!ICO) throw new Error('ICO address missing (NEXT_PUBLIC_TOKEN_ICO_ADDRESS or ICO_ADDRESS)');
 
   const argv = process.argv.slice(2);

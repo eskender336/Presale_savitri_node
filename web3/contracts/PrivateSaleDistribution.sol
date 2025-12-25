@@ -5,12 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
- * @title Airdrop Contract
- * @notice Airdrop contract for owner-controlled token distribution
- * @dev Only owner can send tokens to recipients
+ * @title Private Sale Distribution Contract
+ * @notice Contract for owner-controlled private sale token distribution
+ * @dev Participants have already filled forms and paid. This contract sends tokens to their addresses.
+ *      Only owner can send tokens to recipients.
  *      Supports Merkle tree validation for transparency
  */
-contract Airdrop {
+contract PrivateSaleDistribution {
     address public immutable owner;
     address public immutable token;
     bytes32 public merkleRoot;
@@ -26,14 +27,16 @@ contract Airdrop {
         _;
     }
     
-    constructor(address _token) {
-        owner = msg.sender;
+    constructor(address _token, address _owner) {
+        // If _owner is address(0), use msg.sender (for backward compatibility)
+        // Otherwise, use provided address (for multisig deployment)
+        owner = _owner == address(0) ? msg.sender : _owner;
         token = _token;
     }
     
     /**
-     * @notice Set the Merkle root for airdrop (optional, for transparency)
-     * @param _merkleRoot The Merkle root of the airdrop tree
+     * @notice Set the Merkle root for private sale distribution (optional, for transparency)
+     * @param _merkleRoot The Merkle root of the distribution tree
      */
     function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         bytes32 oldRoot = merkleRoot;

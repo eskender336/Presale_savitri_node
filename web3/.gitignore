@@ -1,0 +1,53 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Secure key storage
+.secrets/
+*.key
+*.pem
+
+# Node modules
+node_modules/
+
+# Build artifacts
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# Hardhat files
+coverage/
+coverage.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Deployment files
+deployment.json
+*-deployment.json
+private-sale-distribution-deployment.json
+
+# Transaction files
+safe-transactions.json
+private-sale-transactions.json
+
+# CSV and data files (may contain sensitive info)
+*.csv
+token-balances.csv
+merkle-root.json
+

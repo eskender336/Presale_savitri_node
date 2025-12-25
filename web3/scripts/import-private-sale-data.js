@@ -1,6 +1,6 @@
 // Script to import addresses and balances from a text file
 // Format: address,balance (one per line, or space-separated)
-// Usage: node web3/scripts/import-airdrop-data.js [input-file.txt]
+// Usage: node web3/scripts/import-private-sale-data.js [input-file.txt]
 const fs = require('fs');
 const path = require('path');
 const { ethers } = require('ethers');
@@ -108,11 +108,11 @@ function addAddressesToCsv(addresses) {
 
 // Main execution
 if (require.main === module) {
-  const inputFile = process.argv[2] || path.join(__dirname, '../../data/airdrop-addresses.txt');
+  const inputFile = process.argv[2] || path.join(__dirname, '../../data/private-sale-addresses.txt');
   
   if (!fs.existsSync(inputFile)) {
     console.error(`[import] Input file not found: ${inputFile}`);
-    console.error(`[import] Usage: node import-airdrop-data.js [input-file.txt]`);
+    console.error(`[import] Usage: node import-private-sale-data.js [input-file.txt]`);
     console.error(`[import] Format: address,balance (one per line)`);
     process.exit(1);
   }

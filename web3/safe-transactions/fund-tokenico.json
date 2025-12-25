@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "chainId": "56",
+  "createdAt": 1766569085693,
+  "meta": {
+    "name": "Fund TokenICO Contract",
+    "description": "Transfer 10000000 SAV tokens to TokenICO contract for public sale",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0xa9059cbb0000000000000000000000000d3ac358121ed8e23f80da496a5ccbbd2b209262000000000000000000000000000000000000000000084595161401484a000000",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "to",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "amount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+        "amount": "10000000000000000000000000"
+      }
+    }
+  ]
+}

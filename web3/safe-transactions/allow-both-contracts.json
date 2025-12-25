@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "chainId": "56",
+  "createdAt": 1766571768639,
+  "meta": {
+    "name": "Allow Contracts to Send Tokens",
+    "description": "Allow TokenICO and PrivateSaleDistribution to send SAV tokens",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0x4b52ffb00000000000000000000000000d3ac358121ed8e23f80da496a5ccbbd2b2092620000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "user",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "allowed",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ],
+        "name": "setAllowedSender",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "user": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+        "allowed": "true"
+      },
+      "operation": 0
+    },
+    {
+      "to": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813",
+      "value": "0",
+      "data": "0x4b52ffb000000000000000000000000020d62b0659c25cf27d168e9635234179b22e10a70000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "user",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "allowed",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ],
+        "name": "setAllowedSender",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "user": "0x20d62B0659C25CF27D168E9635234179B22e10A7",
+        "allowed": "true"
+      },
+      "operation": 0
+    }
+  ]
+}

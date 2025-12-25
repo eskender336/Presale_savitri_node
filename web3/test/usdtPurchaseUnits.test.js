@@ -5,18 +5,14 @@ describe("TokenICO USDT purchase units", function () {
   it("mints correct token amount when paying with whole-number USDT", async function () {
     const [owner, buyer] = await ethers.getSigners();
 
-    // Deploy sale token
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy sale token (no multisig needed)
     const Savitri = await ethers.getContractFactory("SavitriCoin");
-    const saleToken = await Savitri.deploy(multisigOwners);
+    const saleToken = await Savitri.deploy();
     await saleToken.deployed();
 
-    // Deploy TokenICO
-    // For tests, use owner address 5 times as multisig owners
-    const multisigOwners = [owner.address, owner.address, owner.address, owner.address, owner.address];
+    // Deploy TokenICO (no multisig needed)
     const ICO = await ethers.getContractFactory("TokenICO");
-    const ico = await ICO.deploy(multisigOwners);
+    const ico = await ICO.deploy();
     await ico.deployed();
 
     // Configure sale token and supply

@@ -1,5 +1,5 @@
 /**
- * Airdrop script for use with Gnosis Safe
+ * Private Sale Distribution script for use with Gnosis Safe
  * 
  * This script creates Safe transactions that need to be signed and executed
  * through the Gnosis Safe interface (app.safe.global)

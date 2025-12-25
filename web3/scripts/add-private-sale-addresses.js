@@ -1,5 +1,5 @@
 // Script to add addresses and balances to token-balances.csv
-// Usage: node web3/scripts/add-airdrop-addresses.js
+// Usage: node web3/scripts/add-private-sale-addresses.js
 const fs = require('fs');
 const path = require('path');
 const { ethers } = require('ethers');
@@ -58,7 +58,7 @@ function addAddressesToCsv(addresses) {
   
   for (const { address, balance } of addresses) {
     if (!address || !ethers.utils.isAddress(address)) {
-      console.warn(`[add-airdrop] Invalid address: ${address}`);
+      console.warn(`[add-private-sale] Invalid address: ${address}`);
       skipped++;
       continue;
     }
@@ -67,7 +67,7 @@ function addAddressesToCsv(addresses) {
     const addrLower = normalizedAddr.toLowerCase();
     
     if (existingAddresses.has(addrLower)) {
-      console.log(`[add-airdrop] Address already exists: ${normalizedAddr}`);
+      console.log(`[add-private-sale] Address already exists: ${normalizedAddr}`);
       skipped++;
       continue;
     }
@@ -81,13 +81,13 @@ function addAddressesToCsv(addresses) {
   if (newLines.length > 0) {
     const appendContent = newLines.join('\n') + '\n';
     fs.appendFileSync(CSV_PATH, appendContent, 'utf8');
-    console.log(`[add-airdrop] Added ${added} new addresses to ${CSV_PATH}`);
+    console.log(`[add-private-sale] Added ${added} new addresses to ${CSV_PATH}`);
   } else {
-    console.log(`[add-airdrop] No new addresses to add`);
+    console.log(`[add-private-sale] No new addresses to add`);
   }
   
   if (skipped > 0) {
-    console.log(`[add-airdrop] Skipped ${skipped} addresses (invalid or duplicate)`);
+    console.log(`[add-private-sale] Skipped ${skipped} addresses (invalid or duplicate)`);
   }
   
   return { added, skipped };
@@ -96,12 +96,12 @@ function addAddressesToCsv(addresses) {
 // Main execution
 if (require.main === module) {
   if (NEW_ADDRESSES.length === 0) {
-    console.error('[add-airdrop] No addresses provided. Please edit this script and add addresses to NEW_ADDRESSES array.');
+    console.error('[add-private-sale] No addresses provided. Please edit this script and add addresses to NEW_ADDRESSES array.');
     process.exit(1);
   }
   
   const result = addAddressesToCsv(NEW_ADDRESSES);
-  console.log(`[add-airdrop] Done. Added: ${result.added}, Skipped: ${result.skipped}`);
+  console.log(`[add-private-sale] Done. Added: ${result.added}, Skipped: ${result.skipped}`);
 }
 
 module.exports = { addAddressesToCsv, convertBalanceToWei };

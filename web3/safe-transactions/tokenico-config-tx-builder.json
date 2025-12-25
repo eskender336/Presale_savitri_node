@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "chainId": "56",
+  "createdAt": 1766553283725,
+  "meta": {
+    "name": "Configure TokenICO",
+    "description": "Set signer and sale token for TokenICO contract",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0xbC08bF77697271F1617728c7Cd049b596d13b3ba",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+      "value": "0",
+      "data": "0x6c19e783000000000000000000000000dca5af91a9d0665e96a65712bf38382044edec54",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "_signer",
+            "type": "address",
+            "internalType": "address"
+          }
+        ],
+        "name": "setSigner",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "_signer": "0xDca5AF91A9d0665e96a65712bF38382044edec54"
+      }
+    },
+    {
+      "to": "0x0D3aC358121Ed8e23f80dA496a5CcBBD2b209262",
+      "value": "0",
+      "data": "0xa29f481c000000000000000000000000bff00512c08477e9c03de507fcd5c9b087fe6813",
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "_token",
+            "type": "address",
+            "internalType": "address"
+          }
+        ],
+        "name": "setSaleToken",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "_token": "0xbfF00512c08477E9c03DE507fCD5C9b087fe6813"
+      }
+    }
+  ]
+}

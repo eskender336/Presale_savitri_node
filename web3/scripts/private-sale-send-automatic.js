@@ -1,11 +1,11 @@
 /**
- * Automatic Airdrop Script
+ * Automatic Private Sale Distribution Script
  * 
- * Sends tokens to recipients automatically (via Safe)
+ * Sends tokens to private sale participants automatically (via Safe)
  * CSV is published for transparency
  * 
  * Usage:
- *   node scripts/airdrop-send-automatic.js [csv-path] [--network localhost]
+ *   node scripts/private-sale-send-automatic.js [csv-path] [--network localhost]
  */
 
 const hre = require("hardhat");
@@ -83,16 +83,16 @@ async function main() {
     console.log(`✅ Found ${recipients.length} recipients\n`);
     
     // Get contract addresses
-    const AIRDROP_ADDRESS = process.env.AIRDROP_ADDRESS;
-    if (!AIRDROP_ADDRESS) {
-        throw new Error("AIRDROP_ADDRESS not set in .env");
+    const PRIVATE_SALE_DISTRIBUTION_ADDRESS = process.env.PRIVATE_SALE_DISTRIBUTION_ADDRESS || process.env.AIRDROP_ADDRESS;
+    if (!PRIVATE_SALE_DISTRIBUTION_ADDRESS) {
+        throw new Error("PRIVATE_SALE_DISTRIBUTION_ADDRESS not set in .env");
     }
     
-    console.log("Airdrop contract:", AIRDROP_ADDRESS);
+    console.log("Private Sale Distribution contract:", PRIVATE_SALE_DISTRIBUTION_ADDRESS);
     
-    // Load Airdrop contract
-    const Airdrop = await hre.ethers.getContractFactory("Airdrop");
-    const airdrop = Airdrop.attach(AIRDROP_ADDRESS);
+    // Load Private Sale Distribution contract
+    const PrivateSaleDistribution = await hre.ethers.getContractFactory("PrivateSaleDistribution");
+    const privateSaleDistribution = PrivateSaleDistribution.attach(PRIVATE_SALE_DISTRIBUTION_ADDRESS);
     
     // Generate Merkle tree for transparency
     console.log("🌳 Generating Merkle tree for transparency...");
@@ -100,10 +100,10 @@ async function main() {
     console.log(`✅ Merkle root: ${root}\n`);
     
     // Check if root is set
-    const currentRoot = await airdrop.merkleRoot();
+    const currentRoot = await privateSaleDistribution.merkleRoot();
     if (currentRoot === "0x0000000000000000000000000000000000000000000000000000000000000000") {
         console.log("⚠️  Merkle root not set on contract!");
-        console.log("   Set it first: airdrop.setMerkleRoot('" + root + "')");
+        console.log("   Set it first: privateSaleDistribution.setMerkleRoot('" + root + "')");
         console.log("   Then run this script again.\n");
         return;
     }
@@ -140,13 +140,13 @@ async function main() {
     
     for (const batch of batches) {
         // Option 1: With Merkle validation (more transparent)
-        const functionData = airdrop.interface.encodeFunctionData(
+        const functionData = privateSaleDistribution.interface.encodeFunctionData(
             "batchSend",
             [batch.recipients, batch.amounts, batch.proofs]
         );
         
         // Option 2: Direct send (faster, but less validation)
-        // const functionData = airdrop.interface.encodeFunctionData(
+        // const functionData = privateSaleDistribution.interface.encodeFunctionData(
         //     "batchSendDirect",
         //     [batch.recipients, batch.amounts]
         // );
@@ -154,7 +154,7 @@ async function main() {
         const totalAmount = batch.amounts.reduce((sum, amt) => sum.add(amt), hre.ethers.BigNumber.from(0));
         
         transactions.push({
-            to: AIRDROP_ADDRESS,
+            to: PRIVATE_SALE_DISTRIBUTION_ADDRESS,
             value: "0",
             data: functionData,
             operation: 0,
@@ -174,21 +174,21 @@ async function main() {
         merkleRoot: root,
         totalRecipients: recipients.length,
         totalBatches: batches.length,
-        airdropAddress: AIRDROP_ADDRESS,
+        privateSaleDistributionAddress: PRIVATE_SALE_DISTRIBUTION_ADDRESS,
         transactions: transactions,
     };
     
     fs.writeFileSync(
-        "airdrop-transactions.json",
+        "private-sale-transactions.json",
         JSON.stringify(output, null, 2)
     );
     
-    console.log("\n✅ Transaction data saved to: airdrop-transactions.json");
+    console.log("\n✅ Transaction data saved to: private-sale-transactions.json");
     console.log("\n📋 Next steps:");
     console.log("1. Publish CSV file for transparency (GitHub/IPFS/website)");
     console.log("2. Go to https://app.safe.global/");
     console.log("3. Connect your Safe wallet");
-    console.log("4. Create batch transaction with data from airdrop-transactions.json");
+    console.log("4. Create batch transaction with data from private-sale-transactions.json");
     console.log("5. Get 3+ signatures from Safe owners");
     console.log("6. Execute transactions");
     console.log("\n💡 Tip: Use Safe's batch feature to execute all batches at once!");

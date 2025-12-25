@@ -23,9 +23,11 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
+const { requirePrivateKey } = require('./utils/loadPrivateKey');
 
 const RPC = process.env.RPC_WS_URL || process.env.NETWORK_RPC_URL;
-const PK = process.env.PRIVATE_KEY;
+// Load private key from secure location (.secrets/private-key or env var)
+const PK = requirePrivateKey();
 const ICO_ADDR = process.env.NEXT_PUBLIC_TOKEN_ICO_ADDRESS || process.env.ICO_ADDRESS;
 const DRY_RUN = /^1|true|yes$/i.test(String(process.env.DRY_RUN || ''));
 const AUTO_WITHDRAW = /^1|true|yes$/i.test(String(process.env.AUTO_WITHDRAW || ''));
@@ -35,7 +37,6 @@ const STATE_FILE = process.env.BONUS_STATE_FILE || path.join(__dirname, '.bonus.
 const MIN_SEND_FLOAT = parseFloat(process.env.BONUS_MIN_SEND || '0.000001');
 
 if (!RPC) throw new Error('Missing RPC (RPC_WS_URL or NETWORK_RPC_URL)');
-if (!PK) throw new Error('Missing PRIVATE_KEY');
 if (!ICO_ADDR) throw new Error('Missing ICO address (NEXT_PUBLIC_TOKEN_ICO_ADDRESS or ICO_ADDRESS)');
 
 // ABIs

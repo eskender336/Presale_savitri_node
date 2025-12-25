@@ -2,18 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./libraries/PriceCalculationLibrary.sol";
+import "./libraries/StakingLibrary.sol";
+import "./libraries/PurchaseLibrary.sol";
 
-// Minimal interface for Chainlink-style price feeds
-interface AggregatorV3Interface {
-    function decimals() external view returns (uint8);
-    function latestRoundData() external view returns (
-        uint80 roundId,
-        int256 answer,
-        uint256 startedAt,
-        uint256 updatedAt,
-        uint80 answeredInRound
-    );
-}
+// Use AggregatorV3Interface from PriceCalculationLibrary
 
 interface IERC20 {
     function transfer(address recipient, uint256 amount) external returns (bool);
@@ -26,6 +19,51 @@ interface IERC20 {
 interface IDelegationChecker {
     function isDelegated(address user) external view returns (bool);
 }
+
+// Custom errors to save bytecode size
+error OnlyOwner();
+error ContractPaused();
+error UserBlocked();
+error SweeperBlocked();
+error DelegatedWallet();
+error InvalidPrice();
+error InvalidIncrement();
+error InvalidAddress();
+error InvalidFeed();
+error InvalidAmount();
+error ExceedsSaleSupply();
+error ExceedsWaitlistAllocation();
+error ExceedsPublicAllocation();
+error FeedNotSet();
+error PriceFeedStale();
+error InvalidPriceData();
+error IncompleteRound();
+error SaleTokenNotSet();
+error TokenNotConfigured();
+error TransferFailed();
+error InsufficientBalance();
+error ExceedsAllocation();
+error LengthMismatch();
+error BatchTooLarge();
+error AlreadySent();
+error InvalidMerkleProof();
+error InvalidRecipient();
+error StillInLockPeriod();
+error StakeNotActive();
+error StakeNotFound();
+error NoRewards();
+error AmountBelowMinimum();
+error InvalidLockPeriod();
+error CannotReferYourself();
+error AlreadyRegistered();
+error VoucherExpired();
+error NotYourVoucher();
+error NonceUsed();
+error BadSignature();
+error PercentageTooHigh();
+error AlreadyPaused();
+error NotPaused();
+error CannotWithdrawStaked();
 
 contract TokenICO {
     using ECDSA for bytes32;
@@ -46,10 +84,13 @@ contract TokenICO {
     AggregatorV3Interface public solPriceFeed;
     
     // Price Configuration
-    uint256 public initialUsdtPricePerToken  = 35 * 1e4;    // 1 token = 0.35 USD (0.00035 BNB @ 1 USDT = 0.001 BNB)
+    uint256 public initialUsdtPricePerToken  = 18 * 1e3;    // 1 token = 0.018 USD (18000 = 0.018 USD with 6 decimals)
     uint256 public stablecoinDecimals = 6;
 
-    uint256 public usdtPriceIncrement = 5e4; // 0.05 USDT increment (50000 = 0.05 USDT)
+    uint256 public usdtPriceIncrement = 25 * 1e2; // 0.0025 USDT increment (2500 = 0.0025 USD with 6 decimals)
+    uint256 public constant PRICE_THRESHOLD_TOKENS = 120_000_000 * 1e18; // Price stays at $0.018 until 120M tokens sold
+    uint256 public constant MAX_PRICE = 25 * 1e3; // Maximum price: $0.025 (25000 = 0.025 USD with 6 decimals)
+    uint256 public constant PRICE_INCREASE_INTERVAL = 30 days; // Price increases every 30 days after threshold
     
     // Base ratios for direct stablecoin purchases (1:1 for USDT/USDC)
     uint256 public usdtRatio = 1;  // Tokens per 1 USDT
@@ -58,10 +99,9 @@ contract TokenICO {
     uint256 public tokensSold;
     uint256 public waitlistSold;
 
-    uint256 public constant TOTAL_TOKENS_FOR_SALE = 600_000_000 * 1e18;
+    uint256 public constant TOTAL_TOKENS_FOR_SALE = 200_000_000 * 1e18; // Public sale allocation: 200M tokens (33.3% of total supply)
     uint256 public constant WAITLIST_ALLOCATION = 2_000_000 * 1e18;
     uint256 public constant MAX_BATCH_SIZE = 100; // Maximum recipients per batch to prevent DoS
-    uint256 public constant PRICE_FEED_STALENESS_THRESHOLD = 3600; // 1 hour in seconds
 
     // Blocked addresses
     mapping(address => bool) public blockedAddresses;
@@ -70,6 +110,7 @@ contract TokenICO {
 
     // Dynamic pricing
     uint256 public saleStartTime;
+    uint256 public priceIncreaseStartTime; // Timestamp when 120M threshold was reached (for price increases)
     uint256 public waitlistInterval = 14 days; // seconds for waitlisted wallets (2 weeks)
     uint256 public publicInterval = 7 days; // seconds for others (1 week)
     mapping(address => bool) public waitlisted;
@@ -86,14 +127,20 @@ contract TokenICO {
     event Unpaused(address account);
 
     function _updateSales(address buyer, uint256 tokenAmount) internal {
-        require(tokensSold + tokenAmount <= TOTAL_TOKENS_FOR_SALE, "Exceeds sale supply");
+        if (tokensSold + tokenAmount > TOTAL_TOKENS_FOR_SALE) revert ExceedsSaleSupply();
         if (waitlisted[buyer]) {
-            require(waitlistSold + tokenAmount <= WAITLIST_ALLOCATION, "Exceeds waitlist allocation");
+            if (waitlistSold + tokenAmount > WAITLIST_ALLOCATION) revert ExceedsWaitlistAllocation();
             waitlistSold += tokenAmount;
         } else {
             uint256 publicSold = tokensSold - waitlistSold;
-            require(publicSold + tokenAmount <= TOTAL_TOKENS_FOR_SALE - WAITLIST_ALLOCATION, "Exceeds public allocation");
+            if (publicSold + tokenAmount > TOTAL_TOKENS_FOR_SALE - WAITLIST_ALLOCATION) revert ExceedsPublicAllocation();
         }
+        
+        // Track when 120M threshold is reached for price increase timing
+        if (tokensSold < PRICE_THRESHOLD_TOKENS && tokensSold + tokenAmount >= PRICE_THRESHOLD_TOKENS) {
+            priceIncreaseStartTime = block.timestamp;
+        }
+        
         tokensSold += tokenAmount;
     }
 
@@ -103,37 +150,17 @@ contract TokenICO {
         uint8 paymentDecimals,
         address buyer
     ) internal view returns (uint256) {
-        require(address(feed) != address(0), "Feed not set");
-        
-        // Get all price feed data for validation
-        (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        ) = feed.latestRoundData();
-        
-        // Validate: negative or zero values
-        require(answer > 0, "Invalid price: negative or zero");
-        
-        // Validate: stale data (price feed not updated recently)
-        require(updatedAt > 0, "Price feed not updated");
-        require(
-            block.timestamp - updatedAt <= PRICE_FEED_STALENESS_THRESHOLD,
-            "Price feed stale"
-        );
-        
-        // Validate: incomplete round data
-        require(answeredInRound >= roundId, "Incomplete round");
-        
-        uint8 feedDecimals = feed.decimals();
+        (uint256 priceInUSD, uint8 feedDecimals) = PriceCalculationLibrary.validatePriceFeed(feed);
         uint256 tokenPrice = getCurrentPrice(buyer);
-        uint256 priceInUSD = uint256(answer);
-
-        return
-            (amount * priceInUSD * (10**(stablecoinDecimals + 18 - paymentDecimals))) /
-            (tokenPrice * (10**feedDecimals));
+        
+        return PriceCalculationLibrary.calculateTokensFromPayment(
+            amount,
+            priceInUSD,
+            feedDecimals,
+            paymentDecimals,
+            tokenPrice,
+            stablecoinDecimals
+        );
     }
 
     // Dynamic token ratios derived from price feeds (scaled by 1e18)
@@ -153,23 +180,9 @@ contract TokenICO {
         return _tokensFromPayment(1e9, solPriceFeed, 9, address(0));
     }
     
-    // Transaction history
-    struct Transaction {
-        uint256 timestamp;
-        address user;
-        address tokenIn;
-        address tokenOut;
-        uint256 amountIn;
-        uint256 amountOut;
-        string transactionType; // "BUY" or "SELL" or "REFERRAL"
-    }
-    
-    // User transaction history
-    mapping(address => Transaction[]) public userTransactions;
-    Transaction[] public allTransactions;
+    // Transaction history removed to reduce contract size
     
     // Staking configuration
-    uint256 public constant EARLY_WITHDRAWAL_PENALTY_PERCENT = 5;
     uint256 public totalPenaltyCollected;
     uint256 public baseAPY = 12; // 12% base APY
     uint256 public minStakeAmount = 100 * 1e18; // 100 tokens minimum stake
@@ -265,7 +278,7 @@ contract TokenICO {
     event PrivateSaleActiveUpdated(bool active);
     event PrivateSaleTotalAllocatedUpdated(uint256 total);
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner");
+        if (msg.sender != owner) revert OnlyOwner();
         _;
     }
     
@@ -275,21 +288,23 @@ contract TokenICO {
     }
     
     modifier whenNotPaused() {
-        require(!paused, "Contract is paused");
+        if (paused) revert ContractPaused();
         _;
     }
 
     function _ensureNotBlocked(address user) internal view {
-        require(!blockedAddresses[user], "Address is blocked");
-        require(!sweeperList[user], "Blocked sweeper");
+        if (blockedAddresses[user]) revert UserBlocked();
+        if (sweeperList[user]) revert SweeperBlocked();
         if (address(delegationChecker) != address(0)) {
-            require(!delegationChecker.isDelegated(user), "Delegated wallet");
+            if (delegationChecker.isDelegated(user)) revert DelegatedWallet();
         }
     }
     
-    constructor() {
-        owner = msg.sender;
-        signer = msg.sender;
+    constructor(address _owner) {
+        // If _owner is address(0), use msg.sender (for backward compatibility)
+        // Otherwise, use provided address (for multisig deployment)
+        owner = _owner == address(0) ? msg.sender : _owner;
+        signer = msg.sender; // Signer can be different from owner
         
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -304,65 +319,65 @@ contract TokenICO {
     // Admin Functions
     
     function updateInitialUsdtPrice(uint256 newPrice) external onlyOwner {
-        require(newPrice > 0, "Invalid price");
+        if (newPrice == 0) revert InvalidPrice();
         uint256 oldPrice = initialUsdtPricePerToken;
         initialUsdtPricePerToken = newPrice;
         emit PriceUpdated("USDT_PRICE", oldPrice, newPrice);
     }
 
     function updateUsdtPriceIncrement(uint256 newIncrement) external onlyOwner {
-        require(newIncrement > 0, "Invalid increment");
+        if (newIncrement == 0) revert InvalidIncrement();
         usdtPriceIncrement = newIncrement;
         emit PriceUpdated("USDT_INCREMENT", usdtPriceIncrement, newIncrement);
     }
 
     function updateUSDT(address newAddress) external onlyOwner {
-        require(newAddress != address(0), "Invalid address");
+        if (newAddress == address(0)) revert InvalidAddress();
         usdtAddress = newAddress;
     }
 
     function updateUSDC(address newAddress) external onlyOwner {
-        require(newAddress != address(0), "Invalid address");
+        if (newAddress == address(0)) revert InvalidAddress();
         usdcAddress = newAddress;
     }
 
     function updateETH(address newAddress) external onlyOwner {
-        require(newAddress != address(0), "Invalid address");
+        if (newAddress == address(0)) revert InvalidAddress();
         ethAddress = newAddress;
     }
 
     function updateBTC(address newAddress) external onlyOwner {
-        require(newAddress != address(0), "Invalid address");
+        if (newAddress == address(0)) revert InvalidAddress();
         btcAddress = newAddress;
     }
 
     function updateSOL(address newAddress) external onlyOwner {
-        require(newAddress != address(0), "Invalid address");
+        if (newAddress == address(0)) revert InvalidAddress();
         solAddress = newAddress;
     }
 
     function setBNBPriceFeed(address feed) external onlyOwner {
-        require(feed != address(0), "Invalid feed");
+        if (feed == address(0)) revert InvalidFeed();
         bnbPriceFeed = AggregatorV3Interface(feed);
     }
 
     function setETHPriceFeed(address feed) external onlyOwner {
-        require(feed != address(0), "Invalid feed");
+        if (feed == address(0)) revert InvalidFeed();
         ethPriceFeed = AggregatorV3Interface(feed);
     }
 
     function setBTCPriceFeed(address feed) external onlyOwner {
-        require(feed != address(0), "Invalid feed");
+        if (feed == address(0)) revert InvalidFeed();
         btcPriceFeed = AggregatorV3Interface(feed);
     }
 
     function setSOLPriceFeed(address feed) external onlyOwner {
-        require(feed != address(0), "Invalid feed");
+        if (feed == address(0)) revert InvalidFeed();
         solPriceFeed = AggregatorV3Interface(feed);
     }
     
     function setSaleToken(address _token) external onlyOwner {
-        require(_token != address(0), "Invalid address");
+        if (_token == address(0)) revert InvalidAddress();
         saleToken = _token;
     }
 
@@ -400,17 +415,33 @@ contract TokenICO {
     }
 
     function _priceData(address buyer) internal view returns (uint256 price, uint256 increments) {
+        // If sale hasn't started, return initial price
         if (saleStartTime == 0 || block.timestamp < saleStartTime) {
             return (initialUsdtPricePerToken, 0);
         }
 
-        uint256 interval = waitlisted[buyer] ? waitlistInterval : publicInterval;
-        if (interval == 0) {
+        // Price stays at $0.018 until 120M tokens are sold
+        if (tokensSold < PRICE_THRESHOLD_TOKENS) {
             return (initialUsdtPricePerToken, 0);
         }
 
-        increments = (block.timestamp - saleStartTime) / interval;
+        // After 120M tokens sold, price increases every 30 days
+        // Use priceIncreaseStartTime if set, otherwise use saleStartTime as fallback
+        uint256 thresholdTime = priceIncreaseStartTime > 0 ? priceIncreaseStartTime : saleStartTime;
+        
+        // Calculate time since threshold was reached
+        uint256 timeSinceThreshold = block.timestamp - thresholdTime;
+        
+        // Calculate number of 30-day intervals
+        increments = timeSinceThreshold / PRICE_INCREASE_INTERVAL;
+        
+        // Calculate new price: $0.018 + (increments * $0.0025)
         price = initialUsdtPricePerToken + (increments * usdtPriceIncrement);
+        
+        // Cap at maximum price of $0.025
+        if (price > MAX_PRICE) {
+            price = MAX_PRICE;
+        }
     }
 
     function getCurrentPrice(address buyer) public view returns (uint256) {
@@ -428,7 +459,7 @@ contract TokenICO {
     // Referral Admin Functions
     
     function updateReferralPercentage(uint256 newPercentage) external onlyOwner {
-        require(newPercentage <= 20, "Percentage too high");
+        if (newPercentage > 20) revert PercentageTooHigh();
         uint256 oldPercentage = referralRewardPercentage;
         referralRewardPercentage = newPercentage;
         emit ReferralPercentageUpdated(oldPercentage, newPercentage);
@@ -437,9 +468,9 @@ contract TokenICO {
     // User Functions - Referral Registration
     
     function registerReferrer(address referrer) external notBlocked whenNotPaused {
-        require(referrer != address(0), "Invalid referrer address");
-        require(referrer != msg.sender, "Cannot refer yourself");
-        require(referrers[msg.sender] == address(0), "Already registered with a referrer");
+        if (referrer == address(0)) revert InvalidAddress();
+        if (referrer == msg.sender) revert(); // Cannot refer yourself
+        if (referrers[msg.sender] != address(0)) revert AlreadyRegistered();
 
         referrers[msg.sender] = referrer;
         referrals[referrer].push(msg.sender);
@@ -469,11 +500,11 @@ contract TokenICO {
     }
 
     function _validateVoucherAndBind(WhitelistRef calldata v, bytes calldata sig) internal {
-        require(block.timestamp <= v.deadline, "Voucher expired");
-        require(v.user == msg.sender, "Not your voucher");
-        require(v.nonce > usedNonce[msg.sender], "Nonce used");
+        if (block.timestamp > v.deadline) revert VoucherExpired();
+        if (v.user != msg.sender) revert NotYourVoucher();
+        if (v.nonce <= usedNonce[msg.sender]) revert NonceUsed();
         bytes32 digest = _hashWhitelistRef(v);
-        require(ECDSA.recover(digest, sig) == signer, "Bad signature");
+        if (ECDSA.recover(digest, sig) != signer) revert BadSignature();
         usedNonce[msg.sender] = v.nonce;
         emit VoucherConsumed(msg.sender, v.nonce);
 
@@ -498,9 +529,9 @@ contract TokenICO {
     // User Functions - Buying Tokens
     
     function buyWithUSDT(uint256 usdtAmount) external whenNotPaused {
-        require(usdtAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(usdtAddress != address(0), "USDT not configured");
+        if (usdtAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (usdtAddress == address(0)) revert TokenNotConfigured();
         
         uint256 usdtInSmallestUnit = usdtAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
@@ -508,22 +539,11 @@ contract TokenICO {
         // Direct USDT pricing: tokens = (usdtInSmallestUnit * 1e18) / price
         uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / price;
         
-        require(
-            IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
-            "USDT transfer failed"
-        );
+        if (!IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit)) revert TransferFailed();
         
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
         
-        _recordTransaction(
-            msg.sender,
-            usdtAddress,
-            saleToken,
-            usdtInSmallestUnit,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(
             msg.sender,
@@ -535,9 +555,9 @@ contract TokenICO {
     }
     
     function buyWithUSDC(uint256 usdcAmount) external whenNotPaused {
-        require(usdcAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(usdcAddress != address(0), "USDC not configured");
+        if (usdcAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (usdcAddress == address(0)) revert TokenNotConfigured();
         
         uint256 usdcInSmallestUnit = usdcAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
@@ -545,22 +565,11 @@ contract TokenICO {
         // USDC uses same pricing as USDT (1:1)
         uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / price;
         
-        require(
-            IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
-            "USDC transfer failed"
-        );
+        if (!IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit)) revert TransferFailed();
         
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
         
-        _recordTransaction(
-            msg.sender,
-            usdcAddress,
-            saleToken,
-            usdcInSmallestUnit,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(
             msg.sender,
@@ -572,8 +581,8 @@ contract TokenICO {
     }
 
     function buyWithBNB() external payable whenNotPaused {
-        require(msg.value > 0, "Must send BNB");
-        require(saleToken != address(0), "Sale token not set");
+        if (msg.value == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
 
         uint256 tokenAmount = _tokensFromPayment(
             msg.value,
@@ -586,24 +595,16 @@ contract TokenICO {
         _processPurchase(tokenAmount);
         
         (bool success, ) = payable(owner).call{value: msg.value}("");
-        require(success, "BNB transfer failed");
+        if (!success) revert TransferFailed();
 
-        _recordTransaction(
-            msg.sender,
-            address(0),
-            saleToken,
-            msg.value,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
 
     function buyWithETH(uint256 ethAmount) external whenNotPaused {
-        require(ethAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(ethAddress != address(0), "ETH not configured");
+        if (ethAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (ethAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             ethAmount,
@@ -612,30 +613,19 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount),
-            "ETH transfer failed"
-        );
+        if (!IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            ethAddress,
-            saleToken,
-            ethAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
     function buyWithBTC(uint256 btcAmount) external whenNotPaused {
-        require(btcAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(btcAddress != address(0), "BTC not configured");
+        if (btcAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (btcAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             btcAmount,
@@ -644,30 +634,19 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
-            "BTC transfer failed"
-        );
+        if (!IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            btcAddress,
-            saleToken,
-            btcAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
     function buyWithSOL(uint256 solAmount) external whenNotPaused {
-        require(solAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(solAddress != address(0), "SOL not configured");
+        if (solAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (solAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             solAmount,
@@ -676,30 +655,19 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
-            "SOL transfer failed"
-        );
+        if (!IERC20(solAddress).transferFrom(msg.sender, owner, solAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            solAddress,
-            saleToken,
-            solAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
     }
 
     function buyWithBNB_Voucher(WhitelistRef calldata v, bytes calldata sig) external payable whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(msg.value > 0, "Must send BNB");
-        require(saleToken != address(0), "Sale token not set");
+        if (msg.value == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
 
         uint256 tokenAmount = _tokensFromPayment(
             msg.value,
@@ -712,25 +680,17 @@ contract TokenICO {
         _processPurchase(tokenAmount);
         
         (bool success, ) = payable(owner).call{value: msg.value}("");
-        require(success, "BNB transfer failed");
+        if (!success) revert TransferFailed();
 
-        _recordTransaction(
-            msg.sender,
-            address(0),
-            saleToken,
-            msg.value,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, address(0), msg.value, tokenAmount, block.timestamp);
     }
 
     function buyWithUSDT_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdtAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(usdtAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(usdtAddress != address(0), "USDT not configured");
+        if (usdtAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (usdtAddress == address(0)) revert TokenNotConfigured();
         
         uint256 usdtInSmallestUnit = usdtAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
@@ -738,22 +698,11 @@ contract TokenICO {
         // Direct USDT pricing: tokens = (usdtInSmallestUnit * 1e18) / price
         uint256 tokenAmount = (usdtInSmallestUnit * 1e18) / price;
         
-        require(
-            IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit),
-            "USDT transfer failed"
-        );
+        if (!IERC20(usdtAddress).transferFrom(msg.sender, owner, usdtInSmallestUnit)) revert TransferFailed();
         
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
         
-        _recordTransaction(
-            msg.sender,
-            usdtAddress,
-            saleToken,
-            usdtInSmallestUnit,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(
             msg.sender,
@@ -766,9 +715,9 @@ contract TokenICO {
 
     function buyWithUSDC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 usdcAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(usdcAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(usdcAddress != address(0), "USDC not configured");
+        if (usdcAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (usdcAddress == address(0)) revert TokenNotConfigured();
         
         uint256 usdcInSmallestUnit = usdcAmount * 10**stablecoinDecimals;
         uint256 price = getCurrentPrice(msg.sender);
@@ -776,22 +725,11 @@ contract TokenICO {
         // USDC uses same pricing as USDT (1:1)
         uint256 tokenAmount = (usdcInSmallestUnit * 1e18) / price;
         
-        require(
-            IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit),
-            "USDC transfer failed"
-        );
+        if (!IERC20(usdcAddress).transferFrom(msg.sender, owner, usdcInSmallestUnit)) revert TransferFailed();
         
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
         
-        _recordTransaction(
-            msg.sender,
-            usdcAddress,
-            saleToken,
-            usdcInSmallestUnit,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(
             msg.sender,
@@ -804,9 +742,9 @@ contract TokenICO {
 
     function buyWithETH_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 ethAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(ethAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(ethAddress != address(0), "ETH not configured");
+        if (ethAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (ethAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             ethAmount,
@@ -815,31 +753,20 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount),
-            "ETH transfer failed"
-        );
+        if (!IERC20(ethAddress).transferFrom(msg.sender, owner, ethAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            ethAddress,
-            saleToken,
-            ethAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, ethAddress, ethAmount, tokenAmount, block.timestamp);
     }
 
     function buyWithBTC_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 btcAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(btcAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(btcAddress != address(0), "BTC not configured");
+        if (btcAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (btcAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             btcAmount,
@@ -848,31 +775,20 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount),
-            "BTC transfer failed"
-        );
+        if (!IERC20(btcAddress).transferFrom(msg.sender, owner, btcAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            btcAddress,
-            saleToken,
-            btcAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, btcAddress, btcAmount, tokenAmount, block.timestamp);
     }
 
     function buyWithSOL_Voucher(WhitelistRef calldata v, bytes calldata sig, uint256 solAmount) external whenNotPaused {
         _validateVoucherAndBind(v, sig);
-        require(solAmount > 0, "Amount must be greater than 0");
-        require(saleToken != address(0), "Sale token not set");
-        require(solAddress != address(0), "SOL not configured");
+        if (solAmount == 0) revert InvalidAmount();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (solAddress == address(0)) revert TokenNotConfigured();
 
         uint256 tokenAmount = _tokensFromPayment(
             solAmount,
@@ -881,22 +797,11 @@ contract TokenICO {
             msg.sender
         );
 
-        require(
-            IERC20(solAddress).transferFrom(msg.sender, owner, solAmount),
-            "SOL transfer failed"
-        );
+        if (!IERC20(solAddress).transferFrom(msg.sender, owner, solAmount)) revert TransferFailed();
 
         tokenAmount = _processReferralReward(tokenAmount);
         _processPurchase(tokenAmount);
 
-        _recordTransaction(
-            msg.sender,
-            solAddress,
-            saleToken,
-            solAmount,
-            tokenAmount,
-            "BUY"
-        );
 
         emit TokensPurchased(msg.sender, solAddress, solAmount, tokenAmount, block.timestamp);
     }
@@ -905,14 +810,14 @@ contract TokenICO {
     // Staking Admin Functions
     
     function updateBaseAPY(uint256 newAPY) external onlyOwner {
-        require(newAPY > 0, "APY must be greater than 0");
+        if (newAPY == 0) revert InvalidAmount();
         uint256 oldAPY = baseAPY;
         baseAPY = newAPY;
         emit APYUpdated(oldAPY, newAPY);
     }
     
     function updateMinStakeAmount(uint256 newMinAmount) external onlyOwner {
-        require(newMinAmount > 0, "Min stake must be greater than 0");
+        if (newMinAmount == 0) revert InvalidAmount();
         uint256 oldMinStake = minStakeAmount;
         minStakeAmount = newMinAmount;
         emit MinStakeUpdated(oldMinStake, newMinAmount);
@@ -921,15 +826,12 @@ contract TokenICO {
     // Staking User Functions
     
     function stakeTokens(uint256 amount, uint256 lockPeriodDays) external notBlocked whenNotPaused {
-        require(amount >= minStakeAmount, "Amount below minimum stake");
-        require(saleToken != address(0), "Sale token not set");
-        require(lockPeriodDays == 30 || lockPeriodDays == 90 || lockPeriodDays == 180 || lockPeriodDays == 365, "Invalid lock period");
+        if (amount < minStakeAmount) revert AmountBelowMinimum();
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (lockPeriodDays != 30 && lockPeriodDays != 90 && lockPeriodDays != 180 && lockPeriodDays != 365) revert();
         
         // Transfer tokens from user to contract
-        require(
-            IERC20(saleToken).transferFrom(msg.sender, address(this), amount),
-            "Token transfer failed"
-        );
+        if (!IERC20(saleToken).transferFrom(msg.sender, address(this), amount)) revert TransferFailed();
         
         // Create new stake
         uint256 stakeId = nextStakeId++;
@@ -959,7 +861,7 @@ contract TokenICO {
     
     function calculateRewards(uint256 stakeId) public view returns (uint256) {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner != address(0), "Stake does not exist");
+        if (stakeOwner == address(0)) revert();
         
         // Optimize to reduce local variables
         bool found = false;
@@ -981,8 +883,8 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
-        require(isActive, "Stake not active");
+        if (!found) revert StakeNotFound();
+        if (!isActive) revert StakeNotActive();
         
         // If already calculated, return existing pending rewards
         if (lastCalculation == block.timestamp) {
@@ -992,18 +894,13 @@ contract TokenICO {
         // Calculate time elapsed since last calculation
         uint256 timeElapsed = block.timestamp - lastCalculation;
         
-        // Calculate APY based on lock period
-        uint256 apy = baseAPY;
-        if (lockPeriod == 90) {
-            apy = baseAPY * 3 / 2; // 1.5x for 90 days
-        } else if (lockPeriod == 180) {
-            apy = baseAPY * 2; // 2x for 180 days
-        } else if (lockPeriod == 365) {
-            apy = baseAPY * 3; // 3x for 365 days
-        }
-        
-        // Calculate rewards: principal * APY * time / year (in seconds)
-        uint256 newRewards = amount * apy * timeElapsed / (365 days * 100);
+        // Calculate new rewards using library
+        uint256 newRewards = StakingLibrary.calculateRewardAmount(
+            amount,
+            baseAPY,
+            lockPeriod,
+            timeElapsed
+        );
         
         // Return existing rewards plus new rewards
         return pendingRewards + newRewards;
@@ -1011,28 +908,25 @@ contract TokenICO {
     
     function harvestRewards(uint256 stakeId) external notBlocked {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner == msg.sender, "Not stake owner");
+        if (stakeOwner != msg.sender) revert();
         
         // Find the stake and update in one loop to reduce variables
         bool found = false;
         
         for (uint i = 0; i < userStakes[msg.sender].length; i++) {
             if (userStakes[msg.sender][i].id == stakeId) {
-                require(userStakes[msg.sender][i].active, "Stake not active");
+                if (!userStakes[msg.sender][i].active) revert StakeNotActive();
                 
                 // Calculate rewards
                 uint256 rewards = calculateRewards(stakeId);
-                require(rewards > 0, "No rewards to harvest");
+                if (rewards == 0) revert NoRewards();
                 
                 // Reset pending rewards and update last calculation time
                 userStakes[msg.sender][i].pendingRewards = 0;
                 userStakes[msg.sender][i].lastRewardCalculation = block.timestamp;
                 
                 // Transfer rewards
-                require(
-                    IERC20(saleToken).transfer(msg.sender, rewards),
-                    "Reward transfer failed"
-                );
+                if (!IERC20(saleToken).transfer(msg.sender, rewards)) revert TransferFailed();
                 
                 totalRewardsDistributed += rewards;
                 
@@ -1042,12 +936,12 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
+        if (!found) revert StakeNotFound();
     }
     
     function unstakeTokens(uint256 stakeId) external notBlocked {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner == msg.sender, "Not stake owner");
+        if (stakeOwner != msg.sender) revert();
         
         // Find and process the stake in one loop to reduce variables
         bool found = false;
@@ -1056,12 +950,12 @@ contract TokenICO {
         
         for (uint i = 0; i < userStakes[msg.sender].length; i++) {
             if (userStakes[msg.sender][i].id == stakeId) {
-                require(userStakes[msg.sender][i].active, "Stake not active");
+                if (!userStakes[msg.sender][i].active) revert StakeNotActive();
                 
                 // Check if lock period has ended
                 uint256 unlockTime = userStakes[msg.sender][i].startTime + 
                                     (userStakes[msg.sender][i].lockPeriod * 1 days);
-                require(block.timestamp >= unlockTime, "Still in lock period");
+                if (block.timestamp < unlockTime) revert StillInLockPeriod();
                 
                 // Calculate rewards first
                 rewards = calculateRewards(stakeId);
@@ -1076,17 +970,14 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
+        if (!found) revert StakeNotFound();
         
         // Check if user has other active stakes (separate loop to avoid stack issues)
         _updateStakerStatus(msg.sender);
         
         // Transfer principal + rewards
         uint256 totalAmount = stakeAmount + rewards;
-        require(
-            IERC20(saleToken).transfer(msg.sender, totalAmount),
-            "Token transfer failed"
-        );
+        if (!IERC20(saleToken).transfer(msg.sender, totalAmount)) revert TransferFailed();
         
         if (rewards > 0) {
             totalRewardsDistributed += rewards;
@@ -1101,7 +992,7 @@ contract TokenICO {
     // Add this function to your contract
     function unstakeEarly(uint256 stakeId) external notBlocked {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner == msg.sender, "Not stake owner");
+        if (stakeOwner != msg.sender) revert();
         
         // Find and process the stake in one loop to reduce variables
         bool found = false;
@@ -1110,7 +1001,7 @@ contract TokenICO {
         
         for (uint i = 0; i < userStakes[msg.sender].length; i++) {
             if (userStakes[msg.sender][i].id == stakeId) {
-                require(userStakes[msg.sender][i].active, "Stake not active");
+                if (!userStakes[msg.sender][i].active) revert StakeNotActive();
                 
                 // Check if lock period has not ended
                 uint256 unlockTime = userStakes[msg.sender][i].startTime + 
@@ -1125,7 +1016,7 @@ contract TokenICO {
                 // Apply early withdrawal penalty if still in lock period
                 uint256 penalty = 0;
                 if (block.timestamp < unlockTime) {
-                    penalty = (stakeAmount * EARLY_WITHDRAWAL_PENALTY_PERCENT) / 100;
+                    penalty = StakingLibrary.calculateEarlyWithdrawalPenalty(stakeAmount);
                     // Track the penalty
                     totalPenaltyCollected += penalty;
                 }
@@ -1140,10 +1031,7 @@ contract TokenICO {
                 uint256 amountToReturn = stakeAmount - penalty;
                 uint256 totalAmount = amountToReturn + rewards;
                 
-                require(
-                    IERC20(saleToken).transfer(msg.sender, totalAmount),
-                    "Token transfer failed"
-                );
+                if (!IERC20(saleToken).transfer(msg.sender, totalAmount)) revert TransferFailed();
                 
                 if (rewards > 0) {
                     totalRewardsDistributed += rewards;
@@ -1161,7 +1049,7 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
+        if (!found) revert StakeNotFound();
         
         // Check if user has other active stakes (separate loop to avoid stack issues)
         _updateStakerStatus(msg.sender);
@@ -1177,23 +1065,12 @@ contract TokenICO {
             uint256 referralReward = (tokenAmount * referralRewardPercentage) / 100;
             
             // Transfer reward to referrer
-            require(
-                IERC20(saleToken).transfer(referrer, referralReward),
-                "Referral reward transfer failed"
-            );
+            if (!IERC20(saleToken).transfer(referrer, referralReward)) revert TransferFailed();
             
             // Update referrer's total rewards
             referralRewards[referrer] += referralReward;
             
             // Record referral transaction
-            _recordTransaction(
-                referrer,
-                saleToken,
-                saleToken,
-                tokenAmount, // Original purchase amount
-                referralReward,
-                "REFERRAL"
-            );
             
             emit ReferralRewardPaid(referrer, msg.sender, referralReward);
             
@@ -1224,50 +1101,13 @@ contract TokenICO {
     function _processPurchase(uint256 tokenAmount) internal {
         _ensureNotBlocked(msg.sender);
         IERC20 token = IERC20(saleToken);
-        require(
-            token.balanceOf(address(this)) >= tokenAmount,
-            "Insufficient token balance"
-        );
+        if (token.balanceOf(address(this)) < tokenAmount) revert InsufficientBalance();
 
         _updateSales(msg.sender, tokenAmount);
 
-        require(
-            token.transfer(msg.sender, tokenAmount),
-            "Token transfer failed"
-        );
+        if (!token.transfer(msg.sender, tokenAmount)) revert TransferFailed();
     }
     
-    function _recordTransaction(
-        address user,
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        string memory transactionType
-    ) internal {
-        Transaction memory newTx = Transaction({
-            timestamp: block.timestamp,
-            user: user,
-            tokenIn: tokenIn,
-            tokenOut: tokenOut,
-            amountIn: amountIn,
-            amountOut: amountOut,
-            transactionType: transactionType
-        });
-        
-        userTransactions[user].push(newTx);
-        allTransactions.push(newTx);
-    }
-    
-    // View Functions
-    
-    function getUserTransactions(address user) external view returns (Transaction[] memory) {
-        return userTransactions[user];
-    }
-    
-    function getAllTransactions() external view returns (Transaction[] memory) {
-        return allTransactions;
-    }
     
     function getUserStakes(address user) external view returns (Stake[] memory) {
         return userStakes[user];
@@ -1281,7 +1121,7 @@ contract TokenICO {
         uint256 startTime
     ) {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner != address(0), "Stake does not exist");
+        if (stakeOwner == address(0)) revert();
         
         Stake memory userStake;
         bool found = false;
@@ -1294,7 +1134,7 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
+        if (!found) revert StakeNotFound();
         
         return (
             userStake.id,
@@ -1310,7 +1150,7 @@ contract TokenICO {
         bool active
     ) {
         address stakeOwner = stakeOwners[stakeId];
-        require(stakeOwner != address(0), "Stake does not exist");
+        if (stakeOwner == address(0)) revert();
         
         Stake memory userStake;
         bool found = false;
@@ -1323,7 +1163,7 @@ contract TokenICO {
             }
         }
         
-        require(found, "Stake not found");
+        if (!found) revert StakeNotFound();
         
         // Calculate current rewards
         uint256 rewards = calculateRewards(stakeId);
@@ -1438,26 +1278,20 @@ contract TokenICO {
     function withdrawTokens(address _token, uint256 _amount) external onlyOwner {
         if (_token == saleToken) {
             uint256 availableBalance = IERC20(_token).balanceOf(address(this)) - totalStaked;
-            require(_amount <= availableBalance, "Cannot withdraw staked tokens");
+            if (_amount > availableBalance) revert CannotWithdrawStaked();
         }
         
-        require(
-            IERC20(_token).transfer(owner, _amount),
-            "Transfer failed"
-        );
+        if (!IERC20(_token).transfer(owner, _amount)) revert TransferFailed();
     }
     
     function withdrawTokensTo(address _token, uint256 _amount, address _recipient) external onlyOwner {
-        require(_recipient != address(0), "Invalid recipient address");
+        if (_recipient == address(0)) revert InvalidRecipient();
         if (_token == saleToken) {
             uint256 availableBalance = IERC20(_token).balanceOf(address(this)) - totalStaked;
-            require(_amount <= availableBalance, "Cannot withdraw staked tokens");
+            if (_amount > availableBalance) revert CannotWithdrawStaked();
         }
         
-        require(
-            IERC20(_token).transfer(_recipient, _amount),
-            "Transfer failed"
-        );
+        if (!IERC20(_token).transfer(_recipient, _amount)) revert TransferFailed();
     }
     
     // Private Sale Admin Functions
@@ -1466,12 +1300,12 @@ contract TokenICO {
         address[] calldata recipients,
         uint256[] calldata amounts
     ) external onlyOwner {
-        require(recipients.length == amounts.length, "Length mismatch");
-        require(recipients.length <= MAX_BATCH_SIZE, "Batch too large");
+        if (recipients.length != amounts.length) revert LengthMismatch();
+        if (recipients.length > MAX_BATCH_SIZE) revert BatchTooLarge();
         
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(recipients[i] != address(0), "Invalid address");
-            require(amounts[i] > 0, "Invalid amount");
+            if (recipients[i] == address(0)) revert InvalidAddress();
+            if (amounts[i] == 0) revert InvalidAmount();
             
             privateSaleAllocation[recipients[i]] = amounts[i];
             emit PrivateSaleAllocationSet(recipients[i], amounts[i]);
@@ -1483,38 +1317,29 @@ contract TokenICO {
         uint256[] calldata amounts,
         string[] calldata reasons
     ) external onlyOwner {
-        require(saleToken != address(0), "Sale token not set");
-        require(recipients.length == amounts.length, "Length mismatch");
-        require(recipients.length == reasons.length, "Reasons length mismatch");
-        require(recipients.length <= MAX_BATCH_SIZE, "Batch too large");
+        if (saleToken == address(0)) revert SaleTokenNotSet();
+        if (recipients.length != amounts.length) revert LengthMismatch();
+        if (recipients.length != reasons.length) revert LengthMismatch();
+        if (recipients.length > MAX_BATCH_SIZE) revert BatchTooLarge();
         
         uint256 totalAmount = 0;
         
         // Проверяем все лимиты
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(recipients[i] != address(0), "Invalid address");
-            require(amounts[i] > 0, "Invalid amount");
-            require(
-                privateSaleDistributed[recipients[i]] + amounts[i] <= privateSaleAllocation[recipients[i]],
-                "Exceeds allocation"
-            );
+            if (recipients[i] == address(0)) revert InvalidAddress();
+            if (amounts[i] == 0) revert InvalidAmount();
+            if (privateSaleDistributed[recipients[i]] + amounts[i] > privateSaleAllocation[recipients[i]]) revert ExceedsAllocation();
             totalAmount += amounts[i];
         }
         
         // Проверяем баланс контракта
-        require(
-            IERC20(saleToken).balanceOf(address(this)) >= totalAmount,
-            "Insufficient balance"
-        );
+        if (IERC20(saleToken).balanceOf(address(this)) < totalAmount) revert InsufficientBalance();
         
         // Распределяем токены
         for (uint256 i = 0; i < recipients.length; i++) {
             privateSaleDistributed[recipients[i]] += amounts[i];
             
-            require(
-                IERC20(saleToken).transfer(recipients[i], amounts[i]),
-                "Transfer failed"
-            );
+            if (!IERC20(saleToken).transfer(recipients[i], amounts[i])) revert TransferFailed();
             
             emit PrivateSaleDistributed(recipients[i], amounts[i], reasons[i]);
         }
@@ -1534,13 +1359,13 @@ contract TokenICO {
     
     // Pause mechanism
     function pause() external onlyOwner {
-        require(!paused, "Already paused");
+        if (paused) revert AlreadyPaused();
         paused = true;
         emit Paused(msg.sender);
     }
     
     function unpause() external onlyOwner {
-        require(paused, "Not paused");
+        if (!paused) revert NotPaused();
         paused = false;
         emit Unpaused(msg.sender);
     }
